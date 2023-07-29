@@ -2,7 +2,7 @@
 # PURPOSE: Calculate the mean and standard deviation of the packing fraction
 # INPUT: Data file genereated by ABP analysis.jl
 
-using BenchmarkTools, Plots, LaTeXStrings, Statistics, CSV, DataFrames
+using Plots, LaTeXStrings, Statistics, CSV, DataFrames
 
 gr()
 

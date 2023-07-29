@@ -4,7 +4,7 @@
 # Input: File from the output.jl, which has positions and orientation at each instant
 # Output: Velocity of each particle at every instant and average velocity of the ensemble
 
-using BenchmarkTools, Plots, LaTeXStrings, Statistics, CSV, DataFrames,CategoricalArrays
+using  Plots, LaTeXStrings, Statistics, CSV, DataFrames,CategoricalArrays
  
 
 path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\July\\07\\v5.0\\"  # destination folder path

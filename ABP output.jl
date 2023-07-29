@@ -6,7 +6,7 @@ include("ABP file.jl")
 include("ABP analysis.jl")
 include("ABP SD.jl")
 include("ABP multifolder.jl")
-using BenchmarkTools,Plots,Distances,NaNStatistics,CSV, DataFrames
+using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
 gr()
 
@@ -26,18 +26,19 @@ R = 2.0		# μm particle radius
 v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
+ICS=2          # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
 packing_fraction = 0.1
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 1000# Nt is the number of steps 
+Nt = 10000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\July\\" # destination folder path
+path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\July\\parameter scan\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -45,22 +46,22 @@ mainfolder= mkdir(path*"$datestamp")    # creates a folder names todays'late
 
 path1= path*"$datestamp\\"
 
-mainfolder1= mkdir(path1*"R=$R v=$v a=$a b=$b")
+mainfolder1= mkdir(path1*"R=$R v=$v a=$a b=$b pf=$packing_fraction")
 
-patht= path*"$datestamp\\R=$R v=$v a=$a b=$b\\"
-ICS=1            # number of intial conditons to be scanned 
+patht= path*"$datestamp\\R=$R v=$v a=$a b=$b pf=$packing_fraction\\"
+
 
 folders=  multipledir(patht,ICS) 
 
 for i=1:ICS
 
     pathf= patht*"run$i\\"
-    filename= "$datestamp R=$R v=$v a=$a b=$b run$i"
+    filename= "$datestamp R=$R v=$v a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
 
-    graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
+    #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
 
-      println("multiparticleE complied\n")
+     # println("multiparticleE complied\n")
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION
 
@@ -81,7 +82,7 @@ analysis_SD= stat_analysis2(a,b,R,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # making animation
 anim = @animate for i = 1:100:Nt
-    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L, background_color_inside=:Blues_6,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
+    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
     plot!(L/2*cos.(-π:0.01:π), L/4*sin.(-π:0.01:π))
     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
 end

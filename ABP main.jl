@@ -1,5 +1,5 @@
-using CalculusWithJulia
-using ForwardDiff
+using CalculusWithJulia, ForwardDiff
+
 # Define an "ABPsEnsemble" Type
 abstract type ABPsEnsemble end
 
