@@ -25,7 +25,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
 
     # ONLY 2D!
     k=0.5
-    xyθ1 = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and theta 
+    xyθ1 = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
     r = (xyθ1[:,1]).*(xyθ1[:,1]) + (xyθ1[:,2]).*(xyθ1[:,2])
   
     rₚ = sqrt.(r)   
@@ -103,7 +103,7 @@ end
 function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)]
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] ##.+ attractive_interactions!(xy, 2.0)
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
     else
         println("No step method available")
@@ -166,6 +166,37 @@ function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # calle
     hardsphere!(xy, dists, superpose, uptriang, R; tol=tol)
     return xy, dists, superpose, uptriang
 end
+
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# This function will compute the attractive interaction among the particles
+# Attractive potential is LJ with cutoff at radius of particle
+
+function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
+
+    ϵ=0.1
+    σ= 2*R
+    Np = size(xy,1)
+    dists = zeros(Np,Np)
+    #superpose = falses(Np,Np)
+    uptriang = falses(Np,Np)
+    for i = 1:Np-1
+        uptriang[i,i+1:Np] .= true
+    end
+    dists .= pairwise(Euclidean(),xy,dims=1)
+    dists13= dists.^(13)
+
+    dists7= dists.^(7)
+
+    force= 24*ϵ*(((2*σ^(13))./dists13).- (σ^(7)./dists7))
+
+    force= force.* uptriang
+    return force
+
+end
+
+
+
+
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
