@@ -108,9 +108,7 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     else
         println("No step method available")
     end
-    #if nt == 1 
-        #println("lo step vero di questo giro è: $δp") 
-    #end
+    
     return (δp, δθ)
 end
 
