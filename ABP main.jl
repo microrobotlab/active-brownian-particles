@@ -105,11 +105,13 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     if size(position(abpe),2) == 2
         δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] ##.+ attractive_interactions!(xy, 2.0)
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
+        AT=attractive_interactions!(position(abpe),2.0)
+
     else
         println("No step method available")
     end
     
-    return (δp, δθ)
+    return (δp, δθ), AT
 end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -164,37 +166,6 @@ function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # calle
     hardsphere!(xy, dists, superpose, uptriang, R; tol=tol)
     return xy, dists, superpose, uptriang
 end
-
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# This function will compute the attractive interaction among the particles
-# Attractive potential is LJ with cutoff at radius of particle
-
-function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
-
-    ϵ=0.1
-    σ= 2*R
-    Np = size(xy,1)
-    dists = zeros(Np,Np)
-    #superpose = falses(Np,Np)
-    uptriang = falses(Np,Np)
-    for i = 1:Np-1
-        uptriang[i,i+1:Np] .= true
-    end
-    dists .= pairwise(Euclidean(),xy,dims=1)
-    dists13= dists.^(13)
-
-    dists7= dists.^(7)
-
-    force= 24*ϵ*(((2*σ^(13))./dists13).- (σ^(7)./dists7))
-
-    force= force.* uptriang
-    return force
-
-end
-
-
-
-
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
@@ -268,6 +239,33 @@ function wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Flo
 	return nothing
 end
 
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# This function will compute the attractive interaction among the particles
+# Attractive potential is LJ with cutoff at radius of particle
+
+function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
+
+    ϵ=0.1
+    σ= 2*R
+    Np = size(xy,1)
+    dists = zeros(Np,Np)
+    #superpose = falses(Np,Np)
+    uptriang = falses(Np,Np)
+    for i = 1:Np-1
+        uptriang[i,i+1:Np] .= true
+    end
+    dists .= pairwise(Euclidean(),xy,dims=1)
+    dists13= dists.^(13)
+
+    dists7= dists.^(7)
+
+    force= 24*ϵ*(((2*σ^(13))./dists13).- (σ^(7)./dists7))
+
+    force= force.* uptriang
+    return force
+
+end
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
 function circular_wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
   # here the condition is calculated w.r.t to r value of the particle and have no edges here
   # this is first method used 

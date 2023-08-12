@@ -5,9 +5,9 @@
 using Plots, LaTeXStrings, Statistics, CSV, DataFrames
 
 gr()
-pathf = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\July\\parameter scan\\20230729-181916\\R=2.0 v=1.0 a=50.0 b=25.0 pf=0.1\\run2\\"
+#pathf = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\July\\parameter scan\\20230729-181916\\R=2.0 v=1.0 a=50.0 b=25.0 pf=0.1\\run2\\"
 function stat_analysis2(a,b,R,pathf)
-  f1= pathf*"20230729-181916 R=2.0 v=1.0 a=50.0 b=25.0 pf=0.1 run2_p.csv"
+  f1= pathf*"_p.csv"
   df= CSV.read(f1, DataFrame)
   neq= df[!,:p1]
   npole= df[!,:p2]
@@ -34,9 +34,11 @@ return mpfe, sdpfe,mpfp, sdpfp
 
 end
 
+#=
 L = 100.0 	# μm box length
 R = 2.0		# μm particle radius
 
 a=L/2
 b=L/4
 out= stat_analysis2(a,b,R,pathf)
+=#
