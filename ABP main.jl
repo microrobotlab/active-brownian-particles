@@ -216,7 +216,7 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
     #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
     elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
 
-    #hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
