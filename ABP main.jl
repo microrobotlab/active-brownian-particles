@@ -262,14 +262,15 @@ function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
     force= 24*ϵ*(((2*σ^(13))./dists13).- (σ^(7)./dists7))
 
     force= force.* uptriang
-    if (force.>=1000.0)
-        force= 1000.0
-        else
-            force = force
+    tot_force= sum(force, dims=2)
+    id = tot_force.> 1000.0
+    if (any(id))
+        tot_force[id,:].= 1000.0
+        
     end
-    m =maximum(force)
-    println("$m/n")
-    return sum(force, dims=2)
+    #m =maximum(force)
+    #println("$m\n")
+    return tot_force #sum(force, dims=2)
 
 end
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------

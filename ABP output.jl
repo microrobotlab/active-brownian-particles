@@ -82,6 +82,7 @@ inside_Np=stat_analysis1(a,b,R,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # making animation
 #inside_Np=50
+
 anim = @animate for i = 1:1:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
     plot!(L/2*cos.(-π:0.01:π), L/4*sin.(-π:0.01:π))
