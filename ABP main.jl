@@ -263,13 +263,14 @@ function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
 
     force= force.* uptriang
     tot_force= sum(force, dims=2)
-    id = tot_force.> 1000.0
+    id = tot_force.> 50000.0
     if (any(id))
-        tot_force[id,:].= 1000.0
+        tot_force[id,:].= 50000.0
         
     end
     #m =maximum(force)
     #println("$m\n")
+    CSV.write("tot_force,csv", DataFrame= (tot_force = tot_force))
     return tot_force #sum(force, dims=2)
 
 end
