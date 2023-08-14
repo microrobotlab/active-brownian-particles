@@ -105,7 +105,7 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     if size(position(abpe),2) == 2
         δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*δt*  attractive_interactions!(position(abpe),2.0)
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
-        AT=attractive_interactions!(position(abpe),2.0)
+    
 
     else
         println("No step method available")
@@ -216,7 +216,7 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
     #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
     elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
 
-    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+    #hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
@@ -245,7 +245,7 @@ end
 
 function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
 
-    ϵ=0.1
+    ϵ=100.0
     σ= 2*R
     Np = size(xy,1)
     dists = zeros(Np,Np)
@@ -262,6 +262,13 @@ function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
     force= 24*ϵ*(((2*σ^(13))./dists13).- (σ^(7)./dists7))
 
     force= force.* uptriang
+    if (force.>=1000.0)
+        force= 1000.0
+        else
+            force = force
+    end
+    m =maximum(force)
+    println("$m/n")
     return sum(force, dims=2)
 
 end
