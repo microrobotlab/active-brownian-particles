@@ -8,11 +8,14 @@ function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
     Np = size(xy,1)
     dists = zeros(Np,Np)
     #superpose = falses(Np,Np)
-    uptriang = falses(Np,Np)
-    for i = 1:Np-1
-        uptriang[i,i+1:Np] .= true
+    #uptriang = falses(Np,Np)
+    uptriang = trues(Np,Np)
+    for i = 1:Np
+        
+        #uptriang[i,i+1:Np] .= true
+        uptriang[i,i] = false
     end
-    dists .= pairwise(Euclidean(),xy,dims=1)
+    dists .= pairwise(Euclidean(),xy,xy,dims=1)
     dists13= dists.^(13)
 
     dists7= dists.^(7)
@@ -24,7 +27,9 @@ function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
 
 end
 
-x= [[1.0 2.0] ;[1.0 1.0] ]
+xy= [[1.0 2.0] ;[1.0 1.0] ]
 #xy = [[p[1],p[2]] for p in eachrow(x)]
 
-AT= attractive_interactions!(x, 2.0)
+AT= attractive_interactions!(xy, 2.0)
+
+AT1= sum(AT, dims=2)
