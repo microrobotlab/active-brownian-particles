@@ -103,7 +103,7 @@ end
 function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] ##.+ attractive_interactions!(xy, 2.0)
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*δt*  attractive_interactions!(position(abpe),2.0)
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
         AT=attractive_interactions!(position(abpe),2.0)
 
@@ -111,7 +111,7 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
         println("No step method available")
     end
     
-    return (δp, δθ), AT
+    return (δp, δθ)
 end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ function simulate_wall!(ABPE, matrices, Nt, δt)
     
     for nt in 1:Nt
         ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
-        #println("Step $nt")
+        println("Step $nt")
       
     end
     return nothing
@@ -262,7 +262,7 @@ function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
     force= 24*ϵ*(((2*σ^(13))./dists13).- (σ^(7)./dists7))
 
     force= force.* uptriang
-    return force
+    return sum(force, dims=2)
 
 end
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
