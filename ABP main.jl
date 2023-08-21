@@ -103,7 +103,7 @@ end
 function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*δt*  attractive_interactions!(position(abpe),2.0)
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] #.+ δt*δt*  attractive_interactions!(position(abpe),2.0)
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
     
 
@@ -201,7 +201,7 @@ function simulate_wall!(ABPE, matrices, Nt, δt)
     
     for nt in 1:Nt
         ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
-        println("Step $nt")
+        #println("Step $nt")
       
     end
     return nothing
@@ -212,11 +212,11 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
   
     pθ = ( position(abpe), orientation(abpe) ) .+ memory_step
 
-    #wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
+    wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
     #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
-    elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
+    #elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
 
-    #hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
@@ -235,7 +235,7 @@ function wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Flo
 	if any(idy)
         xy[idy,2] .-= 2*sign.(xy[idy,2]).*(abs.(xy[idy,2]) .- (L/2 - R))
 	end
-    println("I am in square wall")
+    #println("I am in square wall")
 	return nothing
 end
 
