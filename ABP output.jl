@@ -62,10 +62,23 @@ for i=1:ICS
     #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
 
      # println("multiparticleE complied\n")
-#-------------------------------------------------------------------------------------------------------------------------------------------------------------
-# THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION
+  #-------------------------------------------------------------------------------------------------------------------------------------------------------------
+# THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for square wall condition
 
-# Same with the wall condition (particles bounce off the edge)
+# Same with the wall condition (particles bounce off the edge)  
+     graph = multiparticleE(Np,L,R,v,Nt);
+
+scatter(graph[1][:,1], graph[1][:,2], markersize=350R/L, legend=false, aspect_ratio=:equal, title = "$Np particles, step n°1")
+plot!([L/2], seriestype="vline")
+plot!([-L/2], seriestype="vline")
+
+scatter(graph[20][:,1], graph[20][:,2], markersize=350R/L, legend=false, aspect_ratio=:equal, title = "$Np particles, step n°$Nt" )
+plot!([L/2], seriestype="vline")
+plot!([-L/2], seriestype="vline")
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------
+# THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
+
+
 
 graph_wall = multiparticleE_wall(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
 
