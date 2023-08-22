@@ -16,9 +16,30 @@ struct ABPE2 <: ABPsEnsemble
 	θ::Vector{Float64}    # orientation (rad)
 end
 
-#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## Initialize ABP ensemble (CURRENTLY ONLY 2D)
+#------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
+
+## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
 function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+    # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
+    # Intial condition will be choosen as per the geometry under study
+    DT, DR = diffusion_coeff(1e-6R)
+
+    # ONLY 2D!
+    k=0.5
+    xyθ = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
+   
+
+    Np= size(xyθ,1)    # number of particles inside the sqaure
+    #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
+    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
+    abpe = ABPE2( Np1, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+
+    return abpe, (dists, superpose, uptriang)
+end
+
+#------------------------------------------------------------For ellipse ---------------------------------------------------------------------------------------------------------
+## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
+#=function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
@@ -45,6 +66,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
 
     return abpe, (dists, superpose, uptriang)
 end
+=#
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ##Calculate diffusion coefficient
 function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)
