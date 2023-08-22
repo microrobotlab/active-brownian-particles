@@ -106,7 +106,7 @@ savefig(f2)
 
     efg = open(f1, "w")
     #creating DataFrame for number of particles at equators n1, and at poles n2
-    data = DataFrame(p1 = n1,
+    data = DataFrame(t= Time, p1 = n1,
      p2 = n2) 
 
     CSV.write(f1, data)
