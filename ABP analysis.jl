@@ -105,8 +105,10 @@ savefig(f2)
     touch(f1)
 
     efg = open(f1, "w")
+    time1= unique(df[!,:Time])
+    @show(time1)
     #creating DataFrame for number of particles at equators n1, and at poles n2
-    data = DataFrame(t= Time, p1 = n1,
+    data = DataFrame(t= time1, p1 = n1,
      p2 = n2) 
 
     CSV.write(f1, data)

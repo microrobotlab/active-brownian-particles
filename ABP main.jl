@@ -19,7 +19,7 @@ end
 #------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
 
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+#=function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
@@ -36,10 +36,10 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
 
     return abpe, (dists, superpose, uptriang)
 end
-
+=#
 #------------------------------------------------------------For ellipse ---------------------------------------------------------------------------------------------------------
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-#=function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
@@ -66,7 +66,7 @@ end
 
     return abpe, (dists, superpose, uptriang)
 end
-=#
+
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ##Calculate diffusion coefficient
 function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)

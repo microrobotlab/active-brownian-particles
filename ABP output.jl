@@ -89,7 +89,7 @@ graph_wall = multiparticleE_wall(Np,L,R,v,Nt) # has values of x and y posiiton i
 println("multiparticleE_wall complied\n")
 #---------------------------------------------------------------------------------------------------------------------
 # file store
-#file_store(graph_wall,Nt,pathf)
+file_store(graph_wall,Nt,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
 inside_Np=stat_analysis1(a,b,R,pathf)
