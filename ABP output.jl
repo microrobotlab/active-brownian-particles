@@ -98,11 +98,27 @@ println("multiparticleE_wall complied\n")
 # making animation
 inside_Np=50
 
+#------------------------------------------------------------------------------For square-------------------------------------------------------------------------
+anim = @animate for i = 1:100:Nt
+    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ")
+    
+    plot!([L/2], seriestype="vline")  #square
+    plot!([-L/2], seriestype="vline")
+    quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
+end
+#marker_z=graph_wall[2][i,1], color=:rainbow, for 
+
+f1= pathf*".gif"
+gif(anim, f1)
+end
+
+#------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
+#=
 anim = @animate for i = 1:100:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
-    #plot!(L/2*cos.(-π:0.01:π), L/4*sin.(-π:0.01:π))
-    plot!([L/2], seriestype="vline")
-plot!([-L/2], seriestype="vline")
+    #plot!(L/2*cos.(-π:0.01:π), L/4*sin.(-π:0.01:π)) # ellipse
+    plot!([L/2], seriestype="vline")  #sqaure
+    plot!([-L/2], seriestype="vline")
     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
 end
 #marker_z=graph_wall[2][i,1], color=:rainbow, for 
@@ -111,5 +127,6 @@ f1= pathf*".gif"
 gif(anim, f1)
 
 end
+=#
 
 
