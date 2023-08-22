@@ -16,9 +16,30 @@ struct ABPE2 <: ABPsEnsemble
 	θ::Vector{Float64}    # orientation (rad)
 end
 
-#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-## Initialize ABP ensemble (CURRENTLY ONLY 2D)
+#------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
+
+## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
 function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+    # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
+    # Intial condition will be choosen as per the geometry under study
+    DT, DR = diffusion_coeff(1e-6R)
+
+    # ONLY 2D!
+    k=0.5
+    xyθ = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
+   
+
+    Np= size(xyθ,1)    # number of particles inside the sqaure
+    #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
+    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
+    abpe = ABPE2( Np1, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+
+    return abpe, (dists, superpose, uptriang)
+end
+
+#------------------------------------------------------------For ellipse ---------------------------------------------------------------------------------------------------------
+## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
+#=function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
@@ -45,6 +66,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
 
     return abpe, (dists, superpose, uptriang)
 end
+=#
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ##Calculate diffusion coefficient
 function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)
@@ -103,7 +125,7 @@ end
 function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*δt*  attractive_interactions!(position(abpe),2.0)
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] #.+ δt*δt*  attractive_interactions!(position(abpe),2.0)
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
     
 
@@ -201,7 +223,7 @@ function simulate_wall!(ABPE, matrices, Nt, δt)
     
     for nt in 1:Nt
         ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
-        println("Step $nt")
+        #println("Step $nt")
       
     end
     return nothing
@@ -212,9 +234,9 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
   
     pθ = ( position(abpe), orientation(abpe) ) .+ memory_step
 
-    #wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
+    wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
     #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
-    elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
+    #elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
 
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
@@ -235,7 +257,7 @@ function wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Flo
 	if any(idy)
         xy[idy,2] .-= 2*sign.(xy[idy,2]).*(abs.(xy[idy,2]) .- (L/2 - R))
 	end
-    println("I am in square wall")
+    #println("I am in square wall")
 	return nothing
 end
 

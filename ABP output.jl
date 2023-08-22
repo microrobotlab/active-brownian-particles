@@ -38,7 +38,7 @@ Nt = 100000# Nt is the number of steps
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\interactions\\" # destination folder path
+path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\square\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -62,30 +62,63 @@ for i=1:ICS
     #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
 
      # println("multiparticleE complied\n")
+  #-------------------------------------------------------------------------------------------------------------------------------------------------------------
+# THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for square wall condition
+
+# Same with the wall condition (particles bounce off the edge)  
+graph_wall = multiparticleE_wall(Np,L,R,v,Nt) 
+
+#=
+scatter(graph[1][:,1], graph[1][:,2], markersize=350R/L, legend=false, aspect_ratio=:equal, title = "$Np particles, step n°1")
+plot!([L/2], seriestype="vline")
+plot!([-L/2], seriestype="vline")
+
+scatter(graph[20][:,1], graph[20][:,2], markersize=350R/L, legend=false, aspect_ratio=:equal, title = "$Np particles, step n°$Nt" )
+plot!([L/2], seriestype="vline")
+plot!([-L/2], seriestype="vline")
+=#
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
-# THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION
+# THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
 
-# Same with the wall condition (particles bounce off the edge)
 
-graph_wall = multiparticleE_wall(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
+
+#graph_wall = multiparticleE_wall(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
 
 println("multiparticleE_wall complied\n")
 #---------------------------------------------------------------------------------------------------------------------
 # file store
-file_store(graph_wall,Nt,pathf)
+#file_store(graph_wall,Nt,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
-inside_Np=stat_analysis1(a,b,R,pathf)
+#inside_Np=stat_analysis1(a,b,R,pathf)
 # mean and standard deviation
 
 #analysis_SD= stat_analysis2(a,b,R,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # making animation
-#inside_Np=50
+inside_Np=50
 
+#------------------------------------------------------------------------------For square-------------------------------------------------------------------------
+anim = @animate for i = 1:100:Nt
+    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ")
+    
+    plot!([L/2], seriestype="vline")  #square
+    plot!([-L/2], seriestype="vline")
+    quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
+end
+#marker_z=graph_wall[2][i,1], color=:rainbow, for 
+
+f1= pathf*".gif"
+gif(anim, f1)
+end
+
+#------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
+#=
 anim = @animate for i = 1:100:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
-    plot!(L/2*cos.(-π:0.01:π), L/4*sin.(-π:0.01:π))
+    #plot!(L/2*cos.(-π:0.01:π), L/4*sin.(-π:0.01:π)) # ellipse
+    plot!([L/2], seriestype="vline")  #sqaure
+    plot!([-L/2], seriestype="vline")
     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
 end
 #marker_z=graph_wall[2][i,1], color=:rainbow, for 
@@ -94,5 +127,6 @@ f1= pathf*".gif"
 gif(anim, f1)
 
 end
+=#
 
 
