@@ -32,7 +32,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
     Np= size(xyθ,1)    # number of particles inside the sqaure
     #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np1, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
 
     return abpe, (dists, superpose, uptriang)
 end
@@ -265,7 +265,7 @@ end
 # This function will compute the attractive interaction among the particles
 # Attractive potential is LJ with cutoff at radius of particle
 
-function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
+#=function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
 
     ϵ=100.0
     σ= 2*R
@@ -296,8 +296,9 @@ function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
     return tot_force #sum(force, dims=2)
 
 end
+=#
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
-function circular_wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
+#=function circular_wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
   # here the condition is calculated w.r.t to r value of the particle and have no edges here
   # this is first method used 
      
@@ -323,7 +324,7 @@ function circular_wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::
 	#println("I am in circular wall")
 	return nothing
 end
-
+=#
 function circular_wall_condition1g!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
     # here the condition is calculated w.r.t to the normal at the intersection point of the radial distance with the wall
     # this is second method used 

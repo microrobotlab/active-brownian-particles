@@ -96,11 +96,11 @@ println("multiparticleE_wall complied\n")
 #analysis_SD= stat_analysis2(a,b,R,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # making animation
-inside_Np=50
+
 
 #------------------------------------------------------------------------------For square-------------------------------------------------------------------------
 anim = @animate for i = 1:100:Nt
-    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ")
+    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ")
     
     plot!([L/2], seriestype="vline")  #square
     plot!([-L/2], seriestype="vline")
