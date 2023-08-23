@@ -105,7 +105,7 @@ savefig(f2)
     touch(f1)
 
     efg = open(f1, "w")
-    time1= unique(df[!,:Time])
+    time1= unique(df[!,:Time])   # not to repeat the time in data
     @show(time1)
     #creating DataFrame for number of particles at equators n1, and at poles n2
     data = DataFrame(t= time1, p1 = n1,
