@@ -1,7 +1,7 @@
 # PURPOSE: average the data from multiple folders/simulation runs and make a single averaged plot
 # MethodL Data will be read from multiple folders and averaged data will be plotted and stored
 # Why ? I am using this code for the fitting the average abd cheching for the transients
-using CSV, FileIO, DataFrames, Plots
+using CSV, FileIO, DataFrames, Plots, LaTeXStrings
 
 
 println(replace("aggregated_data" , "aggregated" => "all"))
@@ -11,7 +11,8 @@ function all_csv_data(mainfolder)
 
     # Initialize an empty DataFrame
     all_data = DataFrame()
-    t1= "test.png"
+    t1= plot()
+    f= "average_pf.png"
 
     # List all sub-folders inside the main directory
     subfolders = filter(isdir, readdir(mainfolder, join=true))
@@ -44,19 +45,29 @@ function all_csv_data(mainfolder)
    
     time= [unique(g[!,:t]) for g in gdf]  # unique avoids repeation of time in two files and keeps the length of vector same as avg_eq and avg_p 
     avg_eq= [mean(g[!,:p1]) for g in gdf]
+
+    for i in 1:length(gdf)
+
+        #avg_eq= [mean(gdf[i][!,:p1])]
+
+        avg_p=  [mean(gdf[i][!,:p2])]
+    end
+    scatter!(t1,[time],[avg_eq], ylimit=(0,35),legend=false) 
     avg_p=  [mean(g[!,:p2]) for g in gdf]
    
     scatter!(t1,time,avg_eq, ylimit=(0,0.3),legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf^{-}_{eqs}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Equators ")
+    plot(t1)
+    savefig(f)
     #=
     scatter!(t2,[i],[pfp], ylimit=(0,0.3),legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf_{poles}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Poles ")
     =#
-    return avg_eq, time # mean(all_data[!,:p1]), mean(all_data[!,:p2]) all_data, gdf,
+    return nothing #avg_eq, time # mean(all_data[!,:p1]), mean(all_data[!,:p2]) all_data, gdf,
 end
 
 # Use the function to get the aggregated data
