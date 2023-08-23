@@ -8,7 +8,7 @@ main_directory="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 
 
 function aggregate_csv_data(main_directory::String)
     # This function will return the aggregated DataFrame
-
+replace("aggregated_data." , "aggregated" => "all")
     # Initialize an empty DataFrame
     aggregated_data = DataFrame()
 
