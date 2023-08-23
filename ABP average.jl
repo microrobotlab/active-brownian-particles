@@ -41,19 +41,14 @@ function all_csv_data(mainfolder)
     #all_data[!,:t] = categorical(all_data[!,:t],compress=true) 
     gdf = groupby(all_data,:t,sort=true)
     
-   # time1= unique(gdf[!,:t]) 
-    time= [unique(g[!,:t]) for g in gdf]
+   
+    time= [unique(g[!,:t]) for g in gdf]  # unique avoids repeation of time in two files and keeps the length of vector same as avg_eq and avg_p 
     avg_eq= [mean(g[!,:p1]) for g in gdf]
-
-    for i in 1:length(gdf)
-
-        #avg_eq= [mean(gdf[i][!,:p1])]
-
-        avg_p=  [mean(gdf[i][!,:p2])]
-    end
+    avg_p=  [mean(g[!,:p2]) for g in gdf]
+   
     scatter!(t1,time,avg_eq, ylimit=(0,0.3),legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
-    plot!(ylabel=L"\mathrm{pf_{eqs}}",yguidefont=font(16), ytickfont=font(11))
+    plot!(ylabel=L"\mathrm{pf^{-}_{eqs}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Equators ")
     #=
     scatter!(t2,[i],[pfp], ylimit=(0,0.3),legend=false) 
