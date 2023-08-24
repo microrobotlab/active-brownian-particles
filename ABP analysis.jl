@@ -60,7 +60,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
     end
     push!(n1,count1)
     push!(n2,count2)
-    println("$count1, $count2, $i") 
+    #println("$count1, $count2, $i") 
     
     pfe = count1*(0.5*π/Aeq)*pf_factor 
     pfp = count2*(0.5*π/Ap)*pf_factor 
@@ -106,7 +106,7 @@ savefig(f2)
 
     efg = open(f1, "w")
     time1= unique(df[!,:Time])   # not to repeat the time in data
-    @show(time1)
+   
     #creating DataFrame for number of particles at equators n1, and at poles n2
     data = DataFrame(t= time1, p1 = n1,
      p2 = n2) 
@@ -114,6 +114,6 @@ savefig(f2)
     CSV.write(f1, data)
     
    
-    println("I am in ABP analysis")
+    println("I am out of ABP analysis")
  return count
 end

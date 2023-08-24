@@ -6,6 +6,7 @@ include("ABP file.jl")
 include("ABP analysis.jl")
 include("ABP SD.jl")
 include("ABP multifolder.jl")
+include("ABP average.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
 gr()
@@ -26,7 +27,7 @@ R = 2.0		# μm particle radius
 v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=5       # number of intial conditons to be scanned 
+ICS=1      # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
@@ -96,6 +97,8 @@ inside_Np=stat_analysis1(a,b,R,pathf)
 # mean and standard deviation
 
 #analysis_SD= stat_analysis2(a,b,R,pathf)
+
+
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # making animation
 
@@ -127,11 +130,11 @@ end
 f1= pathf*".gif"
 gif(anim, f1)
 =#
+
 end
-
-
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
-
-
+#mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
+average(patht)   # passing path of the main folders which has all the runs
 

@@ -5,13 +5,13 @@ using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics
 
 gr()
 
-function all_csv_data(mainfolder)
+function average(mainfolder)
   
     all_data = DataFrame()
     t1= plot()
     t2= plot()
-    f= "average_pf7.png"
-    f1= "average_data.scv"
+    f= mainfolder*"average.png"
+    f1= mainfolder*"average.csv"
 
     # List all sub-folders inside the main directory
     subfolders = filter(isdir, readdir(mainfolder, join=true))
@@ -59,12 +59,12 @@ function all_csv_data(mainfolder)
     
     p= plot(t1,t2)
     savefig(p,f)
-    display(p)
+    #display(p)
     return nothing 
 end
 
-mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-all_data = all_csv_data(mainfolder)
+#mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
+#all_data = average(mainfolder)
 
 
 
