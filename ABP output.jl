@@ -26,7 +26,7 @@ R = 2.0		# μm particle radius
 v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=2         # number of intial conditons to be scanned 
+ICS=5       # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
@@ -35,7 +35,7 @@ packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 1000# Nt is the number of steps 
+Nt = 1000000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ end
 f1= pathf*".gif"
 gif(anim, f1)
 end
-=#
+
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
 
 anim = @animate for i = 1:100:Nt
@@ -126,7 +126,7 @@ end
 
 f1= pathf*".gif"
 gif(anim, f1)
-
+=#
 end
 
 
