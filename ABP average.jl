@@ -3,7 +3,7 @@
 # Why ? I am using this code for the fitting the average abd cheching for the transients
 using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics 
 
-
+gr()
 println(replace("aggregated_data" , "aggregated" => "all"))
 
 function all_csv_data(mainfolder)
@@ -14,6 +14,7 @@ function all_csv_data(mainfolder)
     t1= plot()
     t2= plot()
     f= "average_pf5.png"
+    f1= "average_data.scv"
 
     # List all sub-folders inside the main directory
     subfolders = filter(isdir, readdir(mainfolder, join=true))
@@ -50,21 +51,33 @@ function all_csv_data(mainfolder)
   
     avg_p=  [mean(g[!,:p2]) for g in gdf]
    
-    scatter!(t1,time./100.0,avg_eq,ylimit=(15,30),legend=false) 
+    Data= DataFrame(t= time, e= avg_eq, p= avg_p)
+    CSV.write(f1,Data)
+    #println(first(all_data,5))
+     display(scatter(time./100, avg_eq))
+    #println("Time:", time[1:5])
+    #println("Avg Equators:", avg_eq[1:5])
+    #println("Avg Poles:", avg_p[1:5])
+    #=
+   t1= scatter(time./100.0,avg_eq,legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
-    plot!(ylabel=L"\mathrm{pf^{-}_{eqs}}",yguidefont=font(16), ytickfont=font(11))
+    plot!(ylabel=L"\mathrm{pf_{eqs}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Equators ")
  
 
     
-    scatter!(t2,time./100.0,avg_p, ylimit=(15,30),legend=false) 
+   t2= scatter(time./100.0,avg_p,legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf_{poles}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Poles ")
     
   
-    plot(t1,t2)
-    savefig(f)
+    p= plot(t1,t2)
+    savefig(p,f)
+    display(p)
+    =#
+
+
     return avg_p, avg_eq #time # mean(all_data[!,:p1]), mean(all_data[!,:p2]) all_data, gdf,
 end
 
@@ -72,11 +85,5 @@ end
 mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 all_data = all_csv_data(mainfolder)
  
-#averages = Dict()
-#=for col in names(aggregated_data)
-    if eltype(aggregated_data[!, col]) <: Number
-        averages[col] = mean(skipmissing(aggregated_data[!, col]))
-    end
-end
-=#
+
 #mean(aggregated_data[19995:20000,:p1])
