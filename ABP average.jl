@@ -12,6 +12,7 @@ function all_csv_data(mainfolder)
     # Initialize an empty DataFrame
     all_data = DataFrame()
     t1= plot()
+    t2= plot()
     f= "average_pf.png"
 
     # List all sub-folders inside the main directory
