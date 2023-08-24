@@ -4,16 +4,13 @@
 using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics 
 
 gr()
-println(replace("aggregated_data" , "aggregated" => "all"))
 
 function all_csv_data(mainfolder)
-    # This function will return the aggregated DataFrame
-
-    # Initialize an empty DataFrame
+  
     all_data = DataFrame()
     t1= plot()
     t2= plot()
-    f= "average_pf5.png"
+    f= "average_pf7.png"
     f1= "average_data.scv"
 
     # List all sub-folders inside the main directory
@@ -32,7 +29,7 @@ function all_csv_data(mainfolder)
             if isempty(all_data)
                 all_data = copy(data)
             else
-                # Append data to the aggregated data
+                # Append data
                 all_data = vcat(all_data, data)
             end
         end
@@ -41,49 +38,37 @@ function all_csv_data(mainfolder)
     #mean(all_data[!,:p1]), mean(all_data[!,:p2]) will give average off all packing fraction at equators and poles over time
     # but I would need the average of all runs over each time step or second, a different method is required, following steps
 
-    #all_data[!,:t] = categorical(all_data[!,:t],compress=true) 
+   
     gdf = groupby(all_data,:t,sort=true)
-    
-   
-    time= [unique(g[!,:t]) for g in gdf]  # unique avoids repeation of time step in two files and keeps the length of vector same as avg_eq and avg_p 
     avg_eq= [mean(g[!,:p1]) for g in gdf]
-
-  
     avg_p=  [mean(g[!,:p2]) for g in gdf]
-   
+    time= all_data[1:10000,:t] # total time steps are now 10000, although in actual simulations they are 100 times more, because now i skipped 100 time steps in saving the data. keep this in mind
     Data= DataFrame(t= time, e= avg_eq, p= avg_p)
     CSV.write(f1,Data)
-    #println(first(all_data,5))
-     display(scatter(time./100, avg_eq))
-    #println("Time:", time[1:5])
-    #println("Avg Equators:", avg_eq[1:5])
-    #println("Avg Poles:", avg_p[1:5])
-    #=
-   t1= scatter(time./100.0,avg_eq,legend=false) 
+ 
+    
+   t1= scatter(time, avg_eq,legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf_{eqs}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Equators ")
  
-
-    
-   t2= scatter(time./100.0,avg_p,legend=false) 
+   t2= scatter(time, avg_p,legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf_{poles}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Poles ")
     
-  
     p= plot(t1,t2)
     savefig(p,f)
     display(p)
-    =#
-
-
-    return avg_p, avg_eq #time # mean(all_data[!,:p1]), mean(all_data[!,:p2]) all_data, gdf,
+    return nothing 
 end
 
-# Use the function to get the aggregated data
 mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 all_data = all_csv_data(mainfolder)
- 
 
-#mean(aggregated_data[19995:20000,:p1])
+
+
+   #println(first(all_data,5))
+    #println("Time:", time[1:5])
+    #println("Avg Equators:", avg_eq[1:5])
+    #println("Avg Poles:", avg_p[1:5])
