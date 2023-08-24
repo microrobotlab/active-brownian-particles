@@ -27,7 +27,7 @@ R = 2.0		# μm particle radius
 v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=1      # number of intial conditons to be scanned 
+ICS=10     # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
@@ -61,7 +61,7 @@ for i=1:ICS
     pathf= patht*"run$i\\"
     filename= "$datestamp R=$R v=$v a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
-
+    println("simulation=$i")
     #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
 
      # println("multiparticleE complied\n")
