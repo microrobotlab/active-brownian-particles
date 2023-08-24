@@ -50,7 +50,7 @@ function average(mainfolder)
    t1= scatter(time, avg_eq,legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf_{eqs}}",yguidefont=font(16), ytickfont=font(11))
-    title!(" Equators ")
+    title!(" Equators 100 avg")
  
    t2= scatter(time, avg_p,legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
