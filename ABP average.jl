@@ -13,7 +13,7 @@ function all_csv_data(mainfolder)
     all_data = DataFrame()
     t1= plot()
     t2= plot()
-    f= "average_pf.png"
+    f= "average_pf5.png"
 
     # List all sub-folders inside the main directory
     subfolders = filter(isdir, readdir(mainfolder, join=true))
@@ -50,25 +50,26 @@ function all_csv_data(mainfolder)
   
     avg_p=  [mean(g[!,:p2]) for g in gdf]
    
-    scatter!(t1,[time]/100.0,[avg_eq], ylimit=(0,35),legend=false) 
+    scatter!(t1,time./100.0,avg_eq,ylimit=(15,30),legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf^{-}_{eqs}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Equators ")
  
 
     
-    scatter!(t2,[time]/100.0,[avg_p], ylimit=(0,35),legend=false) 
+    scatter!(t2,time./100.0,avg_p, ylimit=(15,30),legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf_{poles}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Poles ")
     
+  
     plot(t1,t2)
     savefig(f)
-    return time #avg_eq, time # mean(all_data[!,:p1]), mean(all_data[!,:p2]) all_data, gdf,
+    return avg_p, avg_eq #time # mean(all_data[!,:p1]), mean(all_data[!,:p2]) all_data, gdf,
 end
 
 # Use the function to get the aggregated data
-mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230823-102538\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
+mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 all_data = all_csv_data(mainfolder)
  
 #averages = Dict()
