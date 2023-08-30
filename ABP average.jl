@@ -10,7 +10,7 @@ function average(mainfolder)
     all_data = DataFrame()
     t1= plot()
     t2= plot()
-    f= mainfolder*"average100.png"
+    f= mainfolder*"average100_2.png"
     f1= mainfolder*"average100.csv"
 
     # List all sub-folders inside the main directory
@@ -47,14 +47,14 @@ function average(mainfolder)
     CSV.write(f1,Data)
  
     
-   t1= scatter(time, avg_eq,legend=false) 
-    xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
+   t1= scatter(time./100.0, avg_eq,legend=false)  
+    xlabel!("Time (s)", xguidefont=font(16),xlimit=(0,5000),ylimit=(15,30), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf_{eqs}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Equators 100 avg")
  
-   t2= scatter(time, avg_p,legend=false) 
-    xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
-    plot!(ylabel=L"\mathrm{pf_{poles}}",yguidefont=font(16), ytickfont=font(11))
+   t2= scatter(time./100.0, avg_p,legend=false) 
+    xlabel!("Time (s)", xguidefont=font(16),ylimit=(15,30), xtickfont=font(11))
+    plot!(ylabel=L"\mathrm{pf_{poles}}",xlimit=(0,5000),yguidefont=font(16), ytickfont=font(11))
     title!(" Poles ")
     
     p= plot(t1,t2)
