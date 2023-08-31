@@ -4,7 +4,7 @@
 
 # m(t,p)=p1*exp(−p2*t)
 
-using LsqFit, Plots, DataFrames, CSV, CurveFit
+using LsqFit, Plots, DataFrames, CSV, CurveFit, FFTW
 
 path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 f= path*"average100.csv"
@@ -23,7 +23,7 @@ model(y, p) = p[1] .+ (p[2] * y)         # linear fitting
 tdata = df[5000:10000,:t]./100.0
 neq= df[5000:10000,:e]
 np= df[5000:10000,:p]
-ydata= np
+ydata= neq
 jdata = 0.0026 * exp.(0.471 * neq) ##+ 0.1*randn(length(neq))
 #tdata= log10.(tdata)
 #ydata = model(tdata, [1.0 2.0]) + 0.01*randn(length(tdata))
@@ -31,6 +31,15 @@ jdata = 0.0026 * exp.(0.471 * neq) ##+ 0.1*randn(length(neq))
 
 #ydata=log10.(neq)
 p0 = [25.0, 0.01]
+
+
+freq= fft(neq)
+
+
+k= plot(abs.(freq))
+
+display(k)
+
 
 fit = curve_fit(model, ydata, tdata, p0)
 param = fit.param
