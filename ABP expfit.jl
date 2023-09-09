@@ -13,38 +13,40 @@ df= CSV.read(f,DataFrame)
 
 # define model
 #y(t) = a * exp(b * t)
-model(y, p) = p[1] * exp.(p[2] * y) #.+ p[3]  # exponential fitting
+#odel(y, p) = p[1] * exp.(p[2] * y) #.+ p[3]  # exponential fitting
+
+model(t, p) = p[1] .+ p[2] * (1 .- exp.(-t/p[3]))
 
 #model(y, p) = p[1] .+ (p[2] * y)         # linear fitting
 # linear fitting
 
 #model(t, p) = p[1] + (p[2] * t)  
 
-tdata = df[100:1000,:t]./100.0
-neq= df[100:1000,:e]
-np= df[100:1000,:p]
-ydata= neq
-jdata = 0.26 * exp.(0.3 * neq) ##+ 0.1*randn(length(neq))
+tdata = df[1:10000,:t]./100.0
+neq= df[1:10000,:e]
+np= df[1:10000,:p]
+ydata= np
+
+p0 = [23.0, 3.0, 100.0]
+fs=1
+
+
+fit = curve_fit(model, tdata, ydata, p0)
+param = fit.param
+yfit= model(tdata, param)
+
+p=plot(tdata,ydata, seriestype=:scatter, label="Data")
+q= plot!(tdata,yfit,label="Fitted $((param[1]))exp($(param[2])t)", title= "p0 = $p0")
+# k= plot!(jdata,ydata)#label="Fitted $(param[1])t+ $(param[1])")
+display(q)
+#savefig(k,f1)
+
+#jdata = 0.26 * exp.(0.3 * neq) ##+ 0.1*randn(length(neq))
 #tdata= log10.(tdata)
 #ydata = model(tdata, [1.0 2.0]) + 0.01*randn(length(tdata))
 #ydata= log10.(ydata)
 #plot(tdata,ydata, seriestype=:scatter, label="Data")
 #ydata=log10.(neq)
-p0 = [1.0, 0.01]
-fs=1
-
-
-fit = curve_fit(model, ydata, tdata, p0)
-param = fit.param
-xfit= model(ydata, param)
-
-p=plot(tdata,ydata, seriestype=:scatter, label="Data")
-q= plot!(xfit,ydata,label="Fitted $((param[1]))exp($(param[2])t)", title= "p0 = $p0")
-k= plot!(jdata,ydata)#label="Fitted $(param[1])t+ $(param[1])")
-display(k)
-savefig(k,f1)
-
-
 #######################################################################################
 
 #FFT
