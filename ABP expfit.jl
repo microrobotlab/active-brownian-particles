@@ -3,6 +3,7 @@
 # model funcion is
 
 # m(t,p)=p1*exp(−p2*t)
+# testing the terminal
 
 using LsqFit, Plots, DataFrames, CSV, FFTW
 
