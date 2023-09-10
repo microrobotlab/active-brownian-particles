@@ -4,6 +4,7 @@
 
 # m(t,p)=p1*exp(−p2*t)
 # testing the terminal
+# writing commit from terminal
 
 using LsqFit, Plots, DataFrames, CSV, FFTW
 
