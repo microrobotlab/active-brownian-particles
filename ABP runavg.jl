@@ -1,4 +1,5 @@
 #checking test
+#testung specifi file
 using DataFrames, CSV, Statistics,  FFTW, Plots
 
 path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
