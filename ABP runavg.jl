@@ -2,14 +2,16 @@
 
 using DataFrames, CSV, Statistics,  FFTW, Plots
 
-for i in 1:20
+for i in 1:1
 
 path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"
+path1= "..\\"
 filename= "20230824-205011 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run$(i)_p"
 pathf= path*filename
 f= pathf*".csv"
 f1= path*"running_avg_FFT_run$i.png"
-f2=path*"running_avg_curve1.png"
+f2=path*"FFT_data.csv"
+
 df= CSV.read(f,DataFrame) # e is equators particles , p is poles particles
 
 
