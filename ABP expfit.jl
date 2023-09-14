@@ -1,12 +1,5 @@
 # for fitting the exponential curve in the average number of particles at equators and at poles.
 # input will be average data generated from ABP average.jl 
-# model funcion is
-# model specific file
-#testing again with termianl
-# m(t,p)=p1*exp(−p2*t)
-# testing the terminal
-# writing commit from terminal
-# checking pushing and committing together 
 
 using LsqFit, Plots, DataFrames, CSV, FFTW
 
