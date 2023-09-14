@@ -12,7 +12,7 @@ using LsqFit, Plots, DataFrames, CSV, FFTW
 
 path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 f= path*"average100.csv"
-f1= path*"fitting_best.png"
+f1= path*"fitting_best_equators.png"
 df= CSV.read(f,DataFrame)
 
 # define model
@@ -29,7 +29,7 @@ model(t, p) = p[1] .+ p[2] * (1 .- exp.(-t/p[3]))
 tdata = df[1:10000,:t]./100.0
 neq= df[1:10000,:e]
 np= df[1:10000,:p]
-ydata= np
+ydata= neq
 
 p0 = [23.0, 3.0, 100.0]
 fs=1
@@ -39,11 +39,11 @@ fit = curve_fit(model, tdata, ydata, p0)
 param = fit.param
 yfit= model(tdata, param)
 
-p=plot(tdata,ydata, seriestype=:scatter, label="Data")
-q= plot!(tdata,yfit,label="Fitted $((param[1]))exp($(param[2])t)", title= "p0 = $p0")
-# k= plot!(jdata,ydata)#label="Fitted $(param[1])t+ $(param[1])")
+p=plot(tdata,ydata, seriestype=:scatter, label="Data", xlabel= "Time (s)", ylabel="N_eq")
+q= plot!(tdata,yfit,label="Fitted ($(param[1])+ $(param[2]) * [1- exp(-t/$(param[3])])", title= "p0 = $p0")
+
 display(q)
-#savefig(k,f1)
+savefig(q,f1)
 
 #jdata = 0.26 * exp.(0.3 * neq) ##+ 0.1*randn(length(neq))
 #tdata= log10.(tdata)
