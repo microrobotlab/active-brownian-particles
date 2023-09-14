@@ -35,20 +35,20 @@ end_frame= 10000
 fs=1.0
 freq= fftshift(fft(df[start_frame:end_frame,:running_avg]))
 freqs = fftshift(fftfreq(length(df[start_frame:end_frame,:running_avg]), fs))
-check=i
+
 check= DataFrame( run=i,f=freqs, real= real.(freq)) 
-testing=vcat(all_data,check)
-show(testing)
-#all_data= vcat(all_data,data)
+global all_data=vcat(all_data,check)
+show(all_data)
 
 
-#CSV.write(f2,df1)
+
+CSV.write(f2,all_data)
 k= plot(freqs,real.(freq), xlimit=(-0.3,0.3), ylimit=(0.02,2000),seriestype=:stem)
 
 display(k)
 #savefig(k,f1)
-end
 
+end
 #y=plot(df_avg[start_frame:end_frame,:t]./100.0,df_avg[start_frame:end_frame,:running_avg], seriestype= :scatter, xlimit=(start_frame,end_frame))
 
 
