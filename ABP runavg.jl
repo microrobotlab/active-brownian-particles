@@ -8,7 +8,7 @@ all_data = DataFrame( R=Float64[],v=Float64[],a=Float64[],b=Float64[],pf=Float64
 param_df = DataFrame(Parameter=String[], Value=String[])
  # creates an empaty data frame
 
-for i in 1:10
+for i in 1:2
 
 path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"
 
@@ -19,6 +19,7 @@ pathf= path*filename
 f=  pathf*".csv"
 f1= path*"running_avg_FFT_run$i.png"
 f2= main_folder*"FFT_data.csv"
+f3= path*"temporal_evolution_run$i.png"
 
 df= CSV.read(f,DataFrame)            # e is equators particles , p is poles particles
 
@@ -46,10 +47,28 @@ end
  time= df[!,:t]
 
 running_avg!(df,window_size)
-################################################################################ FFT of data ######################################################################################################
 
 start_frame= 1000
 end_frame= 10000
+################################################### Plotting number of  particles@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+t1= scatter(df[start_frame:end_frame,:t]./100.0, df[start_frame:end_frame,:p1],legend=false)  
+xlabel!("Time (s)", xguidefont=font(16),xlimit=(0,5000),ylimit=(15,30), xtickfont=font(11))
+#plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(16), ytickfont=font(11))
+title!(" Equators")
+
+t2= scatter(df[start_frame:end_frame,:t]./100.0, df[start_frame:end_frame,:p2],legend=false) 
+xlabel!("Time (s)", xguidefont=font(16),ylimit=(15,30), xtickfont=font(11))
+# plot!(ylabel=L"\mathrm{N_{poles}}",xlimit=(0,5000),yguidefont=font(16), ytickfont=font(11))
+title!(" Poles ")
+
+p= plot(t1,t2)
+# savefig(p,f3)
+display(p)
+
+################################################################################ FFT of data ######################################################################################################
+
+#=
 fs=1.0
 freq= fftshift(fft(df[start_frame:end_frame,:running_avg]))
 freqs = fftshift(fftfreq(length(df[start_frame:end_frame,:running_avg]), fs))
@@ -62,7 +81,7 @@ k= plot(freqs,real.(freq), xlimit=(-0.3,0.3), ylimit=(0.02,2000),seriestype=:ste
 
 display(k)
 #savefig(k,f1)
-
+=# 
 end
 
 
