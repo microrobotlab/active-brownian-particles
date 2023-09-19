@@ -1,6 +1,6 @@
 # code can take files from multiple folders and can calculate their running average (select window_size) and FFT
 
-using DataFrames, CSV, Statistics,  FFTW, Plots
+using DataFrames, CSV, Statistics,  FFTW, Plots, LaTeXStrings
 #path1 = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 
 all_data = DataFrame( R=Float64[],v=Float64[],a=Float64[],b=Float64[],pf=Float64[],run=Int64[],timestep=Float64[],f=Float64[], FFT_real= Float64[], FFT_img= Float64[])
@@ -8,7 +8,7 @@ all_data = DataFrame( R=Float64[],v=Float64[],a=Float64[],b=Float64[],pf=Float64
 param_df = DataFrame(Parameter=String[], Value=String[])
  # creates an empaty data frame
 
-for i in 1:2
+for i in 1:100
 
 path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"
 
@@ -48,23 +48,24 @@ end
 
 running_avg!(df,window_size)
 
-start_frame= 1000
+start_frame= 1
 end_frame= 10000
 ################################################### Plotting number of  particles@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 t1= scatter(df[start_frame:end_frame,:t]./100.0, df[start_frame:end_frame,:p1],legend=false)  
-xlabel!("Time (s)", xguidefont=font(16),xlimit=(0,5000),ylimit=(15,30), xtickfont=font(11))
-#plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(16), ytickfont=font(11))
+xlabel!("Time (s)", xguidefont=font(16),xlimit=(0,500),ylimit=(1,40), xtickfont=font(11))
+plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(16), ytickfont=font(11))
 title!(" Equators")
 
 t2= scatter(df[start_frame:end_frame,:t]./100.0, df[start_frame:end_frame,:p2],legend=false) 
-xlabel!("Time (s)", xguidefont=font(16),ylimit=(15,30), xtickfont=font(11))
-# plot!(ylabel=L"\mathrm{N_{poles}}",xlimit=(0,5000),yguidefont=font(16), ytickfont=font(11))
+xlabel!("Time (s)", xguidefont=font(16),ylimit=(1,40), xtickfont=font(11))
+plot!(ylabel=L"\mathrm{N_{poles}}",xlimit=(0,500),yguidefont=font(16), ytickfont=font(11))
 title!(" Poles ")
 
 p= plot(t1,t2)
-# savefig(p,f3)
+savefig(p,f3)
 display(p)
+
 
 ################################################################################ FFT of data ######################################################################################################
 
@@ -83,6 +84,15 @@ display(k)
 #savefig(k,f1)
 =# 
 end
+
+anim = @animate for i = 1:100
+    path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"
+    plot!(path*"temporal_evolution_run$i.png")
+   
+end
+path1 = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
+f4= path1*".gif"
+gif(anim, f4)
 
 
 
