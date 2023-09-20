@@ -94,6 +94,3 @@ path1 = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\
 f4= path1*".gif"
 gif(anim, f4)
 
-
-
-
