@@ -8,7 +8,7 @@ all_data = DataFrame( R=Float64[],v=Float64[],a=Float64[],b=Float64[],pf=Float64
 param_df = DataFrame(Parameter=String[], Value=String[])
  # creates an empaty data frame
 
-for i in 1:100
+anim = @animate for i in 1:100
 
 path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"
 
@@ -85,12 +85,12 @@ display(k)
 =# 
 end
 
-anim = @animate for i = 1:100
-    path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"
-    plot!(path*"temporal_evolution_run$i.png")
+# anim = @animate for i = 1:100
+#     path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"
+#     plot!(path*"temporal_evolution_run$i.png")
    
-end
+# end
 path1 = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-f4= path1*".gif"
-gif(anim, f4)
+f4= path1*"temporal_evolution.gif"
+gif(anim, f4,fps=1)
 
