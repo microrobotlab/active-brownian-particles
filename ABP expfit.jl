@@ -37,13 +37,6 @@ q= plot!(tdata,yfit,label="Fitted ($(param[1])+ $(param[2]) * [1- exp(-t/$(param
 
 display(q)
 savefig(q,f1)
-
-#jdata = 0.26 * exp.(0.3 * neq) ##+ 0.1*randn(length(neq))
-#tdata= log10.(tdata)
-#ydata = model(tdata, [1.0 2.0]) + 0.01*randn(length(tdata))
-#ydata= log10.(ydata)
-#plot(tdata,ydata, seriestype=:scatter, label="Data")
-#ydata=log10.(neq)
 #######################################################################################
 
 #FFT
