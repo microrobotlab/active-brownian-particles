@@ -10,8 +10,8 @@ function average(mainfolder)
     all_data = DataFrame()
     t1= plot()
     t2= plot()
-    f= mainfolder*"average100_2.png"
-    f1= mainfolder*"average100.csv"
+    f= mainfolder*"average of FTT 100.png"
+    f1= mainfolder*"FFT_average100.csv"
 
     # List all sub-folders inside the main directory
     subfolders = filter(isdir, readdir(mainfolder, join=true))
