@@ -136,5 +136,5 @@ end
 
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
 #mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-@btime(average(patht))   # passing path of the main folders which has all the runs
+(average(patht))   # passing path of the main folders which has all the runs
 

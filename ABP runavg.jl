@@ -10,16 +10,19 @@ param_df = DataFrame(Parameter=String[], Value=String[])
 
 anim = @animate for i in 1:100
 
-path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"
+path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"  # path of subfolder files
 
 main_folder= joinpath(path, "..\\")  # takes back to the previous folder
 filename= "20230824-205011 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run$(i)_p"
-
+FFT_filename= "20230824-205011 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run$(i)_FFT"
 pathf= path*filename
-f=  pathf*".csv"
+path_FFT= path*FFT_filename
+f=  pathf*".csv"  
 f1= path*"FFT1to500s_run$i.png"
 f2= main_folder*"FFT_data.csv"
-f3= path*"FFT1to500s_run$i.png"
+f3= path*"temporal_evolution_run$i.png"
+f4= path_FFT*".csv"
+
 
 df= CSV.read(f,DataFrame)            # e is equators particles , p is poles particles
 
@@ -76,8 +79,11 @@ display(p)
 
 # data= DataFrame( R=param_df[1,:Value],v= param_df[2,:Value],a= param_df[3,:Value],b= param_df[4,:Value],pf= param_df[5,:Value], run=i,timestep=df[start_frame:end_frame,:t],f=freqs, FFT_real= real.(freq), FFT_img= imag.(freq)) 
 # global all_data=vcat(all_data,data)
+# CSV.write(f2,all_data)
 
-#CSV.write(f2,all_data)
+
+FFT_data= DataFrame(run=i,time= time,f=freqs, real= real.(freq),img= imag.(freq))
+CSV.write(f4,FFT_data)
  k= plot(freqs,real.(freq), xlimit=(-0.6,0.6), ylimit=(0.02,2000),seriestype=:stem, xlabel="Frequency(Hz)", ylabel="Power",legend=false)
 
 display(k)
@@ -85,12 +91,7 @@ display(k)
 
 end
 
-# anim = @animate for i = 1:100
-#     path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"
-#     plot!(path*"temporal_evolution_run$i.png")
-   
-# end
-path1 = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-f4= path1*"FFT1to500s_run100.gif"
-gif(anim, f4,fps=1)
+#path1 = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
+#f4= path1*"FFT1to500s_run100.gif"
+#gif(anim, f4,fps=1)
 
