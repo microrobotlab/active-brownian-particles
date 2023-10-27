@@ -1,12 +1,13 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
-include("ABP main.jl")
+include("ABP main interactions.jl")
+# include("ABP main.jl")
 include("ABP file.jl")
-include("ABP analysis.jl")
-include("ABP SD.jl")
+# include("ABP analysis.jl")
+# include("ABP SD.jl")
 include("ABP multifolder.jl")
-include("ABP average.jl")
+# include("ABP average.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
 gr()
@@ -27,21 +28,21 @@ R = 2.0		# μm particle radius
 v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=100      # number of intial conditons to be scanned 
+ICS=1      # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
-DT, DR = diffusion_coeff(R).*[1e12, 1]
+DT, DR, γ = diffusion_coeff(R).*[1e12, 1, 1] #1
 packing_fraction = 0.1
 
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 1000000# Nt is the number of steps 
+Nt = 100000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\" # destination folder path
+path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -85,15 +86,15 @@ plot!([-L/2], seriestype="vline")
 
 
 
-graph_wall = multiparticleE_wall(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
+graph_wall = multiparticleE(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
 
-println("multiparticleE_wall complied\n")
+println("multiparticleE complied\n")
 #---------------------------------------------------------------------------------------------------------------------
 # file store
 file_store(graph_wall,Nt,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
-inside_Np=stat_analysis1(a,b,R,pathf)
+# inside_Np=stat_analysis1(a,b,R,pathf)
 # mean and standard deviation
 
 #analysis_SD= stat_analysis2(a,b,R,pathf)
@@ -104,9 +105,9 @@ inside_Np=stat_analysis1(a,b,R,pathf)
 
 
 #------------------------------------------------------------------------------For square-------------------------------------------------------------------------
-#=
-anim = @animate for i = 1:100:Nt
-    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ")
+
+anim = @animate for i = 1:10:Nt
+    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
     
     plot!([L/2], seriestype="vline")  #square
     plot!([-L/2], seriestype="vline")
@@ -119,7 +120,7 @@ gif(anim, f1)
 end
 
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
-
+#=
 anim = @animate for i = 1:100:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
     plot!(L/2*cos.(-π:0.01:π), L/4*sin.(-π:0.01:π)) # ellipse
@@ -129,12 +130,13 @@ end
 
 f1= pathf*".gif"
 gif(anim, f1)
-=#
+
 
 end
+=#
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
 #mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-(average(patht))   # passing path of the main folders which has all the runs
+# (average(patht))   # passing path of the main folders which has all the runs
 
