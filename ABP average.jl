@@ -1,6 +1,6 @@
 # PURPOSE: average the data from multiple folders/simulation runs and make a single averaged plot
 # MethodL Data will be read from multiple folders and averaged data will be plotted and stored
-# Why ? I am using this code for the fitting the average abd cheching for the transients
+# Why ? I am using this code for the fitting the average and checking for the transients
 using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics 
 
 gr()
