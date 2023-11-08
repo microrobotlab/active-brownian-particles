@@ -224,7 +224,7 @@ function simulate_wall!(ABPE, matrices, Nt, δt)
     
     for nt in 1:Nt
         ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
-        #println("Step $nt")
+        println("Step $nt")
       
     end
     return nothing

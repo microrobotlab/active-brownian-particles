@@ -7,6 +7,7 @@ include("ABP file.jl")
 # include("ABP analysis.jl")
 # include("ABP SD.jl")
 include("ABP multifolder.jl")
+include("ABP radialdensity.jl")
 # include("ABP average.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
@@ -32,17 +33,17 @@ ICS=1      # number of intial conditons to be scanned
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR, γ = diffusion_coeff(R).*[1e12, 1, 1] #1
-packing_fraction = 0.1
+packing_fraction = 0.2
 
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 100000# Nt is the number of steps 
+Nt = 10001# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\" # destination folder path
+path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\lj" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -58,7 +59,6 @@ patht= path*"$datestamp\\R=$R v=$v a=$a b=$b pf=$packing_fraction\\"
 folders=  multipledir(patht,ICS) 
 
 for i=1:ICS
-
     pathf= patht*"run$i\\"
     filename= "$datestamp R=$R v=$v a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
@@ -86,7 +86,7 @@ plot!([-L/2], seriestype="vline")
 
 
 
-graph_wall = multiparticleE(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
+graph_wall = multiparticleE_wall(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
 
 println("multiparticleE complied\n")
 #---------------------------------------------------------------------------------------------------------------------
@@ -99,6 +99,9 @@ file_store(graph_wall,Nt,pathf)
 
 #analysis_SD= stat_analysis2(a,b,R,pathf)
 
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#radial density
+radial_density_profile(L,15, pathf)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # making animation
@@ -106,7 +109,7 @@ file_store(graph_wall,Nt,pathf)
 
 #------------------------------------------------------------------------------For square-------------------------------------------------------------------------
 
-anim = @animate for i = 1:10:Nt
+anim = @animate for i = 1:100:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
     
     plot!([L/2], seriestype="vline")  #square
