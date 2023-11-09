@@ -33,12 +33,13 @@ ICS=1      # number of intial conditons to be scanned
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR, γ = diffusion_coeff(R).*[1e12, 1, 1] #1
-packing_fraction = 0.2
+packing_fraction = 0.4
 
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
+density = Np/L^2
 #π
-Nt = 10001# Nt is the number of steps 
+Nt = 20001# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -101,7 +102,7 @@ file_store(graph_wall,Nt,pathf)
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #radial density
-radial_density_profile(L,15, pathf)
+radial_density_profile(L,15, pathf, density)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # making animation

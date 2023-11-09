@@ -60,7 +60,7 @@ end
 #     return nc
 # end
 
-function radial_density_profile(R::Float64,nshells, pathf)
+function radial_density_profile(R::Float64,nshells, pathf,ρtot)
     f= pathf*".csv"
     f1= pathf*"_d.csv"
     f2= pathf*"_dp.png"
@@ -73,12 +73,13 @@ function radial_density_profile(R::Float64,nshells, pathf)
     gdf = groupby(df,:Time,sort=true) # only 1000 data groups because I have omitted 100 time steps means 1 s
     lastxy = gdf[end][!,[:xpos, :ypos]]
     xy = Matrix(lastxy)
-    dens,l = radial_density_cr(xy,nshells,R)
-
+    dens,l = radial_density_sq(xy,nshells,R)
+    dens = dens/ρtot
     #image
     t1=plot();
     scatter!(t1, l,dens,legend = false)
     xlabel!("radius (μm)", xguidefont=font(16), xtickfont=font(11))
+    ylabel!("ρ/Ρ", xguidefont=font(16), xtickfont=font(11))
     title!("Radial density profile")
     savefig(f2)
 
@@ -93,6 +94,10 @@ function radial_density_profile(R::Float64,nshells, pathf)
     CSV.write(f1, data)
 
 
-    println("I am out of ABP analysis")
+    println("I am out of ABP radialdensity")
     return dens
 end
+
+pathf = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\lj20231109-092657\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.4\\run1\\20231109-092657 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.4 run1"
+
+radial_density_profile(100.,15, pathf, 500/10000)
