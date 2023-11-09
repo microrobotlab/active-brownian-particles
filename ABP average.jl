@@ -66,7 +66,7 @@ function average(mainfolder)
     return nothing 
 end
 
-mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
+mainfolder="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi"
 #all_data = average(mainfolder)
 
 (average(mainfolder)) 

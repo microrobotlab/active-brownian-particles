@@ -46,23 +46,23 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
 
     # ONLY 2D!
     k=0.5
-    xyθ1 = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
-    r = (xyθ1[:,1]).*(xyθ1[:,1]) + (xyθ1[:,2]).*(xyθ1[:,2])
+    xyθ = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
+    # r = (xyθ1[:,1]).*(xyθ1[:,1]) + (xyθ1[:,2]).*(xyθ1[:,2])
   
-    rₚ = sqrt.(r)   
-    α =atan.(xyθ1[:,2], xyθ1[:,1]) 
-    a= L/2
-        b= L/4
-    #rₑ = (a*b)./(sqrt.(((a*sin.(xyθ1[:,3])).^2) .+ (b*cos.((xyθ1[:,3]))).^2))  # r value for boundary
-    rₑ = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))  # r value for boundary
-    #rₑ = b/sqrt.(1 .-((e*cos.(rθ)).^2))
-    id = (rₚ .< (rₑ))
-    xyθ = [xyθ1[id,1] xyθ1[id,2] xyθ1[id,3]]
+    # rₚ = sqrt.(r)   
+    # α =atan.(xyθ1[:,2], xyθ1[:,1]) 
+    # a= L/2
+    #     b= L/4
+    # #rₑ = (a*b)./(sqrt.(((a*sin.(xyθ1[:,3])).^2) .+ (b*cos.((xyθ1[:,3]))).^2))  # r value for boundary
+    # rₑ = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))  # r value for boundary
+    # #rₑ = b/sqrt.(1 .-((e*cos.(rθ)).^2))
+    # id = (rₚ .< (rₑ))
+    # xyθ = [xyθ1[id,1] xyθ1[id,2] xyθ1[id,3]]
 
-    Np1= size(xyθ,1)    # number of particles inside the boundary while Np is total number of particles
-    #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
+    # Np1= size(xyθ,1)    # number of particles inside the boundary while Np is total number of particles
+    # #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np1, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
 
     return abpe, (dists, superpose, uptriang)
 end
@@ -112,7 +112,7 @@ orientation(abpe::ABPE2) = abpe.θ
 function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64) where {ABPE <: ABPsEnsemble}
     pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt)
 
-    #periodic_BC_array!(pθ[1],abpe.L, abpe.R)
+    periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
@@ -234,9 +234,9 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
   
     pθ = ( position(abpe), orientation(abpe) ) .+ memory_step
 
-    #wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
+    wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
     #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
-    elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
+    # elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
 
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
