@@ -96,10 +96,12 @@ end
 function simulate!(ABPE, matrices, Nt, δt)
     # PΘ = [ (position(abpe), orientation(abpe)) ]
     # pθ = PΘ[1]
-    
+    start = time()
     for nt in 1:Nt
+        start_step = time()
         ABPE[nt+1] = update(ABPE[nt],matrices,δt) #updating information at every step
-        println("Step $nt")
+        println("Step $nt, total elapsed time $(round(time()-start, digits = 3))s, time per step $(round(time()-start_step, digits = 3))s")
+        
     end
     return nothing
 end
@@ -453,7 +455,7 @@ end
 #Function to calculate force vectors
 function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
 
-    ϵ=0.1
+    ϵ=.1
     σ= 2*R
     Np = size(xy,1)
     dists = zeros(Np,Np)
