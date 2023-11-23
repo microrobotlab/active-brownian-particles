@@ -39,27 +39,27 @@ function radial_density_cr(xy::Array{Float64,2}, nshells::Int64, R::Float64)
     return nc./area
 end
 
-# function radial_density_el(xy::Array{Float64,2}, nshells::Int64, L::Float64)
-#     r = (xy[:,1]).*(xy[:,1]) + (xy[:,2]).*(xy[:,2])
-#     rₚ = sqrt.(r)   
-#     α =atan.(xy[:,2], xy[:,1]) 
+function radial_density_el(xy::Array{Float64,2}, nshells::Int64, L::Float64)
+    r = (xy[:,1]).*(xy[:,1]) + (xy[:,2]).*(xy[:,2])
+    rₚ = sqrt.(r)   
+    α =atan.(xy[:,2], xy[:,1]) 
 
     
-#     a = L/2 #These are the proportions used in the main code
-#     b = L/4
-#     rₑ = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))
-#     nums = zeros(nshells)
+    a = L/2 #These are the proportions used in the main code
+    b = L/4
+    rₑ = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))
+    nums = zeros(nshells)
 
-#     for i in 1:nshells
-#         id = rₚ .> lims[i]
-#         nums[i] = sum(id)
-#     end
-#     area = π*((lims.+thickness).^2 .- lims.^2)
-#     nc = [nums[i]-nums[i+1] for i in 1:length(nums)-1]
-#     nc = vcat(nc, nums[end])
+    for i in 1:nshells
+        id = rₚ .> lims[i]
+        nums[i] = sum(id)
+    end
+    area = π*((lims.+thickness).^2 .- lims.^2)
+    nc = [nums[i]-nums[i+1] for i in 1:length(nums)-1]
+    nc = vcat(nc, nums[end])
 
-#     return nc
-# end
+    return nc
+end
 
 
 

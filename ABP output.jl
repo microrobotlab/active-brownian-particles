@@ -33,13 +33,13 @@ ICS=1      # number of intial conditons to be scanned
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR, γ = diffusion_coeff(R).*[1e12, 1, 1] #1
-packing_fraction = 0.4
+packing_fraction = 0.3
 
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 density = Np/L^2
 #π
-Nt = 20001# Nt is the number of steps 
+Nt = 1500# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -67,7 +67,7 @@ for i=1:ICS
     #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
 
      # println("multiparticleE complied\n")
-  #-------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for square wall condition
 
 # Same with the wall condition (particles bounce off the edge)  
@@ -85,11 +85,12 @@ plot!([-L/2], seriestype="vline")
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
 
+start_sim = now()
+graph_wall = multiparticleE(Np,L,R,v,Nt) # has values of x and y position in each frame in graph_wall[1]
+elapsed_time = Dates.canonicalize(now()-start_sim)
+#sim_time = @elapsed graph_wall = multiparticleE(Np,L,R,v,Nt) # has values of x and y position in each frame in graph_wall[1]
 
-
-graph_wall = multiparticleE_wall(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
-
-println("multiparticleE complied\n")
+println("multiparticleE complied: elapsed time $elapsed_time\n")#=
 #---------------------------------------------------------------------------------------------------------------------
 # file store
 file_store(graph_wall,Nt,pathf)
@@ -102,7 +103,7 @@ file_store(graph_wall,Nt,pathf)
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #radial density
-radial_density_profile(L,15, pathf, density)
+# radial_density_profile(L,15, pathf, density)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # making animation
@@ -120,7 +121,7 @@ end
 #marker_z=graph_wall[2][i,1], color=:rainbow, for 
 
 f1= pathf*".gif"
-gif(anim, f1)
+gif(anim, f1)=#
 end
 
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
