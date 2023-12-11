@@ -24,10 +24,10 @@ N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera.
 
 L = 100.0 	# μm box length
 R = 2.0		# μm particle radius
-v = 10.0 	# μm/s particle velocity
+v = 5.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=100      # number of intial conditons to be scanned 
+ICS=100     # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
@@ -41,7 +41,7 @@ Nt = 1000000# Nt is the number of steps
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\" # destination folder path
+path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\12.Dec\\ellipse\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -136,5 +136,5 @@ end
 
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
 #mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-(average(patht))   # passing path of the main folders which has all the runs
+#(average(patht))   # passing path of the main folders which has all the runs
 
