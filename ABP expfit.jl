@@ -55,3 +55,4 @@ k= plot(freqs,real.(freq), xlimit=(-0.5,0.5), ylimit=(0.02,200),seriestype=:stem
 display(k)
 savefig(k,f2)
 
+
