@@ -10,15 +10,15 @@ param_df = DataFrame(Parameter=String[], Value=String[])
 
 anim = @animate for i in 1:100
 
-path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\run$i\\"  # path of subfolder files
+path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\12.Dec\\ellipse\\20231211-183858\\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.1\\run$i\\"  # path of subfolder files
 
 main_folder= joinpath(path, "..\\")  # takes back to the previous folder
-filename= "20230824-205011 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run$(i)_p"
-FFT_filename= "20230824-205011 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run$(i)_FFT"
+filename= "20231211-183858 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.1 run$(i)_p"
+FFT_filename= "20231211-183858 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.1 run$(i)_FFT"
 pathf= path*filename
 path_FFT= path*FFT_filename
 f=  pathf*".csv"  
-f1= path*"FFT1to500s_run$i.png"
+f1= path*"FFT_run$i.png"
 f2= main_folder*"FFT_data.csv"
 f3= path*"temporal_evolution_run$i.png"
 f4= path_FFT*".csv"
@@ -84,14 +84,15 @@ display(p)
 
 FFT_data= DataFrame(run=i,time= time,f=freqs, real= real.(freq),img= imag.(freq))
 CSV.write(f4,FFT_data)
- k= plot(freqs,real.(freq), xlimit=(-0.6,0.6), ylimit=(0.02,2000),seriestype=:stem, xlabel="Frequency(Hz)", ylabel="Power",legend=false)
+ k= plot(freqs,real.(freq), xlimit=(-0.6,0.6), ylimit=(0.02,2000),seriestype=:stem,title="V 5.0", 
+ xlabel="Frequency(Hz)", ylabel="Power",legend=false)
 
 display(k)
  savefig(k,f1)
 
 end
 
-#path1 = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-#f4= path1*"FFT1to500s_run100.gif"
-#gif(anim, f4,fps=1)
+path1 = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\12.Dec\\ellipse\\20231211-183858\\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.1\\"
+f5= path1*"FFT100.gif"
+gif(anim, f5,fps=1)
 

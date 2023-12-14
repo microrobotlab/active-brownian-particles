@@ -10,8 +10,8 @@ function average(mainfolder)
     all_data = DataFrame()
     t1= plot()
     t2= plot()
-    f= mainfolder*"average of FTT 100.png" # file of average of FFT of all individual FFTS
-    f1= mainfolder*"average of FTT 100_data.csv"
+    f= mainfolder*"V 10.0.png" # file of average of FFT of all individual FFTS
+    # f1= mainfolder*"V 5.0_data.csv"
 
     # List all sub-folders inside the main directory
     subfolders = filter(isdir, readdir(mainfolder, join=true))
@@ -19,7 +19,7 @@ function average(mainfolder)
     for folder in subfolders
         # List all .csv data files inside the sub-folder, this command choose the specific data files with _p.csv extension.
         # if you have one .csv file per sunfolder this can be omitted 
-        data_files = filter(filename -> occursin("_FFT.csv", filename) && isfile(filename), readdir(folder, join=true))
+        data_files = filter(filename -> occursin("_p.csv", filename) && isfile(filename), readdir(folder, join=true))
 
         for file in data_files
             # Read the data
@@ -39,34 +39,35 @@ function average(mainfolder)
     # but I would need the average of all runs over each time step or second, a different method is required, following steps
 
    
-    gdf = groupby(all_data,:time,sort=true)
-    avg_f= [mean(g[!,:f]) for g in gdf]  # frequency
-    avg_real=  [mean(g[!,:real]) for g in gdf]   #power
-    time= all_data[1:10000,:time] # total time steps are now 10000, although in actual simulations they are 100 times more, because now i skipped 100 time steps in saving the data. keep this in mind
-    Data= DataFrame(t= time, f= avg_f, real= avg_real)
-    CSV.write(f1,Data)
+    gdf = groupby(all_data,:t,sort=true)
+    avg_eq= [mean(g[!,:p1]) for g in gdf]  # frequency
+    avg_p=  [mean(g[!,:p2]) for g in gdf]   #power
+    effect= avg_eq - avg_p
+    time= all_data[1:10000,:t] # total time steps are now 10000, although in actual simulations they are 100 times more, because now i skipped 100 time steps in saving the data. keep this in mind
+    # Data= DataFrame(t= time, p1= avg_eq, p2= avg_p)
+    # CSV.write(f1,Data)
  
-    #=
-   t1= scatter(time./100.0, avg_eq,legend=false)  
-    xlabel!("Time (s)", xguidefont=font(16),xlimit=(0,5000),ylimit=(15,30), xtickfont=font(11))
-    plot!(ylabel=L"\mathrm{pf_{eqs}}",yguidefont=font(16), ytickfont=font(11))
-    title!(" Equators 100 avg")
+
+   t1= scatter(time./100.0, effect,legend=false)  
+    xlabel!("Time (s)", xguidefont=font(16),xlimit=(0,10000),ylimit=(0,10), xtickfont=font(11))
+    plot!(ylabel=L"\mathrm{N_{eqs}-{N_{poles}}}",yguidefont=font(16), ytickfont=font(11))
+    title!(" V 10.0 100 avg")
  
-   t2= scatter(time./100.0, avg_p,legend=false) 
-    xlabel!("Time (s)", xguidefont=font(16),ylimit=(15,30), xtickfont=font(11))
-    plot!(ylabel=L"\mathrm{pf_{poles}}",xlimit=(0,5000),yguidefont=font(16), ytickfont=font(11))
-    title!(" Poles ")
+#    t2= scatter(time./100.0, avg_p,legend=false) 
+#     xlabel!("Time (s)", xguidefont=font(16),ylimit=(15,30), xtickfont=font(11))
+#     plot!(ylabel=L"\mathrm{pf_{poles}}",xlimit=(0,10000),yguidefont=font(16), ytickfont=font(11))
+#     title!(" Poles ")
     
-    p= plot(t1,t2)
+    p= plot(t1)
     savefig(p,f)
-    =#
-    k= plot(avg_f,avg_real, xlimit=(-0.5,0.5), ylimit=(0.02,200),seriestype=:stem, xlabel="Frequency(Hz)", ylabel="Power",legend=false)
-    savefig(k,f)
-    display(k)
+    
+    #k= plot(avg_f,avg_real, xlimit=(-0.5,0.5), ylimit=(0.02,200),seriestype=:stem, xlabel="Frequency(Hz)", ylabel="Power",legend=false)
+    #savefig(k,f)
+    #display(k)
     return nothing 
 end
 
-mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
+mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 #all_data = average(mainfolder)
 
 (average(mainfolder)) 
