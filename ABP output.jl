@@ -24,10 +24,11 @@ N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera.
 
 L = 100.0 	# μm box length
 R = 2.0		# μm particle radius
-v = 5.0 	# μm/s particle velocity
+v = 20.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=100     # number of intial conditons to be scanned 
+ICS=100 
+   # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
