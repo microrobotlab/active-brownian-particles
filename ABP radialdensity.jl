@@ -97,7 +97,3 @@ function radial_density_profile(R::Float64,nshells, pathf,ρtot)
     println("I am out of ABP radialdensity")
     return dens
 end
-
-pathf = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\lj20231109-092657\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.4\\run1\\20231109-092657 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.4 run1"
-
-radial_density_profile(100.,15, pathf, 500/10000)
