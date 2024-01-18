@@ -1,4 +1,4 @@
-using CalculusWithJulia, ForwardDiff
+using CalculusWithJulia, ForwardDiff, Dates
 
 # Define an "ABPsEnsemble" Type
 abstract type ABPsEnsemble end
@@ -45,14 +45,14 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
     DT, DR = diffusion_coeff(1e-6R)
 
     # ONLY 2D!
-    k=0.5
-    xyθ = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
+    # k=0.5
+    # xyθ1 = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
     # r = (xyθ1[:,1]).*(xyθ1[:,1]) + (xyθ1[:,2]).*(xyθ1[:,2])
   
     # rₚ = sqrt.(r)   
     # α =atan.(xyθ1[:,2], xyθ1[:,1]) 
     # a= L/2
-    #     b= L/4
+    # b= L/4
     # #rₑ = (a*b)./(sqrt.(((a*sin.(xyθ1[:,3])).^2) .+ (b*cos.((xyθ1[:,3]))).^2))  # r value for boundary
     # rₑ = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))  # r value for boundary
     # #rₑ = b/sqrt.(1 .-((e*cos.(rθ)).^2))
@@ -60,12 +60,39 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
     # xyθ = [xyθ1[id,1] xyθ1[id,2] xyθ1[id,3]]
 
     # Np1= size(xyθ,1)    # number of particles inside the boundary while Np is total number of particles
-    # #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
+    xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
+    Np1= size(xyθ,1)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    abpe = ABPE2( Np1, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
 
     return abpe, (dists, superpose, uptriang)
 end
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Generating inside ellipse
+
+# function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+#     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
+#     # Intial condition will be choosen as per the geometry under study
+#     DT, DR = diffusion_coeff(1e-6R)
+
+
+#     α = rand(Np).*2π
+
+#     rₑ = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))  # r value for boundary
+
+#     r = rand(Np).*rₑ
+#     θ = rand(Np).*2π
+
+#     xyθ = [r.*cos.(α) r.*sin.(α) θ]
+
+#     Np1= size(xyθ,1)    # number of particles inside the boundary while Np is total number of particles
+#     #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
+#     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
+#     abpe = ABPE2( Np1, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+
+#     return abpe, (dists, superpose, uptriang)
+# end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ##Calculate diffusion coefficient and friction coefficient
@@ -96,12 +123,15 @@ end
 function simulate!(ABPE, matrices, Nt, δt)
     # PΘ = [ (position(abpe), orientation(abpe)) ]
     # pθ = PΘ[1]
-    start = time()
+    start = now()
     for nt in 1:Nt
-        start_step = time()
-        ABPE[nt+1] = update(ABPE[nt],matrices,δt) #updating information at every step
-        println("Step $nt, total elapsed time $(round(time()-start, digits = 3))s, time per step $(round(time()-start_step, digits = 3))s")
-        
+        start_step = now()
+        ABPE[nt+1] = update(ABPE[nt],matrices,δt)#updating information at every step
+        if nt % 1000 == 0
+            elapsed = Dates.canonicalize((now()-start))
+            per_step = Dates.canonicalize(now()-start_step)
+            println("Step $nt, total elapsed time $(elapsed), time per step $per_step")
+        end
     end
     return nothing
 end
@@ -128,7 +158,7 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     γ = diffusion_coeff(abpe.R)[3]
 
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*attractive_interactions!(position(abpe),abpe.R)/γ
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
 
 
@@ -223,10 +253,15 @@ end
 function simulate_wall!(ABPE, matrices, Nt, δt)
     # PΘ = [ (position(abpe), orientation(abpe)) ]
     # pθ = PΘ[1]
-    
+    start = now()
     for nt in 1:Nt
+        start_step = now()
         ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
-        println("Step $nt")
+        if nt % 1000 == 0
+            elapsed = Dates.canonicalize(now()-start)
+            per_step = Dates.canonicalize(now()-start_step)
+            println("Step $nt, total elapsed time $(elapsed), time per step $per_step")
+        end
       
     end
     return nothing
@@ -237,9 +272,9 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
   
     pθ = ( position(abpe), orientation(abpe) ) .+ memory_step
 
-    wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
+    # wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
     #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
-    # elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
+    elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
 
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
@@ -453,18 +488,25 @@ function radial_directions(xy::Array{Float64,2})
 end
 
 #Function to calculate force vectors
-function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
+function interactions(xy::Array{Float64,2}, R::Float64)
 
     ϵ=.1
     σ= 2*R
+    k = .1 
     Np = size(xy,1)
     dists = zeros(Np,Np)
-    dists .= pairwise(Euclidean(),xy,xy,dims=1)
-    dists13= dists.^(13)
 
-    dists7= dists.^(7)
+    uptriang = trues(Np,Np)
+    for i = 1:Np
+       
+        #uptriang[i,i+1:Np] .= true
+        uptriang[i,i] = false
+    end
 
-    force= 24*ϵ*(((2*σ^(12))./dists13).- (σ^(6)./dists7))
+    dists .= pairwise(Euclidean(),xy,xy,dims=1).*uptriang
+    
+    strength_param = .1
+    force = strength_param.*rlj_border.(dists, σ, ϵ)
     replace!(force, NaN => 0.)
 
     dirs = radial_directions(xy)
@@ -474,4 +516,25 @@ function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
 
     return  reduce(vcat, transpose(ΣF))
 
+end
+
+lennard_jones(x, σ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
+function rectified_lennard_jones(x, σ, ϵ)
+    rmin = σ*2^(1/6)
+    if x > rmin
+        return 0
+    else
+        return 24*ϵ*(((2*σ^(12))./(x^(13))).- (σ^(6)./(x^(7))))
+    end
+end
+function rlj_border(x, σ, ϵ)
+    rmin = σ*2^(1/6) + σ/2
+    if x > rmin
+        return 0
+
+    elseif x < σ
+        return 390144*ϵ/σ
+    else
+        return 24*ϵ*(((2*σ^(12))./((x.-σ/2)^(13))).- (σ^(6)./((x.-σ/2)^(7)))) .+ ϵ 
+    end
 end
