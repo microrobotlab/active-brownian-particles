@@ -24,10 +24,10 @@ N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera.
 
 L = 100.0 	# μm box length
 R = 2.0		# μm particle radius
-v = 20.0 	# μm/s particle velocity
+v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=100 
+ICS=1
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
@@ -37,7 +37,7 @@ packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 1000000# Nt is the number of steps 
+Nt = 1000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ end
 f1= pathf*".gif"
 gif(anim, f1)
 end
-
+=#
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
 
 anim = @animate for i = 1:100:Nt
@@ -130,12 +130,11 @@ end
 
 f1= pathf*".gif"
 gif(anim, f1)
-=#
+
 
 end
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
-#mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-#(average(patht))   # passing path of the main folders which has all the runs
-
+mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
+(average(mainfolder))   # passing path of the main folders which has all the runs
