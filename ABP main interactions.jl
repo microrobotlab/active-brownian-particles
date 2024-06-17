@@ -60,7 +60,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
     # xyθ = [xyθ1[id,1] xyθ1[id,2] xyθ1[id,3]]
 
     # Np1= size(xyθ,1)    # number of particles inside the boundary while Np is total number of particles
-    xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
+    xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
     Np1= size(xyθ,1)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
     abpe = ABPE2( Np1, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
@@ -128,9 +128,9 @@ function simulate!(ABPE, matrices, Nt, δt)
         start_step = now()
         ABPE[nt+1] = update(ABPE[nt],matrices,δt)#updating information at every step
         if nt % 1000 == 0
-            elapsed = Dates.canonicalize((now()-start))
-            per_step = Dates.canonicalize(now()-start_step)
-            println("Step $nt, total elapsed time $(elapsed), time per step $per_step")
+            elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
+            # per_step = Dates.canonicalize(Dates.round((now()-start_step), Dates.Second))
+            println("Step $nt, total elapsed time $(elapsed)")#, time per step $per_step")
         end
     end
     return nothing
@@ -474,13 +474,67 @@ function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Floa
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Function to calculate inter-particle force
 #Function to calculate direction of difference vectors between particles
+pwdist(x) =[a-b for a in x, b in x] 
 function radial_directions(xy::Array{Float64,2})
+    diff_x = pwdist(xy[:,1])./pairwise(Euclidean(), xy, xy, dims = 1)
+    diff_y = pwdist(xy[:,2])./pairwise(Euclidean(), xy, xy, dims = 1)
+    replace!(diff_x, NaN=>0.)
+    replace!(diff_y, NaN=>0.)
+    return diff_x, diff_y
+end
+
+#Function to calculate force vectors
+function interactions(xy::Array{Float64,2}, R::Float64)
+    ϵ=.1
+    σ= 2*R
+    k = .1 
     Np = size(xy,1)
     dists = zeros(Np,Np)
+
     dists .= pairwise(Euclidean(),xy,xy,dims=1)
+    
+    strength_param = 1.
+    force = strength_param.*lennard_jones.(dists, σ, ϵ)
+    replace!(force, NaN => 0.)
+
+    dirs = radial_directions(xy)
+    F_x = force.*dirs[1]
+    F_y = force.*dirs[2]
+    ΣFx = .-sum(F_x, dims = 1)
+    ΣFy = .-sum(F_y, dims = 1)
+    ΣF = vcat.(ΣFx, ΣFy)    
+    return  reduce(vcat, transpose(ΣF))
+end
+
+lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
+
+function rectified_lennard_jones(x, σ, ϵ)
+    rmin = σ*2^(1/6)
+    if x > rmin
+        return 0
+    else
+        return 24*ϵ*(((2*σ^(12))./(x^(13))).- (σ^(6)./(x^(7))))
+    end
+end
+
+function rlj_border(x, σ, ϵ)
+    rmin = σ*2^(1/6) + σ/2
+    if x > rmin
+        return 0
+
+    elseif x < σ
+        return 390144*ϵ/σ
+    else
+        return 24*ϵ*(((2*σ^(12))./((x.-σ/2)^(13))).- (σ^(6)./((x.-σ/2)^(7)))) .+ ϵ 
+    end
+end
+
+#=
+OLD CODE, LESS OPTIMIZED
+function radial_directions(xy::Array{Float64,2})
 
     diff_v = [a-b for a in eachrow(xy), b in eachrow(xy)]
-    diff_v_norm = diff_v./dists
+    diff_v_norm = diff_v./pairwise(Euclidean(),xy,xy,dims=1)
 
     replace!(diff_v_norm, [NaN, NaN] => [0.,0.])
 
@@ -505,8 +559,8 @@ function interactions(xy::Array{Float64,2}, R::Float64)
 
     dists .= pairwise(Euclidean(),xy,xy,dims=1).*uptriang
     
-    strength_param = .1
-    force = strength_param.*rlj_border.(dists, σ, ϵ)
+    strength_param = 1.
+    force = strength_param.*lennard_jones.(dists, σ, ϵ)
     replace!(force, NaN => 0.)
 
     dirs = radial_directions(xy)
@@ -517,24 +571,4 @@ function interactions(xy::Array{Float64,2}, R::Float64)
     return  reduce(vcat, transpose(ΣF))
 
 end
-
-lennard_jones(x, σ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
-function rectified_lennard_jones(x, σ, ϵ)
-    rmin = σ*2^(1/6)
-    if x > rmin
-        return 0
-    else
-        return 24*ϵ*(((2*σ^(12))./(x^(13))).- (σ^(6)./(x^(7))))
-    end
-end
-function rlj_border(x, σ, ϵ)
-    rmin = σ*2^(1/6) + σ/2
-    if x > rmin
-        return 0
-
-    elseif x < σ
-        return 390144*ϵ/σ
-    else
-        return 24*ϵ*(((2*σ^(12))./((x.-σ/2)^(13))).- (σ^(6)./((x.-σ/2)^(7)))) .+ ϵ 
-    end
-end
+=#
