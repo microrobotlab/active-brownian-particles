@@ -124,10 +124,11 @@ function simulate!(ABPE, matrices, Nt, δt)
     # PΘ = [ (position(abpe), orientation(abpe)) ]
     # pθ = PΘ[1]
     start = now()
+    print_step = Nt÷100
     for nt in 1:Nt
         start_step = now()
         ABPE[nt+1] = update(ABPE[nt],matrices,δt)#updating information at every step
-        if nt % 1000 == 0
+        if nt % print_step == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             # per_step = Dates.canonicalize(Dates.round((now()-start_step), Dates.Second))
             println("Step $nt, total elapsed time $(elapsed)")#, time per step $per_step")
@@ -493,7 +494,7 @@ function interactions(xy::Array{Float64,2}, R::Float64)
 
     dists .= pairwise(Euclidean(),xy,xy,dims=1)
     
-    strength_param = 0.1
+    strength_param = 1.
     force = strength_param.*rlj_border.(dists, σ, ϵ)
     replace!(force, NaN => 0.)
 
