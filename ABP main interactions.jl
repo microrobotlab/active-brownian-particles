@@ -493,8 +493,8 @@ function interactions(xy::Array{Float64,2}, R::Float64)
 
     dists .= pairwise(Euclidean(),xy,xy,dims=1)
     
-    strength_param = 1.
-    force = strength_param.*lennard_jones.(dists, σ, ϵ)
+    strength_param = 0.1
+    force = strength_param.*rlj_border.(dists, σ, ϵ)
     replace!(force, NaN => 0.)
 
     dirs = radial_directions(xy)
@@ -525,7 +525,7 @@ function rlj_border(x, σ, ϵ)
     elseif x < σ
         return 390144*ϵ/σ
     else
-        return 24*ϵ*(((2*σ^(12))./((x.-σ/2)^(13))).- (σ^(6)./((x.-σ/2)^(7)))) .+ ϵ 
+        return 24*ϵ*(((2*σ^(12))./((x.-σ/2)^(13))).- (σ^(6)./((x.-σ/2)^(7)))) 
     end
 end
 
