@@ -37,7 +37,8 @@ touch(f1)
     orientation=θ) 
 
     CSV.write(f1, data)
-  
+    
+    close(efg)
     println("I am out of ABP file")
     return nothing
 end

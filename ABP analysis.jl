@@ -113,7 +113,7 @@ savefig(f2)
 
     CSV.write(f1, data)
     
-   
+    close(efg)
     println("I am out of ABP analysis")
  return count
 end
