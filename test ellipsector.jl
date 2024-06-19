@@ -3,25 +3,25 @@ using LinearAlgebra
 using Plots
 using Random
 
-function intersection_area_el(a,b,R₁,R₂) #a larger semiaxis, b smaller semiaxis, R₁ smaller circle radius
+function intersection_area_el(a::Float64,b::Float64,R₁::Float64,R₂::Float64) #a larger semiaxis, b smaller semiaxis, R₁ smaller circle radius
 
     if R₂ <= b
         area = pi*(R₂^2-R₁^2)
     end
 
     if R₁ < b && R₂ > b
-        area = ellipse_sector(a,b,R₂,shell=true)-(pi*R₁*R₁)
+        area = ellipse_sector(a,b,R₂,true)-(pi*R₁*R₁)
     end
 
     if R₁ >= b
-        area = ellipse_sector(a,b,R₂,shell=true) - ellipse_sector(a,b,R₁,shell=true)
+        area = ellipse_sector(a,b,R₂,true) - ellipse_sector(a,b,R₁,true)
     end
 
     return area
 end
 
 
-function ellipse_sector(a,b,r, shell) # area of intersection between ellipse and circle with r >b
+function ellipse_sector(a::Float64,b::Float64,r::Float64,shell::Bool) # area of intersection between ellipse and circle with r >b
     r<=a ? r : throw(DomainError(r, "r must be smaller than the larger semiaxis or no intersection will exist."))
     if shell && isapprox(r,a)
         return pi*a*b
