@@ -147,7 +147,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
 
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+    # hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
@@ -202,8 +202,8 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
         end
         counter += 1
         # @show(counter)
-        if counter >= 100
-            println("$superpositions superpositions remaining after 100 cycles")
+        if counter >= 1000
+            println("$superpositions superpositions remaining after 1000 cycles")
             break
         end
     end
@@ -477,10 +477,10 @@ function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Floa
 #Function to calculate direction of difference vectors between particles
 pwdist(x) =[a-b for a in x, b in x] 
 function radial_directions(xy::Array{Float64,2})
-    diff_x = pwdist(xy[:,1])./pairwise(Euclidean(), xy, xy, dims = 1)
-    diff_y = pwdist(xy[:,2])./pairwise(Euclidean(), xy, xy, dims = 1)
-    replace!(diff_x, NaN=>0.)
-    replace!(diff_y, NaN=>0.)
+    dist = pairwise(Euclidean(), xy, xy, dims = 1)
+    dist[diagind(dist)].=eps()
+    diff_x = pwdist(xy[:,1])./dist
+    diff_y = pwdist(xy[:,2])./dist
     return diff_x, diff_y
 end
 
@@ -494,8 +494,8 @@ function interactions(xy::Array{Float64,2}, R::Float64)
 
     dists .= pairwise(Euclidean(),xy,xy,dims=1)
     
-    strength_param = 1.
-    force = strength_param.*rlj_border.(dists, σ, ϵ)
+    strength_param = 1e-4
+    force = strength_param.*rlj_boundary.(dists, σ, ϵ)
     replace!(force, NaN => 0.)
 
     dirs = radial_directions(xy)
@@ -518,7 +518,7 @@ function rectified_lennard_jones(x, σ, ϵ)
     end
 end
 
-function rlj_border(x, σ, ϵ)
+function rlj_boundary(x, σ, ϵ)
     rmin = σ*2^(1/6) + σ/2
     if x > rmin
         return 0
