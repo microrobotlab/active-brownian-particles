@@ -10,18 +10,23 @@ function intersection_area_el(a,b,R₁,R₂) #a larger semiaxis, b smaller semia
     end
 
     if R₁ < b && R₂ > b
-        area = ellipse_sector(a,b,R₂)-(pi*R₁^2)
+        area = ellipse_sector(a,b,R₂,shell=true)-(pi*R₁*R₁)
     end
 
     if R₁ >= b
-        area = ellipse_sector(a,b,R₂) - ellipse_sector(a,b,R₁)
+        area = ellipse_sector(a,b,R₂,shell=true) - ellipse_sector(a,b,R₁,shell=true)
     end
 
     return area
 end
 
 
-function ellipse_sector(a,b,r) # area of intersection between ellipse and circle with r >b
+function ellipse_sector(a,b,r, shell) # area of intersection between ellipse and circle with r >b
+    r<=a ? r : throw(DomainError(r, "r must be smaller than the larger semiaxis or no intersection will exist."))
+    if shell && isapprox(r,a)
+        return pi*a*b
+    end
+
     x = a*sqrt((r^2-b^2)/(a^2-b^2))
     y = b*sqrt((a^2-r^2)/(a^2-b^2))
 
@@ -35,8 +40,10 @@ function ellipse_sector(a,b,r) # area of intersection between ellipse and circle
 
     return Aᵢₙₜ+Aₒ
 end
-# println(ellipse_sector_area(1,0.5,0.4,0.2))
+# println(intersection_area_el(10,5,0.4,0.2))
 # println(ellipse_sector(1,0.5,0.6))
+
+
 
 function intersection_area_sq(r::Float64, L::Float64)
     l = L/2
@@ -54,7 +61,9 @@ function intersection_area_sq(r::Float64, L::Float64)
     return A
 end
 
-intersection_area_sq(0.9,1.)
+# intersection_area_el(10.,5.,0.,.25)
+
+# intersection_area_sq(0.9,1.)
 # ## MC checking
 # a,b = (1,0.5)
 # N = 10000
