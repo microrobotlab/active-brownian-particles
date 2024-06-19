@@ -1,12 +1,27 @@
-using LinearAlgebra
-using Plots
-using Random
+using LinearAlgebra, Plots, Random, StatsBase
+include("test ellipsector.jl")
 
 a = 10.
 b = 5.
 R = 0.
 
 Np = 100000
+
+hist_radius = histogram()
+hist_ellipse = histogram2d()
+
+rr = range(0.,9.5,20)
+ar = Float64[]
+for ri in rr
+    push!(ar, intersection_area_el(a,b,ri,ri.+0.5))
+end
+
+θ = LinRange(0,2π, 1000)
+rmax = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(θ)).^2) .+ ((b-R)*cos.((θ))).^2))
+xt = rmax.*cos.(θ)
+yt = rmax.*sin.(θ)
+p_sc = plot(xt, yt)
+
 ## First way. Problem: center biased. Advantage: fast, simple and correct
 # α = rand(Np).*2π
 
@@ -17,13 +32,11 @@ Np = 100000
 # x = r.*cos.(α)
 # y = r.*sin.(α)
 
+# histogram!(hist_radius, r, bins = 20)
+# histogram2d!(hist_ellipse,x,y,bins=(50, 50), show_empty_bins=false, color = :plasma, aspect_ratio=:equal)
+# scatter!(p_sc, x,y, legend = false)
 
-# # display(histogram(r, bins = 20))
-# display(histogram2d(x,y,bins=(50, 50), show_empty_bins=false, color = :plasma, aspect_ratio=:equal))
-# # display(scatter(x,y, legend = false))
-
-# # p = hline!([2π], linestyle=:dash)
-
+# hline!([2π], linestyle=:dash)
 
 ## Second way. Presumably slower
 
@@ -48,21 +61,25 @@ while Nacc < Np
     xyt = (2 .*rand(1, 2).-1).*([a b])
     rt = sqrt((xyt[1])*(xyt[1]) + (xyt[2])*(xyt[2]))
     θt = atan(xyt[2], xyt[1]) 
-    rmax = (a-R)*(b-R)/(sqrt((((a-R)*sin(θt))^2) + ((b-R)*cos((θt)))^2))
+    local rmax = (a-R)*(b-R)/(sqrt((((a-R)*sin(θt))^2) + ((b-R)*cos((θt)))^2))
     if rt < rmax
         global xyacc = vcat(xyacc, xyt)
         global Nacc = size(xyacc,1)
     end
 end
-println(Nacc)
+
 x = xyacc[:,1]
 y = xyacc[:,2]
-display(histogram2d(x,y,bins=(50, 50), show_empty_bins=false, color = :plasma, aspect_ratio=:equal))
+r = sqrt.(x.^2 + y.^2)
 
-# θ = LinRange(0,2π, 1000)
-# rmax = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(θ)).^2) .+ ((b-R)*cos.((θ))).^2))
-# xt = rmax.*cos.(θ)
-# yt = rmax.*sin.(θ)
+histogram2d!(hist_ellipse,x,y,binds=(50, 50), show_empty_bins=false, color = :plasma, aspect_ratio=:equal)
+hist = fit(Histogram, r, range(0,10,21))
+hist.weights = round.(hist.weights./ar)
+plot!(hist_radius, hist)
+# scatter!(hist_radius, rr, ar*maximum(hist.weights)/maximum(ar))
+# scatter!(p_sc, x,y, legend = false)
 
-# display(plot(xt,yt),)
+display(hist_ellipse)
+display(hist_radius)
+# display(p_sc)
 
