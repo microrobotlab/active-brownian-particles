@@ -147,7 +147,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
 
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    # hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
@@ -192,7 +192,7 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
     counter = 0
     # @time begin
     while superpositions > 0
-        dists .= pairwise(Euclidean(),xy,xy,dims=1)
+        dists .= pairwise(Euclidean(),xy,dims=1)
         superpose .= (dists .< 2R*(1-tol)).*uptriang
         # @show(findall(superpose))
         superpositions = sum(superpose)
@@ -202,8 +202,8 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
         end
         counter += 1
         # @show(counter)
-        if counter >= 1000
-            println("$superpositions superpositions remaining after 1000 cycles")
+        if counter >= 100
+            println("$superpositions superpositions remaining after 100 cycles")
             break
         end
     end
@@ -254,14 +254,15 @@ end
 function simulate_wall!(ABPE, matrices, Nt, δt)
     # PΘ = [ (position(abpe), orientation(abpe)) ]
     # pθ = PΘ[1]
+    print_step = Nt÷100
     start = now()
     for nt in 1:Nt
-        start_step = now()
+        # start_step = now()
         ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
-        if nt % 1000 == 0
+        if nt % print_step == 0
             elapsed = Dates.canonicalize(now()-start)
-            per_step = Dates.canonicalize(now()-start_step)
-            println("Step $nt, total elapsed time $(elapsed), time per step $per_step")
+            # per_step = Dates.canonicalize(now()-start_step)
+            println("Step $nt, total elapsed time $(elapsed)")#, time per step $per_step")
         end
       
     end
@@ -273,9 +274,9 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
   
     pθ = ( position(abpe), orientation(abpe) ) .+ memory_step
 
-    # wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
+    wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
     #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
-    elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
+    # elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
 
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
@@ -477,7 +478,7 @@ function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Floa
 #Function to calculate direction of difference vectors between particles
 pwdist(x) =[a-b for a in x, b in x] 
 function radial_directions(xy::Array{Float64,2})
-    dist = pairwise(Euclidean(), xy, xy, dims = 1)
+    dist = pairwise(Euclidean(), xy, dims = 1)
     dist[diagind(dist)].=eps()
     diff_x = pwdist(xy[:,1])./dist
     diff_y = pwdist(xy[:,2])./dist
@@ -488,14 +489,13 @@ end
 function interactions(xy::Array{Float64,2}, R::Float64)
     ϵ=.1
     σ= 2*R
-    k = .1 
     Np = size(xy,1)
     dists = zeros(Np,Np)
 
-    dists .= pairwise(Euclidean(),xy,xy,dims=1)
+    dists .= pairwise(Euclidean(),xy,dims=1)
     
-    strength_param = 1e-4
-    force = strength_param.*rlj_boundary.(dists, σ, ϵ)
+    strength_param = 1e0
+    force = strength_param.*lennard_jones.(dists, σ, ϵ)
     replace!(force, NaN => 0.)
 
     dirs = radial_directions(xy)
@@ -509,7 +509,7 @@ end
 
 lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
 
-function rectified_lennard_jones(x, σ, ϵ)
+function rectified_lennard_jones(x::Array{Float64,2}, σ::Float64, ϵ::Float64)
     rmin = σ*2^(1/6)
     if x > rmin
         return 0
@@ -518,7 +518,7 @@ function rectified_lennard_jones(x, σ, ϵ)
     end
 end
 
-function rlj_boundary(x, σ, ϵ)
+function rlj_boundary(x::Array{Float64,2}, σ::Float64, ϵ::Float64)
     rmin = σ*2^(1/6) + σ/2
     if x > rmin
         return 0
