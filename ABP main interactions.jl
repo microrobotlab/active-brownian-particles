@@ -159,7 +159,7 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     γ = diffusion_coeff(abpe.R)[3]
 
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions_range(position(abpe),abpe.R,abpe.L,2,abpe.Np)/γ
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
 
 
@@ -505,6 +505,26 @@ function interactions(xy::Array{Float64,2}, R::Float64)
     ΣFy = .-sum(F_y, dims = 1)
     ΣF = vcat.(ΣFx, ΣFy)    
     return  reduce(vcat, transpose(ΣF))
+end
+
+function interactions_range(xy::Array{Float64,2}, R::Float64, L::Float64, l::Float64, Np::Int)
+	ΣFtot = Array{Float64}(undef,0,2)
+    ϵ=.1
+    σ= 2*R
+
+	for xyc in eachrow(xy)
+		xy_shifted = xy.-xyc'
+		periodic_BC_array!(xy_shifted, L, R)
+		inside = (abs.(xy_shifted)).<=(l/2)
+		xy_inside = xy_shifted[all!(trues(Np), inside),:]
+
+		dists = d2(xy_inside)
+		force = lennard_jones(dists[dists.!=0], σ, ϵ)
+		dirs = xy_inside[xy_inside[:,1].!=0. .&& xy_inside[:,2].!=0.,:]./dists[dists.!=0]
+		ΣF = sum(force.*dirs, dims = 1)
+		ΣFtot = vcat(ΣFtot, ΣF)
+	end
+	return ΣFtot
 end
 
 lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
