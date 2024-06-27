@@ -112,14 +112,6 @@ end
 Shifts all the angles from any domain to [0, 2π], reassigning.
 ```
 """
-function pirotation!(θ::Float64)
-    θ%=2π
-	if θ < 0
-        θ+=2π
-    end
-    return nothing
-end
-
 function pirotation!(θ::Array{Float64})
 	θ.%=2π
 	θ[θ.<0].+=2π
