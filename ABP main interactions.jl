@@ -1,4 +1,5 @@
 using CalculusWithJulia, ForwardDiff, Dates
+include("geo_toolbox.jl")
 
 # Define an "ABPsEnsemble" Type
 abstract type ABPsEnsemble end
@@ -473,17 +474,6 @@ function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Floa
       return nothing
   end
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
-#Function to calculate inter-particle force
-#Function to calculate direction of difference vectors between particles
-pwdist(x::Vector{Float64}) =[b-a for a in x, b in x] 
-function radial_directions(xy::Array{Float64,2})
-    dist = pairwise(Euclidean(), xy, dims = 1)
-    dist[diagind(dist)].=eps()
-    diff_x = pwdist(xy[:,1])./dist
-    diff_y = pwdist(xy[:,2])./dist
-    return diff_x, diff_y 
-end
-
 #Function to calculate force vectors
 function interactions(xy::Array{Float64,2}, R::Float64)
     ϵ=.1
