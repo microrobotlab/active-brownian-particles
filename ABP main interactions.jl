@@ -147,7 +147,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
 
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+    # hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
@@ -157,12 +157,11 @@ end
 function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
     γ = diffusion_coeff(abpe.R)[3]
-
+    intrange = 2*abpe.R*2^(1/6) + 0.1/2
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions_range(position(abpe),abpe.R,abpe.L,2,abpe.Np)/γ
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ 1e-3*δt*interactions(position(abpe),abpe.R)/γ
+        # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ 1e-3*δt*interactions_range(position(abpe),abpe.R,abpe.L,intrange,abpe.Np)/γ
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
-
-
     else
         println("No step method available")
     end
@@ -202,8 +201,8 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
         end
         counter += 1
         # @show(counter)
-        if counter >= 100
-            println("$superpositions superpositions remaining after 100 cycles")
+        if counter >= 1000
+            println("$superpositions superpositions remaining after 1000 cycles")
             break
         end
     end
@@ -476,13 +475,13 @@ function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Floa
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Function to calculate inter-particle force
 #Function to calculate direction of difference vectors between particles
-pwdist(x) =[a-b for a in x, b in x] 
+pwdist(x::Vector{Float64}) =[b-a for a in x, b in x] 
 function radial_directions(xy::Array{Float64,2})
     dist = pairwise(Euclidean(), xy, dims = 1)
     dist[diagind(dist)].=eps()
     diff_x = pwdist(xy[:,1])./dist
     diff_y = pwdist(xy[:,2])./dist
-    return diff_x, diff_y
+    return diff_x, diff_y 
 end
 
 #Function to calculate force vectors
@@ -495,14 +494,14 @@ function interactions(xy::Array{Float64,2}, R::Float64)
     dists .= pairwise(Euclidean(),xy,dims=1)
     
     strength_param = 1e0
-    force = strength_param.*lennard_jones.(dists, σ, ϵ)
+    force = strength_param.*rlj_boundary.(dists, σ, ϵ)
     replace!(force, NaN => 0.)
 
     dirs = radial_directions(xy)
     F_x = force.*dirs[1]
     F_y = force.*dirs[2]
-    ΣFx = .-sum(F_x, dims = 1)
-    ΣFy = .-sum(F_y, dims = 1)
+    ΣFx = sum(F_x, dims = 1)
+    ΣFy = sum(F_y, dims = 1)
     ΣF = vcat.(ΣFx, ΣFy)    
     return  reduce(vcat, transpose(ΣF))
 end
@@ -515,13 +514,18 @@ function interactions_range(xy::Array{Float64,2}, R::Float64, L::Float64, l::Flo
 	for xyc in eachrow(xy)
 		xy_shifted = xy.-xyc'
 		periodic_BC_array!(xy_shifted, L, R)
-		inside = (abs.(xy_shifted)).<=(l/2)
+		inside = (abs.(xy_shifted)).<=(l)
 		xy_inside = xy_shifted[all!(trues(Np), inside),:]
 
-		dists = d2(xy_inside)
-		force = lennard_jones(dists[dists.!=0], σ, ϵ)
+        if isempty(xy_inside[xy_inside[:,1].!=0. .&& xy_inside[:,2].!=0.,:])
+            ΣFtot = vcat(ΣFtot, [0. 0.])
+            continue
+        end
+
+		dists = (d2(xy_inside))
+		force = rlj_boundary.(dists[dists.!=0], σ, ϵ)
 		dirs = xy_inside[xy_inside[:,1].!=0. .&& xy_inside[:,2].!=0.,:]./dists[dists.!=0]
-		ΣF = sum(force.*dirs, dims = 1)
+		ΣF = .-sum(force.*dirs, dims = 1)
 		ΣFtot = vcat(ΣFtot, ΣF)
 	end
 	return ΣFtot
@@ -538,7 +542,7 @@ function rectified_lennard_jones(x::Array{Float64,2}, σ::Float64, ϵ::Float64)
     end
 end
 
-function rlj_boundary(x::Array{Float64,2}, σ::Float64, ϵ::Float64)
+function rlj_boundary(x::Vector{Float64}, σ::Float64, ϵ::Float64)
     rmin = σ*2^(1/6) + σ/2
     if x > rmin
         return 0
@@ -550,11 +554,23 @@ function rlj_boundary(x::Array{Float64,2}, σ::Float64, ϵ::Float64)
     end
 end
 
+function rlj_boundary(x::Float64, σ::Float64, ϵ::Float64)
+    rmin = σ*2^(1/6) + σ/2
+    if x > rmin
+        return 0
+
+    elseif x < σ
+        return 390144*ϵ/σ
+    else
+        return 24*ϵ*(((2*σ^(12))/((x-σ/2)^(13)))- (σ^(6)/((x-σ/2)^(7)))) 
+    end
+end
+
 #=
 OLD CODE, LESS OPTIMIZED
 function radial_directions(xy::Array{Float64,2})
 
-    diff_v = [a-b for a in eachrow(xy), b in eachrow(xy)]
+    diff_v = [b-a for a in eachrow(xy), b in eachrow(xy)]
     diff_v_norm = diff_v./pairwise(Euclidean(),xy,xy,dims=1)
 
     replace!(diff_v_norm, [NaN, NaN] => [0.,0.])
