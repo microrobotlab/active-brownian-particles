@@ -160,8 +160,8 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     γ = diffusion_coeff(abpe.R)[3]
     intrange = 2*abpe.R*2^(1/6) + 0.1/2
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ 1e-3*δt*interactions(position(abpe),abpe.R)/γ
-        # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ 1e-3*δt*interactions_range(position(abpe),abpe.R,abpe.L,intrange,abpe.Np)/γ
+        # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions_range(position(abpe),abpe.R,abpe.L,intrange,abpe.Np)/γ
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
     else
         println("No step method available")
@@ -477,14 +477,14 @@ function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Floa
 #Function to calculate force vectors
 function interactions(xy::Array{Float64,2}, R::Float64)
     ϵ=.1
-    σ= 2*R
+    σ= 2R
     Np = size(xy,1)
     dists = zeros(Np,Np)
 
     dists .= pairwise(Euclidean(),xy,dims=1)
     
     strength_param = 1e0
-    force = strength_param.*rlj_boundary.(dists, σ, ϵ)
+    force = strength_param.*lennard_jones.(dists, σ, ϵ)
     replace!(force, NaN => 0.)
 
     dirs = radial_directions(xy)
@@ -499,7 +499,7 @@ end
 function interactions_range(xy::Array{Float64,2}, R::Float64, L::Float64, l::Float64, Np::Int)
 	ΣFtot = Array{Float64}(undef,0,2)
     ϵ=.1
-    σ= 2*R
+    σ= 2R
 
 	for xyc in eachrow(xy)
 		xy_shifted = xy.-xyc'
