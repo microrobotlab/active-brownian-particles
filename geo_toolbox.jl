@@ -117,3 +117,7 @@ function pirotation!(θ::Array{Float64})
 	θ[θ.<0].+=2π
     return nothing
 end
+"""
+Calculate the 2-norm of a vector.
+"""
+d2(xy::Array{Float64,2}) = sqrt.(xy[:,1].*xy[:,1] .+ xy[:,2].*xy[:,2])
