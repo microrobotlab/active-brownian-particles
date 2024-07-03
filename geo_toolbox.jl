@@ -121,3 +121,50 @@ end
 Calculate the 2-norm of a vector.
 """
 d2(xy::Array{Float64,2}) = sqrt.(xy[:,1].*xy[:,1] .+ xy[:,2].*xy[:,2])
+
+"""
+    ellipse_sectors(a::Float64,b::Float64,r::Float64,shell::Bool)
+
+Compute the area of the interception between an ellipse and a circle with radius r>b.
+a larger semiaxis, b smaller semiaxis, r circle radius, shell: if function is used to compute shells area; if true, functions returns area of the ellipse when r = a.
+```
+"""
+function ellipse_sectors(a::Float64,b::Float64,r::Float64,shell::Bool) # area of intersection between ellipse and circle with r >b
+    r<=a ? r : throw(DomainError(r, "r must be smaller than the larger semiaxis or no intersection will exist."))
+    if shell && isapprox(r,a)
+        return pi*a*b
+    end
+
+    x = a*sqrt((r^2-b^2)/(a^2-b^2))
+    y = b*sqrt((a^2-r^2)/(a^2-b^2))
+
+    θ₁ = atan(y,x)
+    θ₂ = atan(y,-x)
+    Aₑ = 0.5a*b*atan(a*tan(θ₁)/b)
+    Aᵢₙₜ = pi*a*b - 4*Aₑ
+    Aₒ = 2*θ₁*r^2
+
+    return Aᵢₙₜ+Aₒ
+end
+
+"""
+    intersection_area_el(a::Float64,b::Float64,r::Float64,shell::Bool)
+
+Compute the area of the shell between R₁ and R₂ inside the ellipse
+```
+"""
+function intersection_area_el(a::Float64,b::Float64,R₁::Float64,R₂::Float64) #a larger semiaxis, b smaller semiaxis, R₁ smaller circle radius
+    if R₂ <= b
+        area = pi*(R₂^2-R₁^2)
+    end
+
+    if R₁ < b && R₂ > b
+        area = ellipse_sector(a,b,R₂,true)-(pi*R₁*R₁)
+    end
+
+    if R₁ >= b
+        area = ellipse_sector(a,b,R₂,true) - ellipse_sector(a,b,R₁,true)
+    end
+
+    return area
+end
