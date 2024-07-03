@@ -125,7 +125,7 @@ d2(xy::Array{Float64,2}) = sqrt.(xy[:,1].*xy[:,1] .+ xy[:,2].*xy[:,2])
 """
     ellipse_sectors(a::Float64,b::Float64,r::Float64,shell::Bool)
 
-Compute the area of the interception between an ellipse and a circle with radius r>b.
+Compute the area of the interception between an ellipse and a circle with radius r>b as the sum of all the sectors given by the interceptions.
 a larger semiaxis, b smaller semiaxis, r circle radius, shell: if function is used to compute shells area; if true, functions returns area of the ellipse when r = a.
 ```
 """
