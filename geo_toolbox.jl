@@ -168,3 +168,20 @@ function intersection_area_el(a::Float64,b::Float64,R₁::Float64,R₂::Float64)
 
     return area
 end
+
+"""
+Still developing
+"""
+function get_angles(xyθ::Array{Float64,2})
+	Δθ = pwdist(xyθ[:,3]).%2π #all possible angle differences
+	pdirs = pirotation(xyθ[:,3]) #domain shifting all directions
+
+	@show rad2deg.(pirotation(xyθ[:,3]))
+	diffs = radial_directions(xyθ)
+	angs_c2c = atan.(diffs[2], diffs[1])
+	pirotation!(angs_c2c) 
+	@show rad2deg.(angs_c2c)
+	return xyθ[:,3].-angs_c2c #which angle do we actually want?
+	#now you can combine an angle and its opposite through cat in 3d or in some other way depending on what you need
+
+end
