@@ -176,12 +176,12 @@ function get_angles(xyθ::Array{Float64,2})
 	Δθ = pwdist(xyθ[:,3]).%2π #all possible angle differences
 	pdirs = pirotation(xyθ[:,3]) #domain shifting all directions
 
-	@show rad2deg.(pirotation(xyθ[:,3]))
+	@show round.(rad2deg.(pirotation(xyθ[:,3])))
 	diffs = radial_directions(xyθ)
 	angs_c2c = atan.(diffs[2], diffs[1])
-	pirotation!(angs_c2c) 
-	@show rad2deg.(angs_c2c)
-	return xyθ[:,3].-angs_c2c #which angle do we actually want?
+	angs_c2c[angs_c2c .< 0].+=π
+	@show round.(rad2deg.(angs_c2c))
+	return (xyθ[:,3].%2π).-angs_c2c
 	#now you can combine an angle and its opposite through cat in 3d or in some other way depending on what you need
-
+	#in [i,j] you have the angle that the i-th particle's direction forms with the direction between j and i
 end
