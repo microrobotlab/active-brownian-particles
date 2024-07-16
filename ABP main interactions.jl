@@ -1,4 +1,4 @@
-using CalculusWithJulia, ForwardDiff, Dates
+using CalculusWithJulia, Dates, Distributions, ForwardDiff, Random, Statistics
 include("geo_toolbox.jl")
 
 # Define an "ABPsEnsemble" Type
@@ -9,7 +9,7 @@ struct ABPE2 <: ABPsEnsemble
     Np::Int64                      # number of particles®®
     L::Float64                      # size of observation space (μm)
 	R::Float64  # Radius (μm)                                   --> Vector{Float64}(undef,Np)
-	v::Float64 	# velocity (μm/s)                               --> Vector{Float64}(undef,Np)
+	v::Vector{Float64}  	# velocity (μm/s)                        --> Vector{Float64}(undef,Np)
 	DT::Float64 # translational diffusion coefficient (μm^2/s)  --> Vector{Float64}(undef,Np)
 	DR::Float64 # rotational diffusion coefficient (rad^2/s)    --> Vector{Float64}(undef,Np)
 	x::Vector{Float64}    # x position (μm)
@@ -64,10 +64,22 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
     xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
     Np1= size(xyθ,1)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np1, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    abpe = ABPE2( Np1, L, R, fill(v,Np1), 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
 
     return abpe, (dists, superpose, uptriang)
 end
+
+function initABPE(Np::Int64, L::Float64, R::Float64, vd::Distribution; T::Float64=300.0, η::Float64=1e-3)
+    # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
+    # Intial condition will be choosen as per the geometry under study
+    DT, DR = diffusion_coeff(1e-6R)
+    xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
+    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
+    v = rand(vd, Np)
+    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    return abpe, (dists, superpose, uptriang)
+end
+
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Generating inside ellipse
@@ -121,6 +133,17 @@ function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Float64, Nt::Int
     return position.(ABPE), orientation.(ABPE)
 end
 
+function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Distribution, Nt::Int64=2, δt::Float64=1e-3)
+    (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
+    
+    ABPE = Vector{ABPE2}(undef,Nt+1) # Nt is number of time steps
+    ABPE[1], matrices = initABPE( Np, L, R, v ) # including initial hardsphere correction
+    
+    simulate!(ABPE, matrices, Nt, δt)
+
+    return position.(ABPE), orientation.(ABPE)
+end
+
 function simulate!(ABPE, matrices, Nt, δt)
     # PΘ = [ (position(abpe), orientation(abpe)) ]
     # pθ = PΘ[1]
@@ -148,7 +171,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
 
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    # hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
@@ -157,12 +180,17 @@ end
 
 function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
-    γ = diffusion_coeff(abpe.R)[3]
-    intrange = 2*abpe.R*2^(1/6) + 0.1/2
+    γₜ = diffusion_coeff(abpe.R)[3]
+    γᵣ = γₜ*8abpe.R^2/6
+    intrange = 2abpe.R #2*abpe.R*2^(1/6) + 0.1/2
+    # print(size(abpe.v))
+    # print(size([cos.(abpe.θ) sin.(abpe.θ)]))
+
+    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, abpe.L, intrange, coulomb, 5)
     if size(position(abpe),2) == 2
         # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions_range(position(abpe),abpe.R,abpe.L,intrange,abpe.Np)/γ
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ #.+ δt*interactions_range(position(abpe), abpe.R, abpe.L, 8abpe.R, abpe.Np, coulomb, -3.)/γₜ #ₜ
+        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ 4*δt*torque/γᵣ
     else
         println("No step method available")
     end
@@ -478,10 +506,8 @@ function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Floa
 function interactions(xy::Array{Float64,2}, R::Float64)
     ϵ=.1
     σ= 2R
-    Np = size(xy,1)
-    dists = zeros(Np,Np)
 
-    dists .= pairwise(Euclidean(),xy,dims=1)
+    dists = pairwise(Euclidean(),xy,dims=1)
     
     strength_param = 1e0
     force = strength_param.*lennard_jones.(dists, σ, ϵ)
@@ -496,10 +522,8 @@ function interactions(xy::Array{Float64,2}, R::Float64)
     return  reduce(vcat, transpose(ΣF))
 end
 
-function interactions_range(xy::Array{Float64,2}, R::Float64, L::Float64, l::Float64, Np::Int)
+function interactions_range(xy::Array{Float64,2}, R::Float64, L::Float64, l::Float64, Np::Int, int_func::Function, int_params...)
 	ΣFtot = Array{Float64}(undef,0,2)
-    ϵ=.1
-    σ= 2R
 
 	for xyc in eachrow(xy)
 		xy_shifted = xy.-xyc'
@@ -507,14 +531,14 @@ function interactions_range(xy::Array{Float64,2}, R::Float64, L::Float64, l::Flo
 		inside = (abs.(xy_shifted)).<=(l)
 		xy_inside = xy_shifted[all!(trues(Np), inside),:]
 
-        if isempty(xy_inside[xy_inside[:,1].!=0. .&& xy_inside[:,2].!=0.,:])
+        if isempty(xy_inside[xy_inside[:,1].!=0. .|| xy_inside[:,2].!=0.,:])
             ΣFtot = vcat(ΣFtot, [0. 0.])
             continue
         end
 
 		dists = (d2(xy_inside))
-		force = rlj_boundary.(dists[dists.!=0], σ, ϵ)
-		dirs = xy_inside[xy_inside[:,1].!=0. .&& xy_inside[:,2].!=0.,:]./dists[dists.!=0]
+		force = int_func.(dists[dists.!=0], int_params...)
+		dirs = xy_inside[xy_inside[:,1].!=0. .|| xy_inside[:,2].!=0.,:]./dists[dists.!=0] #difference can be eliminated bc the central particle is in [0 0]
 		ΣF = .-sum(force.*dirs, dims = 1)
 		ΣFtot = vcat(ΣFtot, ΣF)
 	end
@@ -529,6 +553,15 @@ function rectified_lennard_jones(x::Array{Float64,2}, σ::Float64, ϵ::Float64)
         return 0
     else
         return 24*ϵ*(((2*σ^(12))./(x^(13))).- (σ^(6)./(x^(7))))
+    end
+end
+
+function purely_attractive_lennard_jones(x, σ::Float64, ϵ::Float64)
+    rmin = σ*2^(1/6) + σ/2
+    if x > rmin
+        return 24*ϵ*(((2*σ^(12))./((x + σ/2)^(13))).- (σ^(6)./((x + σ/2)^(7))))
+    else
+        return 0
     end
 end
 
@@ -554,4 +587,14 @@ function rlj_boundary(x::Float64, σ::Float64, ϵ::Float64)
     else
         return 24*ϵ*(((2*σ^(12))/((x-σ/2)^(13)))- (σ^(6)/((x-σ/2)^(7)))) 
     end
+end
+
+coulomb(x,k) = k/(x*x)
+
+function interaction_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, forward::Bool, L::Float64, range::Float64, int_func::Function, int_params...) #offcenter
+    xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R/2
+    forces = hcat(interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...), zeros(size(xy,1)))
+    orientations = [cos.(θ) sin.(θ) zeros(size(xy,1))]
+    torques = R/2 * (cross.(eachrow(orientations), eachrow(forces)))
+    return forces[:,1:2], reduce(hcat, torques)'[:,3]
 end
