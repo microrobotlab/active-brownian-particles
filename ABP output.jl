@@ -9,10 +9,10 @@ include("ABP analysis.jl")
 include("ABP multifolder.jl")
 include("ABP radialdensity.jl")
 # include("ABP average.jl")
-using CSV, DataFrames, Dates, Distances, NaNStatistics, Plots, Printf
+using CSV, DataFrames, Dates, Distances, NaNStatistics, Plots, Printf, Random
 gr()
 
-N = 5000
+N = 100000
 Delta_t = 1e-3
 t_tot= N*Delta_t
 
@@ -32,7 +32,7 @@ ICS=1      # number of intial conditons to be scanned
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR, γ = diffusion_coeff(R).*[1e12, 1, 1]  #1
-packing_fraction = 0.1 #Largest pf for spherical beads π/4 = 0.7853981633974483
+packing_fraction = 0.05 #Largest pf for spherical beads π/4 = 0.7853981633974483
 
 area_el = π*a*b
 Np = round(Int,packing_fraction*L^2/(pi*R^2))  #Np is the number of particles in my set and I choose it random?
@@ -43,7 +43,7 @@ Nt = N# Nt is the number of steps
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\" # destination folder path
+path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\trq" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
