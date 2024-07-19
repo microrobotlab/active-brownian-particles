@@ -9,7 +9,8 @@ struct ABPE2 <: ABPsEnsemble
     Np::Int64                      # number of particles®®
     L::Float64                      # size of observation space (μm)
 	R::Float64  # Radius (μm)                                   --> Vector{Float64}(undef,Np)
-	v::Vector{Float64}  	# velocity (μm/s)                        --> Vector{Float64}(undef,Np)
+	v::Vector{Float64}  	# velocity (μm/s)                   --> Vector{Float64}(undef,Np)
+    ω::Vector{Float64} #Angular velocity (rad/s)                --> Vector{Float64}(undef,Np)            
 	DT::Float64 # translational diffusion coefficient (μm^2/s)  --> Vector{Float64}(undef,Np)
 	DR::Float64 # rotational diffusion coefficient (rad^2/s)    --> Vector{Float64}(undef,Np)
 	x::Vector{Float64}    # x position (μm)
@@ -40,7 +41,7 @@ end
 =#
 #------------------------------------------------------------For ellipse ---------------------------------------------------------------------------------------------------------
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; ω::Float64=0., T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
@@ -64,19 +65,20 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
     xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
     Np1= size(xyθ,1)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np1, L, R, fill(v,Np1), 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    abpe = ABPE2( Np1, L, R, fill(v,Np1), fill(ω,Np1), 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
 
     return abpe, (dists, superpose, uptriang)
 end
 
-function initABPE(Np::Int64, L::Float64, R::Float64, vd::Distribution; T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, R::Float64, vd::Distribution; ωd::Distribution=Normal(0.,0.,), T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
     xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
     v = rand(vd, Np)
-    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    ω = rand(ωd,Np)
+    abpe = ABPE2( Np, L, R, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
     return abpe, (dists, superpose, uptriang)
 end
 
@@ -187,7 +189,7 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     if size(position(abpe),2) == 2
         # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
         δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ #.+ 2.5δt*interactions_range(position(abpe), abpe.R, abpe.L, intrange, abpe.Np, contact_lj, 2abpe.R, 0.1)/γₜ #ₜ
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ 5δt*torque/γᵣ
+        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ 5δt*torque/γᵣ
     else
         println("No step method available")
     end
