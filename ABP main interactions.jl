@@ -182,15 +182,12 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
     γₜ = diffusion_coeff(abpe.R)[3]
     γᵣ = γₜ*8abpe.R^2/6
-    intrange = 2abpe.R #2*abpe.R*2^(1/6) + 0.1/2
-    # print(size(abpe.v))
-    # print(size([cos.(abpe.θ) sin.(abpe.θ)]))
-
-    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, abpe.L, intrange, coulomb, 5)
+    intrange = 10abpe.R #2*abpe.R*2^(1/6) + 0.1/2
+    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, abpe.L, intrange, lennard_jones, 2abpe.R, 0.1 )
     if size(position(abpe),2) == 2
         # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ #.+ δt*interactions_range(position(abpe), abpe.R, abpe.L, 8abpe.R, abpe.Np, coulomb, -3.)/γₜ #ₜ
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ 4*δt*torque/γᵣ
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ #.+ 2.5δt*interactions_range(position(abpe), abpe.R, abpe.L, intrange, abpe.Np, contact_lj, 2abpe.R, 0.1)/γₜ #ₜ
+        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ 5δt*torque/γᵣ
     else
         println("No step method available")
     end
@@ -230,7 +227,7 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
         end
         counter += 1
         # @show(counter)
-        if counter >= 1000
+        if counter >= 100
             println("$superpositions superpositions remaining after 1000 cycles")
             break
         end
@@ -587,6 +584,11 @@ function rlj_boundary(x::Float64, σ::Float64, ϵ::Float64)
     else
         return 24*ϵ*(((2*σ^(12))/((x-σ/2)^(13)))- (σ^(6)/((x-σ/2)^(7)))) 
     end
+end
+
+function contact_lj(x, σ::Float64, ϵ::Float64)
+    shift = 2^(1/6)-1
+    return 24*ϵ*(((2*σ^(12))./((x+shift)^(13))).- (σ^(6)./((x+shift)^(7))))
 end
 
 coulomb(x,k) = k/(x*x)
