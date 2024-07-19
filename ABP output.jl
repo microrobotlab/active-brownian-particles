@@ -9,10 +9,10 @@ include("ABP analysis.jl")
 include("ABP multifolder.jl")
 include("ABP radialdensity.jl")
 # include("ABP average.jl")
-using CSV, DataFrames, Dates, Distances, NaNStatistics, Plots, Printf, Random
+using CSV, DataFrames, Dates, Distances, Distributions, NaNStatistics, Plots, Printf, Random
 gr()
 
-N = 100000
+N = 25000
 Delta_t = 1e-3
 t_tot= N*Delta_t
 
@@ -25,7 +25,7 @@ t_tot= N*Delta_t
 
 L = 100.0 	# μm box length
 R = 2.0		# μm particle radius
-v = 10. 	# μm/s particle velocity
+v = 10.	# μm/s particle velocity
 a=L/2
 b=L/4
 ICS=1      # number of intial conditons to be scanned 
@@ -89,7 +89,7 @@ for i=1:ICS
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
 
 start_sim = now()
-graph_wall = multiparticleE(Np,L,R,v,Nt,Delta_t) # has values of x and y position in each frame in graph_wall[1]
+graph_wall = multiparticleE(Np,L,R,Uniform(0.,12.),Nt,Delta_t) # has values of x and y position in each frame in graph_wall[1]
 elapsed_time = Dates.canonicalize(now()-start_sim)
 #sim_time = @elapsed graph_wall = multiparticleE(Np,L,R,v,Nt) # has values of x and y position in each frame in graph_wall[1]
 
@@ -114,7 +114,7 @@ inside_Np=stat_analysis1(a,b,R,pathf)
 
 #------------------------------------------------------------------------------For square-------------------------------------------------------------------------
 
-anim = @animate for i = 1:100:Nt
+anim = @animate for i = 1:25:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
     
     plot!([L/2], seriestype="vline")  #square
