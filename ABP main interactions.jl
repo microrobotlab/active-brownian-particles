@@ -157,9 +157,10 @@ function simulate!(ABPE, matrices, Nt, δt)
         if nt % print_step == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             # per_step = Dates.canonicalize(Dates.round((now()-start_step), Dates.Second))
-            println("Step $nt, total elapsed time $(elapsed)")#, time per step $per_step")
+            print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")#, time per step $per_step")
         end
     end
+    print("\n")
     return nothing
 end
 
@@ -175,7 +176,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
+    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
     return new_abpe
 end
@@ -183,13 +184,14 @@ end
 function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
     γₜ = diffusion_coeff(abpe.R)[3]
-    γᵣ = γₜ*8abpe.R^2/6
-    intrange = 10abpe.R #2*abpe.R*2^(1/6) + 0.1/2
-    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, abpe.L, intrange, lennard_jones, 2abpe.R, 0.1 )
+    γᵣ = γₜ*abpe.R*abpe.R*8/6
+    intrange = 6abpe.R #2*abpe.R*2^(1/6) + 0.1/2
+    offcenter = .5
+    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, offcenter, abpe.L, intrange, shifted_lennard_jones, 2abpe.R, 0.3,-2abpe.R*offcenter)
     if size(position(abpe),2) == 2
         # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ #.+ 2.5δt*interactions_range(position(abpe), abpe.R, abpe.L, intrange, abpe.Np, contact_lj, 2abpe.R, 0.1)/γₜ #ₜ
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ 5δt*torque/γᵣ
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ
+        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*torque/γᵣ
     else
         println("No step method available")
     end
@@ -289,10 +291,10 @@ function simulate_wall!(ABPE, matrices, Nt, δt)
         if nt % print_step == 0
             elapsed = Dates.canonicalize(now()-start)
             # per_step = Dates.canonicalize(now()-start_step)
-            println("Step $nt, total elapsed time $(elapsed)")#, time per step $per_step")
+            print("\r$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)")#, time per step $per_step")
         end
-      
     end
+    print("\n")
     return nothing
 end
 
@@ -307,7 +309,7 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
 
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
+    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
     return new_abpe
 end
@@ -545,6 +547,8 @@ function interactions_range(xy::Array{Float64,2}, R::Float64, L::Float64, l::Flo
 end
 
 lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
+shifted_lennard_jones(x, σ, ϵ, shift) = 24*ϵ*(((2*σ^(12))./((x-shift).^(13))).- (σ^(6)./((x-shift).^(7))))
+
 
 function rectified_lennard_jones(x::Array{Float64,2}, σ::Float64, ϵ::Float64)
     rmin = σ*2^(1/6)
@@ -595,10 +599,10 @@ end
 
 coulomb(x,k) = k/(x*x)
 
-function interaction_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, forward::Bool, L::Float64, range::Float64, int_func::Function, int_params...) #offcenter
-    xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R/2
+function interaction_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, forward::Bool, offcenter::Float64, L::Float64, range::Float64, int_func::Function, int_params...) #offcenter
+    xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
     forces = hcat(interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...), zeros(size(xy,1)))
     orientations = [cos.(θ) sin.(θ) zeros(size(xy,1))]
-    torques = R/2 * (cross.(eachrow(orientations), eachrow(forces)))
+    torques = offcenter * R * (cross.(eachrow(orientations), eachrow(forces)))
     return forces[:,1:2], reduce(hcat, torques)'[:,3]
 end
