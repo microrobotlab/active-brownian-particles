@@ -1,4 +1,4 @@
-using CalculusWithJulia, Dates, Distributions, ForwardDiff, Random, Statistics
+using CalculusWithJulia, Dates, Distributions, ForwardDiff, ProgressBars, Random, Statistics
 include("geo_toolbox.jl")
 
 # Define an "ABPsEnsemble" Type
@@ -164,6 +164,14 @@ function simulate!(ABPE, matrices, Nt, δt)
     return nothing
 end
 
+##Tentative ProgressBar, it's cleaner and basically works! Not sure if it is faster though
+# function simulate!(ABPE, matrices, Nt, δt)
+#     for nt in ProgressBar(1:Nt)
+#         ABPE[nt+1] = update(ABPE[nt],matrices,δt)#updating information at every step
+#     end
+#     return nothing
+# end
+
 position(abpe::ABPE2) = [ abpe.x abpe.y ]
 orientation(abpe::ABPE2) = abpe.θ
 
@@ -187,7 +195,7 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     γᵣ = γₜ*abpe.R*abpe.R*8/6
     intrange = 6abpe.R #2*abpe.R*2^(1/6) + 0.1/2
     offcenter = .5
-    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, offcenter, abpe.L, intrange, shifted_lennard_jones, 2abpe.R, 0.3,-2abpe.R*offcenter)
+    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, offcenter, abpe.L, intrange, shifted_lennard_jones, 2abpe.R, 0.4,-2abpe.R*offcenter)
     if size(position(abpe),2) == 2
         # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
         δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ
