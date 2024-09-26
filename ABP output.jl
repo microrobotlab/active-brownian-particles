@@ -27,7 +27,7 @@ R = 2.0		# μm particle radius
 v = 20.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=100 
+ICS=20 
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
