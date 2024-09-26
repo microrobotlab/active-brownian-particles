@@ -377,7 +377,7 @@ function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Floa
     # this is second method used 
     # orientation of particle will also change   
         a= L/2
-        b= L/4
+        b= L/2
 
         a1= a-R
         b1= b-R

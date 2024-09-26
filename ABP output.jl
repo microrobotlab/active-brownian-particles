@@ -1,6 +1,7 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
+
 include("ABP main.jl")
 include("ABP file.jl")
 include("ABP analysis.jl")
@@ -22,27 +23,26 @@ N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera.
 # THIS IS THE CODE TO CALL MAIN FUNCTION
 # We plot the set of particles considering the correction of hard spheres
 
-L = 100.0 	# μm box length
-R = 2.0		# μm particle radius
-v = 20.0 	# μm/s particle velocity
+L = 70.0 	# μm box length
+R = 1.5	# μm particle radius
+v = 0.6 	# μm/s particle velocity
 a=L/2
-b=L/4
-ICS=20 
+b=L/2
+ICS=1
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.1
-
+packing_fraction = 0.01
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 1000000# Nt is the number of steps 
+Nt = 10000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\12.Dec\\ellipse\\" # destination folder path
+path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2024\\09.September\\circle\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -118,24 +118,23 @@ end
 f1= pathf*".gif"
 gif(anim, f1)
 end
-
+=#
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
 
 anim = @animate for i = 1:100:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
-    plot!(L/2*cos.(-π:0.01:π), L/4*sin.(-π:0.01:π)) # ellipse
+    plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
 end
 #marker_z=graph_wall[2][i,1], color=:rainbow, for 
 
 f1= pathf*".gif"
 gif(anim, f1)
-=#
+
 
 end
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
-#mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-111614\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-#(average(patht))   # passing path of the main folders which has all the runs
-
+# mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
+# (average(mainfolder))   # passing path of the main folders which has all the runs

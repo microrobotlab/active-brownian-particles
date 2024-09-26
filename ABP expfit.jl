@@ -4,7 +4,7 @@
 
 using LsqFit, Plots, DataFrames, CSV, FFTW
 
-path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\12.Dec\\ellipse\\20231214-154258\\R=2.0 v=20.0 a=50.0 b=25.0 pf=0.1\\run1\\"
+path = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 filename= "20231214-154258 R=2.0 v=20.0 a=50.0 b=25.0 pf=0.1 run1_p.csv"
 f= path*filename
 f1= path*"fitting_best_equators.png"
@@ -47,7 +47,7 @@ savefig(q,f1)
 =#
 #######################################################################################FFT##############################################################
 
-
+#=
 fs=1
 freq= fftshift(fft(neq))
 freqs = fftshift(fftfreq(length(neq), fs))
@@ -56,5 +56,5 @@ k= plot(freqs,real.(freq), xlimit=(-0.25,0.25), ylimit=(0.02,200),seriestype=:st
 
 display(k)
 savefig(k,f2)
-
+=#
 
