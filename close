@@ -1,0 +1,36 @@
+[33mcommit 07dd2b7f004281de48a596c4aa9ab274327e6c36[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: spm-sudo-echo <offical.jyoti.physics@gmail.com>
+Date:   Fri Sep 20 11:59:54 2024 +0200
+
+    two particles inside a circle..julia updates
+
+[1mdiff --git a/calculations.jl b/calculations.jl[m
+[1mindex 6bbdcca..a08ac15 100644[m
+[1m--- a/calculations.jl[m
+[1m+++ b/calculations.jl[m
+[36m@@ -1,11 +1,11 @@[m
+[31m-# this is a rough code for any calculations[m
+[31m-# not to be taken seriously[m
+[32m+[m[32m# this is a code for curvature calculations[m
+[32m+[m
+ using CalculusWithJulia, Plots, Unitful[m
+ L=100[m
+ a= L/2[m
+ b= L/4[m
+ path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2024\\"[m
+[31m-f= path*"curvature.png"[m
+[32m+[m[32mf= path*"curvature1.png"[m
+ θ1= [ θ for θ in -π:0.01:π]  #in radian[m
+ [m
+ angle= [atan(b/a)] # angle at which the pole area= equator area [m
+[36m@@ -19,7 +19,8 @@[m [mkx= [a*cos.(θ) for θ in -π:0.01:π][m
+ [m
+ ky= [b*sin.(θ) for θ in -π:0.01:π][m
+ [m
+[31m-k=plot(kx,ky, marker_z= κ, color=:lajolla, seriestype=:scatter, label="test",aspect_ratio=:equal, xlabel="x[μm]", ylabel="y[μm]")[m
+[32m+[m[32mk=plot(kx,ky, marker_z= κ,color = :lajolla,seriestype=:scatter,label="",aspect_ratio=:equal, xlabel="x[μm]", ylabel="y[μm]")[m
+ display(k)[m
+ savefig(k,f)[m
+ [m
+[32m+[m[32m#lajolla[m
+\ No newline at end of file[m

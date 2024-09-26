@@ -23,9 +23,9 @@ N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera.
 # THIS IS THE CODE TO CALL MAIN FUNCTION
 # We plot the set of particles considering the correction of hard spheres
 
-L = 100.0 	# μm box length
-R = 2.0		# μm particle radius
-v = 10.0 	# μm/s particle velocity
+L = 70.0 	# μm box length
+R = 1.5	# μm particle radius
+v = 0.6 	# μm/s particle velocity
 a=L/2
 b=L/2
 ICS=1
@@ -37,7 +37,7 @@ packing_fraction = 0.01
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 1000000# Nt is the number of steps 
+Nt = 10000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ end
 
 anim = @animate for i = 1:100:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
-    plot!(L/2*cos.(-π:0.01:π), L/4*sin.(-π:0.01:π)) # ellipse
+    plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
 end
 #marker_z=graph_wall[2][i,1], color=:rainbow, for 
