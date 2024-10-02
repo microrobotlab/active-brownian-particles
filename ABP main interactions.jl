@@ -195,7 +195,7 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     γᵣ = γₜ*abpe.R*abpe.R*8/6
     intrange = 10abpe.R #2*abpe.R*2^(1/6) + 0.1/2
     offcenter = .5
-    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, offcenter, abpe.L, intrange, shifted_lennard_jones, 5abpe.R, .5,-abpe.R*offcenter) #-2abpe.R*offcenter best
+    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, offcenter, abpe.L, intrange, shifted_lennard_jones, 2abpe.R, 0.4,-2abpe.R*offcenter)
     if size(position(abpe),2) == 2
         # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
         δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ
