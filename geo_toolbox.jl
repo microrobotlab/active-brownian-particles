@@ -170,6 +170,29 @@ function intersection_area_el(a::Float64,b::Float64,R₁::Float64,R₂::Float64)
 end
 
 """
+    intersection_area_sq(r::Float64,L::Float64)
+
+Compute the area of the intersection between a circle of radius r and a square of side L
+```
+"""
+
+function intersection_area_sq(r::Float64, L::Float64)
+    l = L/2
+
+    if r<=l 
+        A = pi*r^2
+    else
+        x = sqrt(r^2-l^2)
+        y = l 
+        θ = atan(y,x)-atan(x,y)
+
+        A = 4*x*l + 2*θ*r^2
+    end
+
+    return A
+end
+
+"""
 Still developing
 """
 function get_angles(xyθ::Array{Float64,2})
