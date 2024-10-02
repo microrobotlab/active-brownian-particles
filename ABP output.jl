@@ -12,8 +12,8 @@ include("ABP radialdensity.jl")
 using CSV, DataFrames, Dates, Distances, Distributions, Logging, NaNStatistics, Plots, Printf, Random
 gr()
 
-N = 500000
-Delta_t = 1e-3
+N = 1000000
+Delta_t = 1e-4
 t_tot= N*Delta_t
 
 # tauMax = t_tot/10               #is the actual maximum delta t over which I can calculate the MSD
@@ -43,7 +43,7 @@ Nt = N# Nt is the number of steps
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\trq" # destination folder path
+path="C:\\Users\\picch\\abp_simulations\\simulations\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 println(datestamp)
