@@ -12,7 +12,7 @@ include("ABP radialdensity.jl")
 using CSV, DataFrames, Dates, Distances, Distributions, Logging, NaNStatistics, Plots, Printf, Random
 gr()
 
-N = 500000
+N = 100000
 Delta_t = 1e-3
 t_tot= N*Delta_t
 
@@ -43,7 +43,7 @@ Nt = N# Nt is the number of steps
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\picch\\abp_simulations\\simulations\\" # destination folder path
+path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 println(datestamp)
