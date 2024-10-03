@@ -21,19 +21,18 @@ p2 = plot()
 L = 300.
 R = 2.
 maxdist = L*sqrt(2.)/2
-nbins = 250
+nbins = 1000
 rs = LinRange(maxdist/nbins,maxdist,nbins)
 areas = [intersection_area_sq(r,L) for r in rs]
 
 bins = areas-circshift(areas,1)
 bins[1] = areas[1]
 
-for fname in ["..\\sims_to_analyze\\test1.csv"]
+for fname in ["range5sigma2epsilon0.5.csv"]# "range5sigma2epsilon0.1.csv"]# "range5sigma2epsilon1.csv" ]
     df = CSV.read(fname, DataFrame)
     Np = maximum(unique(df[!,:N]))
     dens = Np/L^2
     bins_ensemble = Matrix{Int}(undef, nbins,0)
-    times_bins_ensemble = Matrix{Int}(undef, nbins,0)
     for time in unique(df[end,:Time])
         inst_df = filter(:Time => t->t==time, df)
         xy = Matrix(inst_df[!, [:xpos, :ypos]])
@@ -46,18 +45,16 @@ for fname in ["..\\sims_to_analyze\\test1.csv"]
             parts_in_bins[1] = cumulative[1]
             bins_ensemble = hcat(bins_ensemble, parts_in_bins)
         end
-        avg_over_ensemble = mean(bins_ensemble, dims = 2) #average over ensemble of g(r)ρAreabin
-        times_bins_ensemble = hcat(times_bins_ensemble, avg_over_ensemble)
     end
-    # thermfrac = 0.2
-    # therm = thermfrac*length(unique(df[!,:Time]))
     rdf = mean(bins_ensemble, dims = 2)./(bins*dens)
     pos_id = vec(rdf.>0)
-    plot!(rdfp, rs[pos_id], rdf[pos_id])
-    # plot!(rdfp, rs, rdf)
-    # rhat = abs(rfft(rdf, 1))
-    # plot!(p2,abs.(rhat[:,1]), abs.(rhat[:,2]), xaxis=:log, yaxis=:log)
+    # plot!(rdfp, rs[pos_id], rdf[pos_id])
+    plot!(rdfp, rs, rdf)
+    k = fftshift(fftfreq(length(rs), 1/rs[1]))
+    ssf = 1 .+ dens.*abs.(fftshift(fft(rdf)))
+    plot!(p2, k[k.>0], ssf[k.>0])#, xaxis=:log, yaxis=:log)
 end
-yaxis!(rdfp)
+# yaxis!(rdfp, :log)
+xlims!(rdfp,0,20)
 display(rdfp)
-# display(p2)
+display(p2)
