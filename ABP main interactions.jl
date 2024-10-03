@@ -1,4 +1,4 @@
-using CalculusWithJulia, Dates, Distributions, ForwardDiff, ProgressBars, Random, Statistics
+using CalculusWithJulia, Dates, Distributions, ForwardDiff, Random, Statistics
 include("geo_toolbox.jl")
 
 # Define an "ABPsEnsemble" Type
