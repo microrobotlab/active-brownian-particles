@@ -531,27 +531,43 @@ function interactions(xy::Array{Float64,2}, R::Float64)
     return  reduce(vcat, transpose(ΣF))
 end
 
-function interactions_range(xy::Array{Float64,2}, R::Float64, L::Float64, l::Float64, Np::Int, int_func::Function, int_params...)
-	ΣFtot = Array{Float64}(undef,0,2)
+function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Float64, Np::Int, int_func::Function, int_params...)
+    # Preallocate the result array for efficiency
+    ΣFtot = Array{Float64}(undef, Np, 2)
 
-	for xyc in eachrow(xy)
-		xy_shifted = xy.-xyc'
-		periodic_BC_array!(xy_shifted, L, R)
-		inside = (abs.(xy_shifted)).<=(l)
-		xy_inside = xy_shifted[all!(trues(Np), inside),:]
+    # Threshold for selecting particles within interaction range
+    threshold = l
 
-        if isempty(xy_inside[xy_inside[:,1].!=0. .|| xy_inside[:,2].!=0.,:])
-            ΣFtot = vcat(ΣFtot, [0. 0.])
+    for (i, xyc) in enumerate(eachrow(xy))
+        # Compute distances and apply periodic boundary conditions
+        xy_shifted = xy .- xyc'
+        periodic_BC_array!(xy_shifted, L, R)
+
+        # Filter to get particles within interaction range and not at the origin
+        inside = all(reshape(abs.(xy_shifted) .<= threshold, Np, 2), dims=2)[:,1]
+        xy_inside = xy_shifted[inside, :]
+
+        # Remove central particle [0, 0] from interaction set
+        xy_inside = xy_inside[xy_inside[:,1] .!= 0 .|| xy_inside[:,2] .!= 0, :]
+
+        if isempty(xy_inside)
+            ΣFtot[i, :] .= 0.0
             continue
         end
 
-		dists = (d2(xy_inside))
-		force = int_func.(dists[dists.!=0], int_params...)
-		dirs = xy_inside[xy_inside[:,1].!=0. .|| xy_inside[:,2].!=0.,:]./dists[dists.!=0] #difference can be eliminated bc the central particle is in [0 0]
-		ΣF = .-sum(force.*dirs, dims = 1)
-		ΣFtot = vcat(ΣFtot, ΣF)
-	end
-	return ΣFtot
+        # Compute distances and interaction forces
+        dists = d2(xy_inside)
+        dists_nonzero = dists[dists .!= 0]
+        forces = int_func.(dists_nonzero, int_params...)
+        
+        # Compute normalized direction vectors
+        dirs = xy_inside ./ dists_nonzero
+
+        # Sum forces for each direction and assign to ΣFtot
+        ΣFtot[i, :] .= .-sum(forces .* dirs, dims=1)'
+    end
+
+    return ΣFtot
 end
 
 lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
