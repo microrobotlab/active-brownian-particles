@@ -6,7 +6,7 @@
 
 using CSV, DataFrames
 
-function file_store(graph_wall,Nt,pathf)
+function file_store(graph_wall,Nt,pathf;downsampling::Int=100)
     f1= pathf*".csv"               # destination file name
 
 pnumber=[]
@@ -14,7 +14,7 @@ time=[]
 x=[]
 y=[]
 θ=[]
-for i = 1:100:Nt
+for i = 1:downsampling:Nt
     for j = 1:length(graph_wall[1][i][:,1])
         push!(pnumber,j)
         push!(time, i)
