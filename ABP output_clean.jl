@@ -5,6 +5,7 @@ include("ABP main interactions.jl")
 # include("ABP main.jl")
 include("ABP file.jl")
 include("ABP analysis.jl")
+include("ABP radialdistribution.jl")
 # include("ABP SD.jl")
 include("ABP multifolder.jl")
 include("ABP radialdensity.jl")
@@ -111,5 +112,8 @@ if box_shape == :square
    
         f1= pathf*".gif"
         gif(anim, f1)
+        #---------------------------------------------------------------------------------------------------------------------
+        # analysis
+        physicalanalysis1(pathf, 1000, L, R)
     end
 end
