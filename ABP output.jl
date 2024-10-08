@@ -45,10 +45,10 @@ Nt = N# Nt is the number of steps
 # destination folders selection
 path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\" # destination folder path
 
-datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
+datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # today's date
 println(datestamp)
 
-mainfolder= mkdir(path*"$datestamp")    # creates a folder names todays'late
+mainfolder= mkdir(path*"$datestamp")    # creates a folder named today's date
 
 path1= path*"$datestamp\\"
 
@@ -66,7 +66,6 @@ for i=1:ICS
     pathf= patht*"\\run$i\\"
     filename= "$datestamp "*mainname*" run$i"
     pathf= pathf*filename
-    # println("simulation=$i")
     @info "$(now()) Started simulation #$i"
     # graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
 
