@@ -570,6 +570,7 @@ function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Fl
     return ΣFtot
 end
 
+
 lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
 shifted_lennard_jones(x, σ, ϵ, shift) = 24*ϵ*(((2*σ^(12))./((x-shift).^(13))).- (σ^(6)./((x-shift).^(7))))
 
