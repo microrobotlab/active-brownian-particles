@@ -34,3 +34,20 @@ function radialdistributionfunction(x::Array{Float64}, y::Array{Float64}, R::Flo
     rdf = parts_in_bins./(Np*dens*bins)
     return rdf
 end
+
+function physicalanalysis1(pathf, nbins, L, R)
+    fname = pathf*".csv"
+    rdf_file = pathf*"_rdf.csv"
+    bin_file = pathf*"_rdfbin.csv"
+
+    df = CSV.read(fname, DataFrame)
+
+    rdf = combine(groupby(df, :Time), [:xpos, :ypos] => ((x,y) -> (RadialDistributionFunction(copy(x),copy(y),R,L,nbins),)) => :RadialDistributionFunction)
+    transform!(rdf, :RadialDistributionFunction => ByRow(x -> x[1]) => :RadialDistributionFunction)
+    
+    CSV.write(rdf_file, rdf)
+
+    rs,bins = RadialBinsSquare(L,nbins)
+    bindata = DataFrame(Radius = rs, BinArea = bins)
+    CSV.write(bin_file, bindata)
+end
