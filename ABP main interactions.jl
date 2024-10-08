@@ -128,7 +128,7 @@ function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Float64, ω::Flo
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
     
     ABPE = Vector{ABPE2}(undef,Nt+1) # Nt is number of time steps
-    ABPE[1], matrices = initABPE( Np, L, R, v, ω ) # including initial hardsphere correction
+    ABPE[1], matrices = initABPE( Np, L, R, v; ω = ω) # including initial hardsphere correction
     
     simulate!(ABPE, matrices, Nt, δt)
 
