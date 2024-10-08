@@ -12,7 +12,7 @@ function radialbinssquare(L::Float64, nbins::Int)
 end
 
 function radialdistributionfunction(x::Array{Float64}, y::Array{Float64}, R::Float64, L::Float64, nbins::Int) # Very optimized
-    rs,bins = RadialBinsSquare(L,nbins)
+    rs,bins = radialbinssquare(L,nbins)
     Np = length(x)
     dens = Np/(L^2)
 
@@ -42,12 +42,12 @@ function physicalanalysis1(pathf, nbins, L, R)
 
     df = CSV.read(fname, DataFrame)
 
-    rdf = combine(groupby(df, :Time), [:xpos, :ypos] => ((x,y) -> (RadialDistributionFunction(copy(x),copy(y),R,L,nbins),)) => :RadialDistributionFunction)
+    rdf = combine(groupby(df, :Time), [:xpos, :ypos] => ((x,y) -> (radialdistributionfunction(copy(x),copy(y),R,L,nbins),)) => :RadialDistributionFunction)
     transform!(rdf, :RadialDistributionFunction => ByRow(x -> x[1]) => :RadialDistributionFunction)
     
     CSV.write(rdf_file, rdf)
 
-    rs,bins = RadialBinsSquare(L,nbins)
+    rs,bins = radialbinssquare(L,nbins)
     bindata = DataFrame(Radius = rs, BinArea = bins)
     CSV.write(bin_file, bindata)
 end
