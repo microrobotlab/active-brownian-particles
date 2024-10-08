@@ -1,4 +1,4 @@
-using CSV, DataFrames, Distances, FFTW, LinearAlgebra, Plots, ProgressBars, Random, Statistics
+using CSV, DataFrames, Distances, FFTW, LinearAlgebra, Peaks, Plots, Random, Statistics
 include("geo_toolbox.jl")
 
 function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
@@ -28,7 +28,7 @@ areas = [intersection_area_sq(r,L) for r in rs]
 bins = areas-circshift(areas,1)
 bins[1] = areas[1]
 
-for fname in ["range5sigma2epsilon0.5.csv"]# "range5sigma2epsilon0.1.csv"]# "range5sigma2epsilon1.csv" ]
+for fname in ["..\\sims_to_analyze\\test2.csv"]
     df = CSV.read(fname, DataFrame)
     Np = maximum(unique(df[!,:N]))
     dens = Np/L^2
@@ -50,11 +50,11 @@ for fname in ["range5sigma2epsilon0.5.csv"]# "range5sigma2epsilon0.1.csv"]# "ran
     pos_id = vec(rdf.>0)
     # plot!(rdfp, rs[pos_id], rdf[pos_id])
     plot!(rdfp, rs, rdf)
-    k = fftshift(fftfreq(length(rs), 1/rs[1]))
-    ssf = 1 .+ dens.*abs.(fftshift(fft(rdf)))
-    plot!(p2, k[k.>0], ssf[k.>0])#, xaxis=:log, yaxis=:log)
+    k = fftshift(fftfreq(length(rs), 1))
+    ssf = 1 .+ dens.*abs.(fftshift(fft(rdf.-1.)))
+    plot!(p2, k[k.>=0], ssf[k.>=0])#, xaxis=:log, yaxis=:log)
 end
 # yaxis!(rdfp, :log)
-xlims!(rdfp,0,20)
+# xlims!(rdfp,0,20)
 display(rdfp)
 display(p2)
