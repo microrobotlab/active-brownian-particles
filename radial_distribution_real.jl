@@ -1,14 +1,14 @@
-using CSV, DataFrames, FFTW, JSON3, LinearAlgebra, Plots, Random, Statistics
+using CSV, DataFrames, FFTW, FindPeaks1D, JSON3, LinearAlgebra, Plots, Random, Statistics
 
-rdf = CSV.read("..\\simulations\\20241008-165127\\data\\run1\\20241008-165127_run1_rdf.csv", DataFrame)
-bindata = CSV.read("..\\simulations\\20241008-165127\\data\\run1\\20241008-165127_run1_rdfbin.csv", DataFrame)
+rdf = CSV.read("..\\simulations\\20241009-094744\\data\\run1\\20241009-094744_run1_rdf.csv", DataFrame)
+bindata = CSV.read("..\\simulations\\20241009-094744\\data\\run1\\20241009-094744_run1_rdfbin.csv", DataFrame)
 rs = bindata[!,:Radius]
 
 rdf.RadialDistributionFunction = [JSON3.read(x) for x in rdf.RadialDistributionFunction]
 begin
-    groupsize = 100
+    ngroups = 100
     lendf = size(rdf)[1]
-    div = Int(lendf//groupsize)
+    div = Int(lendf//ngroups)
     grouplabel = [(i÷div) for i in 0:lendf-1]
     rdf[!,:GroupLabel] = grouplabel
 
@@ -18,11 +18,23 @@ end
 
 begin
     p = plot()
-    start,end_ = 0,10
+    start,end_ = 0,20
     xticks!(p, start:1:end_)
     xlims!(p,start,end_)
-    for i in unique(div .* grouplabel .+1)[1:10]
-        plot!(p, rs, rdf_avg[i,:RDF_mean])
+    times = Int[]
+    peaks = Float64[]
+    for i in unique(div .* grouplabel .+1)[1:10:end]
+        averaged_rdf = rdf_avg[i,:RDF_mean]
+        pkindices, properties = findpeaks1d(averaged_rdf;
+                                            height = 2., 
+                                            prominence = 0.2,)
+        push!(peaks, properties["peak_heights"][1])
+        push!(times, rdf_avg[i,:Time])
+        plot!(p, rs, averaged_rdf)
+        scatter!(p, rs[pkindices], averaged_rdf[pkindices])
     end
+    # p2 = plot()
+    # scatter(p2, times, peaks)
 end
 display(p)
+println(argmin(peaks))
