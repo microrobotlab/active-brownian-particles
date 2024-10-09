@@ -1,4 +1,4 @@
-using CSV, DataFrames, Distances, FFTW, LinearAlgebra, StatsBase, Plots
+using CSV, DataFrames, Dates, Distances, FFTW, LinearAlgebra, StatsBase, Plots
 include("geo_toolbox.jl")
 
 function radialbinssquare(L::Float64, nbins::Int)
@@ -50,4 +50,5 @@ function physicalanalysis1(pathf, nbins, L, R)
     rs,bins = radialbinssquare(L,nbins)
     bindata = DataFrame(Radius = rs, BinArea = bins)
     CSV.write(bin_file, bindata)
+    @info "$(now())) Finished writing radial distribution function file"
 end
