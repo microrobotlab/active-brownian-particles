@@ -15,11 +15,11 @@ gr()
 
 ## USER INTERFACE
 # destination folders selection
-path="C:\\Users\\picch\\abp_simulations\\simulations\\" # destination directory path
+path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\" # destination directory path
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = 1000000             # number of steps
+Nt = 100000             # number of steps
 Delta_t = 1e-3          # s step time
 ICS=1                   # Number of intial conditons to be scanned 
 animation_ds = 100     # Downsampling in animation
@@ -31,10 +31,10 @@ BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 L = 300.0 	           # μm box length
 R = 2.0		           # μm particle radius
-packing_fraction = 0.01 # Largest pf for spherical beads π/4 = 0.7853981633974483
+packing_fraction = 0.05 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = 10. 	           # μm/s particle velocity
-ω = 1.                 # s⁻¹ particle angular velocity
+v = Exponential(12/log(50)) 	           # μm/s particle s
+ω = Normal(0.,0.025)                # s⁻¹ particle angular velocity
 
 #-------------------------------------------------------------------------------------------------------------------
 
