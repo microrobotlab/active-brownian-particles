@@ -1,4 +1,10 @@
-using CSV, DataFrames, FFTW, FindPeaks1D, JSON3, LinearAlgebra, Plots, Random, Statistics
+using CSV
+using DataFrames
+using FFTW
+using FindPeaks1D
+using JSON3
+using Plots
+using Statistics
 
 rdf = CSV.read("..\\simulations\\20241009-094744\\data\\run1\\20241009-094744_run1_rdf.csv", DataFrame)
 bindata = CSV.read("..\\simulations\\20241009-094744\\data\\run1\\20241009-094744_run1_rdfbin.csv", DataFrame)
