@@ -240,7 +240,7 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
         counter += 1
         # @show(counter)
         if counter >= 100
-            println("$superpositions superpositions remaining after 1000 cycles")
+            println("$superpositions superpositions remaining after 100 cycles")
             break
         end
     end
