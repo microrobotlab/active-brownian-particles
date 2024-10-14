@@ -19,22 +19,22 @@ path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = 100000             # number of steps
+Nt = 5000             # number of steps
 Delta_t = 1e-3          # s step time
 ICS=1                   # Number of intial conditons to be scanned 
-animation_ds = 100     # Downsampling in animation
+animation_ds = 1000     # Downsampling in animation
 file_ds = 100           # Downsampling in file
 
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
-L = 300.0 	           # μm box length
+L = 100.0 	           # μm box length
 R = 2.0		           # μm particle radius
 packing_fraction = 0.05 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = Exponential(12/log(50)) 	           # μm/s particle s
-ω = Normal(0.,0.025)                # s⁻¹ particle angular velocity
+v = [10., 15.] 	    # μm/s particle s
+ω = Normal(0.,0.025)               # s⁻¹ particle angular velocity
 
 #-------------------------------------------------------------------------------------------------------------------
 
