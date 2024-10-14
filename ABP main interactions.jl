@@ -21,58 +21,11 @@ end
 #------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
 
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-#=function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, R::Float64, vd::Union{Float64,Array{Float64,1},Distribution}; ωd::Union{Float64,Array{Float64,1},Distribution}=Normal(0.,0.,), T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
-    DT, DR = diffusion_coeff(1e-6R)
-
-    # ONLY 2D!
-    k=0.5
-    xyθ = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
-   
-
-    Np= size(xyθ,1)    # number of particles inside the sqaure
-    #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
-    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
-
-    return abpe, (dists, superpose, uptriang)
-end
-=#
-#------------------------------------------------------------For ellipse ---------------------------------------------------------------------------------------------------------
-## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; ω::Float64=0., T::Float64=300.0, η::Float64=1e-3)
-    # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
-    # Intial condition will be choosen as per the geometry under study
-    DT, DR = diffusion_coeff(1e-6R)
-
-    # ONLY 2D!
-    # k=0.5
-    # xyθ1 = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
-    # r = (xyθ1[:,1]).*(xyθ1[:,1]) + (xyθ1[:,2]).*(xyθ1[:,2])
-  
-    # rₚ = sqrt.(r)   
-    # α =atan.(xyθ1[:,2], xyθ1[:,1]) 
-    # a= L/2
-    # b= L/4
-    # #rₑ = (a*b)./(sqrt.(((a*sin.(xyθ1[:,3])).^2) .+ (b*cos.((xyθ1[:,3]))).^2))  # r value for boundary
-    # rₑ = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))  # r value for boundary
-    # #rₑ = b/sqrt.(1 .-((e*cos.(rθ)).^2))
-    # id = (rₚ .< (rₑ))
-    # xyθ = [xyθ1[id,1] xyθ1[id,2] xyθ1[id,3]]
-
-    # Np1= size(xyθ,1)    # number of particles inside the boundary while Np is total number of particles
-    xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
-    Np1= size(xyθ,1)
-    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np1, L, R, fill(v,Np1), fill(ω,Np1), 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
-
-    return abpe, (dists, superpose, uptriang)
-end
-
-function initABPE(Np::Int64, L::Float64, R::Float64, vd::Distribution; ωd::Distribution=Normal(0.,0.,), T::Float64=300.0, η::Float64=1e-3)
-    # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
-    # Intial condition will be choosen as per the geometry under study
+    (vd isa Float64) ? vd = [vd] : Nt
+    (ωd isa Float64) ? ωd = [ωd] : Nt
     DT, DR = diffusion_coeff(1e-6R)
     xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
@@ -81,7 +34,6 @@ function initABPE(Np::Int64, L::Float64, R::Float64, vd::Distribution; ωd::Dist
     abpe = ABPE2( Np, L, R, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
     return abpe, (dists, superpose, uptriang)
 end
-
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Generating inside ellipse
@@ -124,18 +76,7 @@ function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)
 end
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to simulate multiple spherical particles
-function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Float64, ω::Float64, Nt::Int64=2, δt::Float64=1e-3)
-    (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
-    
-    ABPE = Vector{ABPE2}(undef,Nt+1) # Nt is number of time steps
-    ABPE[1], matrices = initABPE( Np, L, R, v; ω = ω) # including initial hardsphere correction
-    
-    simulate!(ABPE, matrices, Nt, δt)
-
-    return position.(ABPE), orientation.(ABPE)
-end
-
-function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Distribution, ω::Distribution, Nt::Int64=2, δt::Float64=1e-3)
+function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Union{Float64,Array{Float64,1},Distribution}, ω::Union{Float64,Array{Float64,1},Distribution}, Nt::Int64=2, δt::Float64=1e-3)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
     
     ABPE = Vector{ABPE2}(undef,Nt+1) # Nt is number of time steps
@@ -163,14 +104,6 @@ function simulate!(ABPE, matrices, Nt, δt)
     print("\n")
     return nothing
 end
-
-##Tentative ProgressBar, it's cleaner and basically works! Not sure if it is faster though
-# function simulate!(ABPE, matrices, Nt, δt)
-#     for nt in ProgressBar(1:Nt)
-#         ABPE[nt+1] = update(ABPE[nt],matrices,δt)#updating information at every step
-#     end
-#     return nothing
-# end
 
 position(abpe::ABPE2) = [ abpe.x abpe.y ]
 orientation(abpe::ABPE2) = abpe.θ
