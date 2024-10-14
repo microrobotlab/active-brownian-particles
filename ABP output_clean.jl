@@ -33,8 +33,8 @@ L = 100.0 	           # μm box length
 R = 2.0		           # μm particle radius
 packing_fraction = 0.05 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [10., 15.] 	    # μm/s particle s
-ω = Normal(0.,0.025)               # s⁻¹ particle angular velocity
+v = [10., 15.] 	            # μm/s particle s
+ω = Normal(0.,0.025)        # s⁻¹ particle angular velocity
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ if box_shape == :square
         #---------------------------------------------------------------------------------------------------------------------
         # file store
         file_store(graph_wall,Nt,pathf,downsampling = file_ds)
-                #---------------------------------------------------------------------------------------------------------------------
+        #---------------------------------------------------------------------------------------------------------------------
         # animation
         anim = @animate for i = 1:animation_ds:Nt
             scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
