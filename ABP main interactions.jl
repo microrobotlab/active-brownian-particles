@@ -271,42 +271,6 @@ function wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Flo
 	return nothing
 end
 
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# This function will compute the attractive interaction among the particles
-# Attractive potential is LJ with cutoff at radius of particle
-
-#=function attractive_interactions!(xy::Array{Float64,2}, R::Float64)
-
-    ϵ=100.0
-    σ= 2*R
-    Np = size(xy,1)
-    dists = zeros(Np,Np)
-    #superpose = falses(Np,Np)
-    uptriang = falses(Np,Np)
-    for i = 1:Np-1
-        uptriang[i,i+1:Np] .= true
-    end
-    dists .= pairwise(Euclidean(),xy,dims=1)
-    dists13= dists.^(13)
-
-    dists7= dists.^(7)
-
-    force= 24*ϵ*(((2*σ^(13))./dists13).- (σ^(7)./dists7))
-
-    force= force.* uptriang
-    tot_force= sum(force, dims=2)
-    id = tot_force.> 50000.0
-    if (any(id))
-        tot_force[id,:].= 50000.0
-        
-    end
-    #m =maximum(force)
-    #println("$m\n")
-    CSV.write("tot_force,csv", DataFrame= (tot_force = tot_force))
-    return tot_force #sum(force, dims=2)
-
-end
-=#
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #=function circular_wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
   # here the condition is calculated w.r.t to r value of the particle and have no edges here
