@@ -1,7 +1,7 @@
 using CSV, DataFrames, FFTW, FindPeaks1D, JSON3, LinearAlgebra, Plots, Random, Statistics
 
-rdf = CSV.read("..\\simulations\\20241014-125927\\data\\run1\\20241014-125927_run1_rdf.csv", DataFrame)
-bindata = CSV.read("..\\simulations\\20241014-125927\\data\\run1\\20241014-125927_run1_rdfbin.csv", DataFrame)
+rdf = CSV.read("..\\simulations\\20241015-102056\\data\\run1\\20241015-102056_run1_rdf.csv", DataFrame)
+bindata = CSV.read("..\\simulations\\20241015-102056\\data\\run1\\20241015-102056_run1_rdfbin.csv", DataFrame)
 rs = bindata[!,:Radius]
 
 rdf.RadialDistributionFunction = [JSON3.read(x) for x in rdf.RadialDistributionFunction]
@@ -23,7 +23,7 @@ begin
     xlims!(p,start,end_)
     times = Int[]
     peaks = Float64[]
-    for i in unique(div .* grouplabel .+1)[1:25:end]
+    for i in unique(div .* grouplabel .+1)[1:50:end]
         averaged_rdf = rdf_avg[i,:RDF_mean]
         pkindices, properties = findpeaks1d(averaged_rdf;
                                             height = 5., 
