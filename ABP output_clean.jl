@@ -19,7 +19,7 @@ path="C:\\Users\\picch\\abp_simulations\\simulations" # destination directory pa
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = 2000000             # number of steps
+Nt = 500000             # number of steps
 Delta_t = 1e-3          # s step time
 ICS=1                   # Number of intial conditons to be scanned 
 animation_ds = 500     # Downsampling in animation
@@ -29,12 +29,12 @@ file_ds = 100           # Downsampling in file
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
-L = 100.0 	           # μm box length
+L = 200.0 	           # μm box length
 R = 2.0		           # μm particle radius
 packing_fraction = 0.1 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = Exponential(12/log(50)) 	           # μm/s particle s
-ω = Normal(0.,0.025)                # s⁻¹ particle angular velocity
+v = [10., 20] 	            # μm/s particle s
+ω = Normal(0.0,.025)        # s⁻¹ particle angular velocity
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -45,7 +45,6 @@ T_tot = Delta_t*Nt
 if box_shape == :square
     Np = round(Int,packing_fraction*L^2/(pi*R^2))
     density = Np/L^2
-    # @printf "Box shape: %s\nNumber of particles = %i\nNumber density = %.s μm⁻²" box_shape Np density
     a,b = L,L
 elseif box_shape == :ellipse
     a=L/2 # Larger semiaxis
@@ -53,7 +52,6 @@ elseif box_shape == :ellipse
     area_el = π*a*b
     Np = round(Int,packing_fraction*area_el/(pi*R^2))
     density = Np/area_el
-    # @printf "Box shape: %s\nNumber of particles = %i\nNumber density = %.s μm⁻²" box_shape Np density
 end
 
 ## NAMING AND FILE MANAGEMENT
@@ -98,7 +96,7 @@ if box_shape == :square
         #---------------------------------------------------------------------------------------------------------------------
         # file store
         file_store(graph_wall,Nt,pathf,downsampling = file_ds)
-                #---------------------------------------------------------------------------------------------------------------------
+        #---------------------------------------------------------------------------------------------------------------------
         # animation
         anim = @animate for i = 1:animation_ds:Nt
             scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
@@ -114,6 +112,6 @@ if box_shape == :square
         gif(anim, f1)
         #---------------------------------------------------------------------------------------------------------------------
         # analysis
-        physicalanalysis1(pathf, 1000, L, R)
+        physicalanalysis1(pathf, 500, L, R)
     end
 end

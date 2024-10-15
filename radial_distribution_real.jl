@@ -1,13 +1,13 @@
 using CSV, DataFrames, FFTW, FindPeaks1D, JSON3, LinearAlgebra, Plots, Random, Statistics
 include("ABP radialdistribution.jl")
 
-rdf = CSV.read("..\\simulations\\20241014-094849\\data\\run1\\20241014-094849_run1_rdf.csv", DataFrame)
-bindata = CSV.read("..\\simulations\\20241014-094849\\data\\run1\\20241014-094849_run1_rdfbin.csv", DataFrame)
+rdf = CSV.read("..\\simulations\\20241015-102056\\data\\run1\\20241015-102056_run1_rdf.csv", DataFrame)
+bindata = CSV.read("..\\simulations\\20241015-102056\\data\\run1\\20241015-102056_run1_rdfbin.csv", DataFrame)
 rs = bindata[!,:Radius]
 
 rdf.RadialDistributionFunction = [JSON3.read(x) for x in rdf.RadialDistributionFunction]
 begin
-    ngroups = 2000
+    ngroups = 500
     lendf = size(rdf)[1]
     div = Int(lendf//ngroups)
     grouplabel = [(i÷div) for i in 0:lendf-1]
@@ -19,23 +19,24 @@ end
 
 begin
     p = plot()
-    start,end_ = 0,20
-    xticks!(p, start:1:end_)
+    start,end_ = 0,40
+    xticks!(p, start:4:end_)
     xlims!(p,start,end_)
     times = Int[]
     peaks = Float64[]
-    for i in unique(div .* grouplabel .+1)
+    for i in unique(div .* grouplabel .+1)[1:50:end]
         averaged_rdf = rdf_avg[i,:RDF_mean]
         pkindices, properties = findpeaks1d(averaged_rdf;
                                             height = 5., 
-                                            prominence = 0.5,)
-        push!(peaks, maximum(properties["peak_heights"]))
+                                            prominence = 0.9,)
+        push!(peaks, properties["peak_heights"][1])
         push!(times, rdf_avg[i,:Time])
         plot!(p, rs, averaged_rdf)
-        scatter!(p, rs[pkindices], averaged_rdf[pkindices])
+        scatter!(p, rs[pkindices], averaged_rdf[pkindices], label = false)
     end
     p2 = plot()
-    plot!(p2, times, peaks)
+    scatter!(p2, times, peaks)
+    display(p)
+    display(p2)
 end
 display(p)
-display(p2)
