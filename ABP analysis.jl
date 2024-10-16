@@ -10,7 +10,8 @@ gr()
 function stat_analysis1(a,b,R,pathf)
   f= pathf*".csv"
   f1= pathf*"_p.csv"
-  f2= pathf*"_pf.png"
+  f2= pathf*"_N.png"
+  f3= pathf*"_Ndiff_eqs.png"
   df= CSV.read(f, DataFrame)
   #steps= df[!, :N]
   time= df[!,:Time]
@@ -22,11 +23,21 @@ function stat_analysis1(a,b,R,pathf)
   
   n1=[]
   n2=[]
-t1=plot();
-t2=plot();
-count1=0 
-count2=0 
+  n3=[]
+  n4=[]
+t1=plot()
+t2=plot()
+t3=plot()
+t4=plot()
+t5=plot()
+t6=plot()
+count1,count2,count3,count4=0,0,0,0 
+#count2=0 
 count=0
+Npole1=0
+Npole2=0
+Neq1=0
+Neq2=0
 dt= 1#1e-2
 i= (time/dt)
 eθ = atan(b/a)   # angle at which area will be same
@@ -37,55 +48,49 @@ Ap= a*b*(atan(b/(tan(eθ)*a)))   # pole area
 for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually time steps but in group counting it is 1, 2, 3---1000 , hence, time                                                                                                                                                                                                                     
    global count1=0 
    global  count2=0 
+   global Npole1=0
+   global Npole2=0
+   global Neq1=0
+   global Neq2=0
+   global count1,count2,count3,count4=0,0,0,0 
    
     for j=1:length(gdf[i][!,:xpos]) 
     
         θ = atan.(gdf[i][!,:ypos][j], gdf[i][!,:xpos][j]) 
 
-        if θ.>= (π-eθ)  && θ.<= π                      #equator 2                                                                                                                                                                                          
-           global  count1 =count1+1  
+        if θ.>= (π-eθ)  && θ.<= π                      #equator Left                                                                                                                                                                                         
+           global  Neq1 = Neq1+1  
     
-        elseif θ.>= -π  && θ.<= -(π-eθ)               #equator 2  
-            global count1 =count1+1  
+        elseif θ.>= -π  && θ.<= -(π-eθ)               #equator Left 
+            global Neq1 =Neq1+1  
 
-        elseif θ.>= -eθ  &&  θ.<= eθ              #equator 1                                                                                                                                                                                                 
-              global   count1 =count1+1  
+        elseif θ.>= -eθ  &&  θ.<= eθ              #equator Right                                                                                                                                                                                                
+              global   Neq2 =Neq2+1  
                 
-                elseif θ.>= eθ && θ.<= (π-eθ)        #pole 1
-              global  count2 =count2+1 
-                elseif θ.>= -(π-eθ)   && θ.<= - eθ      #pole 2
-                global    count2 =count2+1 
+                elseif θ.>= eθ && θ.<= (π-eθ)        #pole up
+              global  Npole1 =Npole1+1 
+                elseif θ.>= -(π-eθ)   && θ.<= - eθ      #pole down
+                global    Npole2 =Npole2+1 
     end   
     
     end
-    push!(n1,count1)
-    push!(n2,count2)
+    push!(n1,Neq1)
+    push!(n2,Neq2)
+    push!(n3,Npole1)
+    push!(n4,Npole2)
     #println("$count1, $count2, $i") 
     
     pfe = count1*(0.5*π/Aeq)*pf_factor 
     pfp = count2*(0.5*π/Ap)*pf_factor 
   
-    #########################################################################################
-    # ploting in terms of particles number
-     #=
-    scatter!(t1,[i],[count1], ylimit=(0,count1+count2+10),legend=false) 
-    xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
-    plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(16), ytickfont=font(11))
-    title!(" Equators ")
 
-    scatter!(t2,[i],[count2], ylimit=(0,count1+count2+10),legend=false) 
-    title!(" Poles ")
-    xlabel!("Time (s)",xguidefont=font(16), xtickfont=font(11))
-    plot!(ylabel=L"\mathrm{N_{poles}}",yguidefont=font(16), ytickfont=font(11))
-    count= count1+count2
+    count= Neq1+Npole1+Npole2+Neq2
   end
-  plot(t1, t2)
-  savefig("data_ellipse_N1.png")
-    =# 
+
     #########################################################################################
     # ploting in terms of packing fraction
 
-    
+    #=
     scatter!(t1,[i],[pfe], ylimit=(0,0.3),legend=false) 
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf_{eqs}}",yguidefont=font(16), ytickfont=font(11))
@@ -95,23 +100,52 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
     xlabel!("Time (s)", xguidefont=font(16), xtickfont=font(11))
     plot!(ylabel=L"\mathrm{pf_{poles}}",yguidefont=font(16), ytickfont=font(11))
     title!(" Poles ")
-    count= count1+count2
+    #count= count1+count2
     end
 plot(t1, t2)
 savefig(f2)
-   
+   =#
 ############################################################################################################
 #file wriiting
     touch(f1)
 
     efg = open(f1, "w")
     time1= unique(df[!,:Time])   # not to repeat the time in data
+
+        #########################################################################################
+    # ploting in terms of particles number
+    yl=30
+    xl=100
+  #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
+  #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
+   
+   scatter!(t1,time1,n1, ylimit=(0,yl),legend=false,ylabel=L"\mathrm{N_{Eq(L)}}")
+  #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
+  #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
+   scatter!(t2,time1,n2, ylimit=(0,yl),legend=false, ylabel=L"\mathrm{N_{Eq(R)}}")
+
+  # xlabel!("Time (s)",xguidefont=font(11), xtickfont=font(11))
+  # plot!(ylabel=L"\mathrm{N_{poles}}",yguidefont=font(11), ytickfont=font(11))
+   scatter!(t3,time1,n3, ylimit=(0,yl),legend=false,ylabel=L"\mathrm{N_{Pole(U)}}") 
+  
+  # xlabel!("Time (s)",xguidefont=font(11), xtickfont=font(11))
+  #  plot!(ylabel=L"\mathrm{N_{poles}}",yguidefont=font(11), ytickfont=font(11))
+   scatter!(t4,time1,n4, ylimit=(0,yl),legend=false,ylabel=L"\mathrm{N_{Pole(D)}}") 
+
+   scatter!(t5,time1,n1.-n2, ylimit=(-yl,yl),legend=false,ylabel=L"\mathrm{N_{Eq(L)}}-\mathrm{N_{Eq(R)}}") 
+
+   scatter!(t6,time1,n3.-n4, ylimit=(-yl,yl),legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
+
+   p= plot(t1,t2,t3,t4, layout=(2,2))
+
+   q= plot(t5,t6, layout=(2,2))
+   display(p)
+   savefig(p,f2)
+      savefig(q,f3)
    
     #creating DataFrame for number of particles at equators n1, and at poles n2
-    data = DataFrame(t= time1, p1 = n1,
-     p2 = n2) 
-
-    CSV.write(f1, data)
+    data = DataFrame(t= time1, Neq1 = n1, Neq2 = n2, Npole1 = n3, Npole2 = n4)
+     CSV.write(f1, data)
     
    
     println("I am out of ABP analysis")
