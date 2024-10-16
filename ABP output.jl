@@ -23,30 +23,30 @@ N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera.
 # THIS IS THE CODE TO CALL MAIN FUNCTION
 # We plot the set of particles considering the correction of hard spheres
 
-L = 70.0 	# μm box length
-R = 1.5	# μm particle radius
-v = 1.5 	# μm/s particle velocity
+L = 100.0 	# μm box length
+R = 2.0	# μm particle radius
+v = 10.0 	# μm/s particle velocity
 a=L/2
-b=L/2
+b=L/4
 ICS=1
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.01
+packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 1000000# Nt is the number of steps 
+Nt = 100000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2024\\09.September\\circle\\" # destination folder path
+path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2024\\10.October\\ellipse\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
-mainfolder= mkdir(path*"$datestamp")    # creates a folder names todays'late
+mainfolder= mkdir(path*"\\$datestamp")    # creates a folder names todays'late
 
 path1= path*"$datestamp\\"
 
