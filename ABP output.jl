@@ -25,7 +25,7 @@ N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera.
 
 L = 70.0 	# μm box length
 R = 1.5	# μm particle radius
-v = 0.6 	# μm/s particle velocity
+v = 1.5 	# μm/s particle velocity
 a=L/2
 b=L/2
 ICS=1
@@ -37,7 +37,7 @@ packing_fraction = 0.01
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 10000# Nt is the number of steps 
+Nt = 1000000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ plot!([-L/2], seriestype="vline")
 
 graph_wall = multiparticleE_wall(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
 
-println("multiparticleE_wall complied\n")
+println("multiparticleE_wall compiled\n")
 #---------------------------------------------------------------------------------------------------------------------
 # file store
 file_store(graph_wall,Nt,pathf)
