@@ -88,17 +88,13 @@ function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Union{Float64,Ar
 end
 
 function simulate!(ABPE, matrices, Nt, δt)
-    # PΘ = [ (position(abpe), orientation(abpe)) ]
-    # pθ = PΘ[1]
     start = now()
     print_step = Nt÷100
     for nt in 1:Nt
-        start_step = now()
         ABPE[nt+1] = update(ABPE[nt],matrices,δt)#updating information at every step
         if nt % print_step == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
-            # per_step = Dates.canonicalize(Dates.round((now()-start_step), Dates.Second))
-            print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")#, time per step $per_step")
+            print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
         end
     end
     print("\n")
