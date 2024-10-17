@@ -8,6 +8,7 @@ include("ABP analysis.jl")
 include("ABP SD.jl")
 include("ABP multifolder.jl")
 include("ABP average.jl")
+include("generation.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
 gr()
@@ -37,7 +38,7 @@ packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 1000000# Nt is the number of steps 
+Nt = 10000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 

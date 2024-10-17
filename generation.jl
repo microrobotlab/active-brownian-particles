@@ -1,17 +1,9 @@
-include("geo_toolbox.jl")
+# Generating uniform distribution of particles inside an ellipse 
 
-## First way. Problem: center biased. Advantage: fast, simple and correct
 
-function circgen(Np, a, b, R)
-    α = rand(Np).*2π
-    r_max= (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))
-    r = rand(Np).*r_max
-    x = r.*cos.(α)
-    y = r.*sin.(α)
-    return hcat(x,y)
-end
 
-## Second way. Presumably slower
+
+
 
 function genellipse(Nt,a,b,R)
     xy = (2 .*rand(Nt, 2).-1).*repeat([a b], Nt)
@@ -38,3 +30,7 @@ function iterative_gen(Np, a, b, R)
     end
     return xyacc, Nacc
 end
+
+# xy = iterative_gen(100000, 100, 25, 2.0)[1]  # number of particles inside the boundary while Np is total number of particles
+# xyθ = [xy 2π*rand(100000)]
+# scatter(xyθ[:,1], xyθ[:,2], markersize=1, color="red")
