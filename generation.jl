@@ -30,15 +30,11 @@ end
 function iterative_gen(Np, a, b, R)
     ##First generation
     xyacc, Nacc = genellipse(Np,a,b,R)
-    # println(Nacc)
     while Nacc < Np
         numgen = Np-Nacc
         xyadd = genellipse(numgen,a,b,R)[1]
         xyacc = vcat(xyacc, xyadd)
         Nacc = size(xyacc,1)
     end
-    # println(Nacc)
-    # x = xyacc[:,1]
-    # y = xyacc[:,2]
     return xyacc, Nacc
 end
