@@ -1,14 +1,14 @@
 using CSV, DataFrames, FFTW, FindPeaks1D, JSON3, LinearAlgebra, Plots, Random, Statistics
 
-rdf = CSV.read("..\\simulations\\20241015-102056\\data\\run1\\20241015-102056_run1_rdf.csv", DataFrame)
-bindata = CSV.read("..\\simulations\\20241015-102056\\data\\run1\\20241015-102056_run1_rdfbin.csv", DataFrame)
+rdf = CSV.read("..\\simulations\\20241017-125113\\data\\run1\\20241017-125113_run1_rdf.csv", DataFrame)
+bindata = CSV.read("..\\simulations\\20241017-125113\\data\\run1\\20241017-125113_run1_rdfbin.csv", DataFrame)
 rs = bindata[!,:Radius]
 
 rdf.RadialDistributionFunction = [JSON3.read(x) for x in rdf.RadialDistributionFunction]
 begin
     ngroups = 500
     lendf = size(rdf)[1]
-    div = Int(lendf//ngroups)
+    div = lendf ÷ ngroups
     grouplabel = [(i÷div) for i in 0:lendf-1]
     rdf[!,:GroupLabel] = grouplabel
 
