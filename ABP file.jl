@@ -4,7 +4,12 @@
 # INPUT: array of postions and orientation
 # OUTPUT: saved excel file (f1)
 
-using CSV, DataFrames, DelimitedFiles
+using CSV, DataFrames, DelimitedFiles, Markdown
+
+"""
+    file_store_csv(graph_wall,Nt,pathf;downsampling = 100)
+    Stores the content of graphw_wall in a .csv file
+"""
 
 function file_store_csv(graph_wall,Nt,pathf;downsampling::Int=100)
     f1= pathf*".csv"               # destination file name
@@ -43,34 +48,12 @@ touch(f1)
     return nothing
 end
 
-function file_store_txt(graph_wall,Nt,Np,pathf;downsampling::Int=100) # This is cuter
-    f1= pathf*".txt"               # destination file name
+"""
+    file_store_txt(graph_wall,Nt,pathf;downsampling = 100)
+    Stores the content of graphw_wall in a .txt file.
+"""
 
-    Nt +=1
-    pnumber = Int.(repeat(1:Np, Nt÷downsampling))
-    time = Int.(repeat(1:Nt, inner = [Np]))
-    xy = vcat(graph_wall[1]...)
-    x = xy[:,1]
-    y = xy[:,2]
-    θ = vcat(graph_wall[2]...)
-
-    touch(f1)
-    
-    #creating DataFrame
-    data = DataFrame(
-    N = pnumber,
-    Time = time,
-    xpos = x,
-    ypos = y,
-    orientation =θ) 
-
-    CSV.write(f1, data, delim = ",")
-    
-    @info "$(now()) Out of ABP file"
-    return nothing
-end
-
-function file_store_txt(graph_wall,Nt,pathf;downsampling::Int=100) #... But this is faster 😢
+function file_store_txt(graph_wall,Nt,pathf;downsampling::Int=100)
     f1= pathf*".txt"              # destination file name
 
     pnumber=[]
