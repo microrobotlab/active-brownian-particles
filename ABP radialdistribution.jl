@@ -50,5 +50,5 @@ function physicalanalysis1(pathf, nbins, L, R)
     rs,bins = radialbinssquare(L,nbins)
     bindata = DataFrame(Radius = rs, BinArea = bins)
     CSV.write(bin_file, bindata)
-    @info "$(now())) Finished writing radial distribution function file"
+    @info "$(now()) Finished writing radial distribution function file"
 end
