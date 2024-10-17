@@ -25,7 +25,7 @@ N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera.
 
 L = 100.0 	# μm box length
 R = 2.0	# μm particle radius
-v = 10.0 	# μm/s particle velocity
+v = 5.0 	# μm/s particle velocity
 a=L/2
 b=L/4
 ICS=1
@@ -37,7 +37,7 @@ packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 100000# Nt is the number of steps 
+Nt = 1000000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
