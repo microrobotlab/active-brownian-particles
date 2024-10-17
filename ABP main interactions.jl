@@ -126,9 +126,8 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     offcenter = .5
     force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, offcenter, abpe.L, intrange, shifted_lennard_jones, 2abpe.R, 0.4,-2abpe.R*offcenter)
     if size(position(abpe),2) == 2
-        # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
         δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*torque/γᵣ
+        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω #.+ δt*torque/γᵣ
     else
         println("No step method available")
     end

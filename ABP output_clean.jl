@@ -19,11 +19,11 @@ path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = 100             # number of steps
+Nt = 2000             # number of steps
 Delta_t = 1e-3          # s step time
 ICS=1                   # Number of intial conditons to be scanned 
-animation_ds = 500     # Downsampling in animation
-file_ds = 1           # Downsampling in file
+animation_ds = 100     # Downsampling in animation
+file_ds = 10           # Downsampling in file
 
 
 # Physical parameters
@@ -31,7 +31,7 @@ BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 L = 100.0 	           # μm box length
 R = 2.0		           # μm particle radius
-packing_fraction = 0.02 # Largest pf for spherical beads π/4 = 0.7853981633974483
+packing_fraction = 0.5 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = [10., 20] 	            # μm/s particle s
 ω = Normal(0.0,.025)        # s⁻¹ particle angular velocity
@@ -81,7 +81,7 @@ end
 
 if box_shape == :square
     for i=1:ICS
-        pathf= patht*"\\run$i\\"
+        pathf= joinpath(patht, "run$i\\")
         filename= "$datestamp"*"_run$i"
         pathf= pathf*filename
 
@@ -113,6 +113,6 @@ if box_shape == :square
         gif(anim, f1)
         #---------------------------------------------------------------------------------------------------------------------
         # analysis
-        physicalanalysis1(pathf, 500, L, R)
+        physicalanalysis1(pathf, 500, L, R,".txt")
     end
 end
