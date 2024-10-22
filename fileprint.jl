@@ -1,4 +1,4 @@
-using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics, PlotlyJS, FFTW
+using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics, FFTW
 
 mainfolder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07 Coding\2024\10.October\ellipse\20241017-105529\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.1\run1"
 filename= "\\20241017-105529 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.1 run1_p.csv"
