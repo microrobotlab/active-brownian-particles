@@ -1,10 +1,5 @@
 # Generating uniform distribution of particles inside an ellipse 
 
-
-
-
-
-
 function genellipse(Nt,a,b,R)
     xy = (2 .*rand(Nt, 2).-1).*repeat([a b], Nt)
 

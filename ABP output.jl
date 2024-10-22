@@ -19,17 +19,17 @@ gr()
 
 L = 100.0 	# μm box length
 R = 2.0	# μm particle radius
-v = 5.0 	# μm/s particle velocity
+v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
 ICS=1
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.1
+packing_fraction = 0.2
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
-Nt = 10000# Nt is the number of steps 
+Nt = 100000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 

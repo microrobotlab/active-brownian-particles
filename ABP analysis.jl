@@ -58,13 +58,13 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
     
         θ = atan.(gdf[i][!,:ypos][j], gdf[i][!,:xpos][j]) 
 
-        if θ.>= (π-eθ)  && θ.<= π                      #equator Left                                                                                                                                                                                         
+        if θ.>= (π-eθ)  && θ.<= π                      #equator Left                                                                                                                                                                                      
            global  Neq1 = Neq1+1  
     
         elseif θ.>= -π  && θ.<= -(π-eθ)               #equator Left 
             global Neq1 =Neq1+1  
 
-        elseif θ.>= -eθ  &&  θ.<= eθ              #equator Right                                                                                                                                                                                                
+        elseif θ.>= -eθ  &&  θ.<= eθ              #equator Right                                                                                                                                                                                           
               global   Neq2 =Neq2+1  
                 
                 elseif θ.>= eθ && θ.<= (π-eθ)        #pole up
