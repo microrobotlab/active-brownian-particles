@@ -12,12 +12,12 @@ using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
 gr()
 
-N = 10000
-Delta_t = 1e-2
-t_tot= N*Delta_t
+# N = 10000
+# Delta_t = 1e-3
+# t_tot= N*Delta_t
 
-tauMax = t_tot/10               #is the actual maximum delta t over which I can calculate the MSD
-N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera. For me that I am simulating and that's it it will be given by the delta_t_MAX / delta_t_MIN on which I can calculate the MSD
+# tauMax = t_tot/10               #is the actual maximum delta t over which I can calculate the MSD
+# N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera. For me that I am simulating and that's it it will be given by the delta_t_MAX / delta_t_MIN on which I can calculate the MSD
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL MAIN FUNCTION
@@ -28,7 +28,7 @@ R = 2.0	# μm particle radius
 v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=1
+ICS=10
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
@@ -37,7 +37,7 @@ packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
 #π
-Nt = 100000# Nt is the number of steps 
+Nt = 1000000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
