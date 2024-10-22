@@ -8,16 +8,10 @@ include("ABP analysis.jl")
 include("ABP SD.jl")
 include("ABP multifolder.jl")
 include("ABP average.jl")
+include("generation.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
 gr()
-
-# N = 10000
-# Delta_t = 1e-3
-# t_tot= N*Delta_t
-
-# tauMax = t_tot/10               #is the actual maximum delta t over which I can calculate the MSD
-# N_Max = Int64(tauMax/Delta_t)   # is the maximum number of frames of the camera. For me that I am simulating and that's it it will be given by the delta_t_MAX / delta_t_MIN on which I can calculate the MSD
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL MAIN FUNCTION
@@ -28,14 +22,14 @@ R = 2.0	# μm particle radius
 v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=10
+ICS=1
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.1
+packing_fraction = 0.2
 
-Np = round(Int,packing_fraction*L^2/(2R^2))  #Np is the number of particles in my set and I choose it random?
+Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
 Nt = 1000000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
@@ -138,3 +132,8 @@ end
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
 # mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 # (average(mainfolder))   # passing path of the main folders which has all the runs
+
+mainfolder= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07 Coding\2024\10.October\ellipse\20241016-151502\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\run1\\"
+filename="20241016-151502 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run1"
+
+inside_Np=stat_analysis1(a,b,R,mainfolder*filename,2)

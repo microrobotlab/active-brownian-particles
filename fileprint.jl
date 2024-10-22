@@ -1,19 +1,19 @@
-using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics, PlotlyJS, FFTW
+using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics, FFTW
 
-mainfolder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07 Coding\2024\10.October\ellipse\20241015-125535\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\run1"
-filename= "\\20241015-125535 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run1_p.csv"
+mainfolder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07 Coding\2024\10.October\ellipse\20241017-105529\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.1\run1"
+filename= "\\20241017-105529 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.1 run1_p.csv"
 
 path= mainfolder*filename
 
 f= mainfolder*"\\number of particles.png"
-f1= mainfolder*"\\FFT_difference_equators.png"
-f2= mainfolder*"\\FFT_difference_poles.png"
+f1= mainfolder*"\\FFT_difference_equators_fs1000.png"
+f2= mainfolder*"\\FFT_difference_poles_fs1000.png"
 df= CSV.read(path,DataFrame)
 t5=plot()
 t6=plot()
 
 start_frame= 1
-end_frame= 10000
+end_frame= 100000
 time= df[start_frame:end_frame,:t]
 Neq1= df[start_frame:end_frame,:Neq1]
 Neq2= df[start_frame:end_frame,:Neq2]
@@ -51,14 +51,14 @@ savefig(q,f)
 ydata1 = Neq1.-Neq2
 ydata2 = Npole1.-Npole2
 
-fs=1
+fs=1000
 freq= fftshift(fft(ydata1))
 freqs = fftshift(fftfreq(length(ydata1), fs))
 
-k= plot(freqs,real.(freq), xlimit=(0,0.1), ylimit=(0.02,10000),seriestype=:stem, xlabel="Frequency(Hz)", ylabel="Power",legend=false)
+k= plot(freqs,real.(freq), xlimit=(0,500), ylimit=(0.02,20000),seriestype=:stem, xlabel="Frequency(Hz)", ylabel="Power",legend=false)
 
 display(k)
-savefig(k,f2)
+savefig(k,f1)
 
 # t1= plot(df[start_frame:end_frame,:f], df[start_frame:end_frame,:real],legend=false)  
 # xlabel!("Frquency (HZ)", seriestype=:stem,xguidefont=font(20),xlimit=(0,0.5),ylimit=(0,200), xtickfont=font(11))
