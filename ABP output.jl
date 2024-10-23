@@ -7,7 +7,7 @@ include("ABP file.jl")
 include("ABP analysis.jl")
 include("ABP SD.jl")
 include("ABP multifolder.jl")
-include("ABP average.jl")
+# include("ABP average.jl")
 include("generation.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
@@ -22,24 +22,25 @@ R = 2.0	# μm particle radius
 v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-
-ICS=1
+ICS=10
+   # number of intial conditons to be scanned 
+#pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
 packing_fraction = 0.2
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
-Nt = 100000# Nt is the number of steps 
+Nt = 1000000# Nt is the number of steps 
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2024\\10.October\\ellipse\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
-mainfolder= mkdir(path*"\\$datestamp")    # creates a folder names todays'late
+mainfolder= mkdir(path*"$datestamp")    # creates a folder names todays'late
 
 path1= path*"$datestamp\\"
 
@@ -52,8 +53,8 @@ folders=  multipledir(patht,ICS)
 
 for i=1:ICS
 
-    pathf= patht*"run$i\\"
-    filename= "$datestamp R=$R v=$v a=$a b=$b pf=$packing_fraction run$i"
+    pathf= patht*"\\run$i\\"
+    filename= "\\$datestamp R=$R v=$v a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
     println("simulation=$i")
     #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
@@ -87,7 +88,7 @@ println("multiparticleE_wall compiled\n")
 file_store(graph_wall,Nt,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
-inside_Np=stat_analysis1(a,b,R,pathf)
+inside_Np=stat_analysis1(a,b,R,pathf,2)
 # mean and standard deviation
 
 #analysis_SD= stat_analysis2(a,b,R,pathf)
@@ -132,7 +133,7 @@ end
 # mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 # (average(mainfolder))   # passing path of the main folders which has all the runs
 
-mainfolder= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07 Coding\2024\10.October\ellipse\20241016-151502\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\run1\\"
-filename="20241016-151502 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run1"
+# mainfolder= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07 Coding\2024\10.October\ellipse\20241016-151502\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\run1\\"
+# filename="20241016-151502 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run1"
 
-inside_Np=stat_analysis1(a,b,R,mainfolder*filename,1)
+# inside_Np=stat_analysis1(a,b,R,mainfolder*filename,0) # 0 for pole, ewuator, 1 for only right left, 2 for entire

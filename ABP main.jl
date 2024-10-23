@@ -73,7 +73,7 @@ end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ##Calculate diffusion coefficient
-function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)
+function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-2)
     # Boltzmann constant [J/K]
     kB = 1.38e-23
     # friction coefficient [Ns/m]
