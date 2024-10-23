@@ -193,7 +193,7 @@ function symmetry_analysis(a,b,R,pathf)
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
    t2=scatter(time1,n_right, ylimit=(0,yl),legend=false, ylabel=L"\mathrm{N_{(Right)}}")
 
-   t3=scatter(time1,n_left.-n_right, ylimit=(-yl,yl),legend=false,ylabel=L"\mathrm{N_{(Left)}}-\mathrm{N_{(Right)}}") 
+   t3=scatter(time1,(n_left.-n_right)/25, ylimit=(-yl,yl),legend=false,ylabel=L"\mathrm{N_{(Left)}}-\mathrm{N_{(Right)}}") 
 
    p= plot(t3)
    q= plot(t1,t2, layout=(2,2))

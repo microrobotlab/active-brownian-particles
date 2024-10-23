@@ -135,4 +135,4 @@ end
 mainfolder= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07 Coding\2024\10.October\ellipse\20241016-151502\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\run1\\"
 filename="20241016-151502 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run1"
 
-inside_Np=stat_analysis1(a,b,R,mainfolder*filename,2)
+inside_Np=stat_analysis1(a,b,R,mainfolder*filename,1)
