@@ -183,7 +183,7 @@ function symmetry_analysis(a,b,R,pathf)
 
         #########################################################################################
     # ploting in terms of particles number
-    yl=30
+    yl=50
     xl=100
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
