@@ -86,7 +86,7 @@ function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-2)
 end;
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to simulate multiple spherical particles
-function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Float64, Nt::Int64=2, δt::Float64=1e-3)
+function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Float64, Nt::Int64=2, δt::Float64)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
     
     ABPE = Vector{ABPE2}(undef,Nt+1) # Nt is number of time steps

@@ -22,7 +22,7 @@ R = 2.0	# μm particle radius
 v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=10
+ICS=1
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
@@ -31,7 +31,8 @@ packing_fraction = 0.2
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
-Nt = 1000000# Nt is the number of steps 
+Nt = 10000# Nt is the number of steps 
+δt = 1.0e-2 #L/(v*Nt) # δt is the time step
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -80,7 +81,7 @@ plot!([-L/2], seriestype="vline")
 
 
 
-graph_wall = multiparticleE_wall(Np,L,R,v,Nt) # has values of x and y posiiton in each frame in graph_wall[1]
+graph_wall = multiparticleE_wall(Np,L,R,v,Nt,δt) # has values of x and y posiiton in each frame in graph_wall[1]
 
 println("multiparticleE_wall compiled\n")
 #---------------------------------------------------------------------------------------------------------------------
