@@ -31,13 +31,13 @@ packing_fraction = 0.2
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
-Nt = 10000# Nt is the number of steps 
-δt = 1.0e-2 #L/(v*Nt) # δt is the time step
+Nt = 1000000# Nt is the number of steps 
+δt = 1.0e-4 #L/(v*Nt) # δt is the time step
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\\" # destination folder path
+path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\10.October\ellipse\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -53,7 +53,7 @@ patht= path*"$datestamp\\R=$R v=$v a=$a b=$b pf=$packing_fraction\\"
 folders=  multipledir(patht,ICS) 
 
 for i=1:ICS
-
+  start = time()
     pathf= patht*"\\run$i\\"
     filename= "\\$datestamp R=$R v=$v a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
@@ -126,6 +126,8 @@ end
 f1= pathf*".gif"
 gif(anim, f1)
 
+    finish = time()
+    println("Time taken for simulation run$i: $(finish-start) seconds")
 
 end
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
