@@ -3,7 +3,7 @@
 # Method: Absoulte velocity calculation at each instant
 # Input: File from the output.jl, which has positions and orientation at each instant
 # Output: Velocity of each particle at every instant and average velocity of the ensemble
-
+# Output: Interparticle distance 
 using  Plots, LaTeXStrings, Statistics, CSV, DataFrames,CategoricalArrays
  
 
@@ -42,6 +42,14 @@ pathf= path*filename
   xyc= vcat(xy...)
  
    xym=Matrix(xyc[:,[:xpos,:ypos]])
+    distances = zeros(size(xym,1),size(xym,1))
+    for i in 1:size(xym,1)
+        for j in 1:size(xym,1)
+            if i!=j
+                distances[i,j] = sqrt((xym[i,1]-xym[j,1])^2 + (xym[i,2]-xym[j,2])^2)
+            end
+        end
+    end
     distances = (pairwise(Euclidean(), xym[1:8,:], xym[1:8,:],dims =1)) # distance matrix
 
     up_dis= triu(distances, 1)

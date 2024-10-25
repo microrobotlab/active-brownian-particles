@@ -20,6 +20,8 @@ function stat_analysis1(a,b,R,pathf,symmetry)
     # for number of particles at the left or right side of the ellipse run this function
     symmetry_analysis(a,b,R,pathf)
     curvature_analysis(a,b,R,pathf)
+    
+    return count
   end
  
 
@@ -102,7 +104,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
    
-   t1= scatter(time1,n1, ylimit=(0,yl),legend=false,ylabel=L"\mathrm{N_{Eq(L)}}")
+   t1= scatter(time1,n1, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}")
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
    t2=scatter(time1,n2, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false, ylabel=L"\mathrm{N_{Eq(R)}}")
@@ -117,7 +119,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
 
    p= plot(t1,t2,t3,t4, layout=(2,2))
 
-   q= plot(t5,t6, layout=(2,2))
+   q= plot(t5,t6, layout=(2,1))
    savefig(p,f2)
    savefig(q,f3)
    
@@ -196,7 +198,7 @@ function symmetry_analysis(a,b,R,pathf)
    t3=scatter(time1,(n_left.-n_right)/25, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{(Left)}}-\mathrm{N_{(Right)}}") 
 
    p= plot(t3)
-   q= plot(t1,t2, layout=(2,2))
+   q= plot(t1,t2, layout=(2,1))
    savefig(q,f2)
    savefig(p,f3)
    

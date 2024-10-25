@@ -116,7 +116,7 @@ end
 =#
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
 
-anim = @animate for i = 1:100:Nt
+anim = @animate for i = 1:1000:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
     plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
@@ -127,7 +127,7 @@ f1= pathf*".gif"
 gif(anim, f1)
 
     finish = time()
-    println("Time taken for simulation run$i: $(finish-start) seconds")
+    println("Time taken for simulation run$i: $(round((finish-start)/60.0, digits=3)) minutes")
 
 end
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
