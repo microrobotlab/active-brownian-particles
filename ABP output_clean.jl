@@ -3,7 +3,7 @@
 #VARIABLES: Destination folder path and filename
 include("ABP main interactions.jl")
 # include("ABP main.jl")
-include("ABP file.jl")
+include("ABP_file.jl")
 include("ABP analysis.jl")
 include("ABP radialdistribution.jl")
 # include("ABP SD.jl")
@@ -19,22 +19,22 @@ path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = 2000             # number of steps
+Nt = 1000             # number of steps
 Delta_t = 1e-3          # s step time
-ICS=1                   # Number of intial conditons to be scanned 
+ICS=2                   # Number of intial conditons to be scanned 
 animation_ds = 100     # Downsampling in animation
-file_ds = 10           # Downsampling in file
+file_ds = 1           # Downsampling in file
 
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
-L = 100.0 	           # μm box length
+L = 20.0 	           # μm box length
 R = 2.0		           # μm particle radius
-packing_fraction = 0.5 # Largest pf for spherical beads π/4 = 0.7853981633974483
+packing_fraction = pi/10 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [10., 20] 	            # μm/s particle s
-ω = Normal(0.0,.025)        # s⁻¹ particle angular velocity
+v = [10.] 	            # μm/s particle s
+ω = 0.        # s⁻¹ particle angular velocity
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ if box_shape == :square
         start_sim = now()
         @info "$start_sim Started simulation #$i"
         if BC_type == :periodic
-            graph_wall = multiparticleE(Np,L,R,v,ω,Nt,Delta_t) # has values of x and y position in each frame in graph_wall[1]
+            graph_wall = multiparticleE(Np,L,R,v,ω,Nt,Delta_t,) # has values of x and y position in each frame in graph_wall[1]
             elapsed_time = Dates.canonicalize(now()-start_sim)
             println("multiparticleE complied: elapsed time $elapsed_time\n")
         end
