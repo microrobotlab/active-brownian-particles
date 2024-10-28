@@ -19,12 +19,13 @@ path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = 1000             # number of steps
+Nt = 10000             # number of steps
 Delta_t = 1e-3          # s step time
-ICS=2                   # Number of intial conditons to be scanned 
+ICS=100                   # Number of intial conditons to be scanned 
 animation_ds = 100     # Downsampling in animation
 file_ds = 1           # Downsampling in file
-
+animation = false
+radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
@@ -99,20 +100,24 @@ if box_shape == :square
 
         #---------------------------------------------------------------------------------------------------------------------
         # animation
-        anim = @animate for i = 1:animation_ds:Nt
-            scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
-            
-            plot!([L/2], seriestype="vline", color=:black)  #square
-            plot!([-L/2], seriestype="vline", color=:black)
-            plot!([L/2], seriestype="hline", color=:black)
-            plot!([-L/2], seriestype="hline", color=:black)
-            # quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
+        if animation
+            anim = @animate for i = 1:animation_ds:Nt
+                scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
+                
+                plot!([L/2], seriestype="vline", color=:black)  #square
+                plot!([-L/2], seriestype="vline", color=:black)
+                plot!([L/2], seriestype="hline", color=:black)
+                plot!([-L/2], seriestype="hline", color=:black)
+                # quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
+            end
+    
+            f1= pathf*".gif"
+            gif(anim, f1)
         end
-   
-        f1= pathf*".gif"
-        gif(anim, f1)
         #---------------------------------------------------------------------------------------------------------------------
         # analysis
-        physicalanalysis1(pathf, 500, L, R,".txt")
+        if radialdensity
+            physicalanalysis1(pathf, 500, L, R,".txt")
+        end
     end
 end
