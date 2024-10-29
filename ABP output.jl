@@ -31,8 +31,8 @@ packing_fraction = 0.2
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
-Nt = 1000000# Nt is the number of steps 
-δt = 1.0e-4 #L/(v*Nt) # δt is the time step
+Nt = 100000# Nt is the number of steps 
+δt = 1.0e-2 #L/(v*Nt) # δt is the time step
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
