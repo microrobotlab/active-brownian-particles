@@ -14,22 +14,28 @@ using CSV, DataFrames, DelimitedFiles, Markdown, Parquet
 function file_store_csv(graph_wall,Nt,pathf;downsampling::Int=100)
     f1= pathf*".csv"               # destination file name
 
-pnumber=[]
-time=[]
-x=[]
-y=[]
-θ=[]
-for i = 1:downsampling:Nt+1
-    for j = 1:length(graph_wall[1][i][:,1])
-        push!(pnumber,j)
-        push!(time, i)
-    push!(x, graph_wall[1][i][j,1])
-    push!(y, graph_wall[1][i][j,2])
-    push!(θ, graph_wall[2][i,1][j])
+    pnumber=[]
+    time=[]
+    x=[]
+    y=[]
+    θ=[]
+    fx=[]
+    fy=[]
+    torque=[]
+    for i = 1:downsampling:Nt+1
+        for j = 1:length(graph_wall[1][i][:,1])
+            push!(pnumber,j)
+            push!(time, i)
+        push!(x, graph_wall[1][i][j,1])
+        push!(y, graph_wall[1][i][j,2])
+        push!(θ, graph_wall[2][i,1][j])
+        push!(fx, graph_wall[3][i][j,1])
+        push!(fy, graph_wall[3][i][j,2])
+        push!(torque, graph_wall[4][i,1][j])
+        end
     end
-end
 
-touch(f1)
+    touch(f1)
 
     efg = open(f1, "w")
     
@@ -39,7 +45,11 @@ touch(f1)
     Time= time,
     xpos= x,
     ypos= y,
-    orientation=θ) 
+    orientation=θ,
+    fx=fx,
+    fy=fy,
+    torque=torque,
+    )  
 
     CSV.write(f1, data)
     
@@ -61,6 +71,9 @@ function file_store_txt(graph_wall,Nt,pathf;downsampling::Int=100)
     x=[]
     y=[]
     θ=[]
+    fx=[]
+    fy=[]
+    torque=[]
     for i = 1:downsampling:Nt+1
         for j = 1:length(graph_wall[1][i][:,1])
             push!(pnumber,j)
@@ -68,10 +81,15 @@ function file_store_txt(graph_wall,Nt,pathf;downsampling::Int=100)
         push!(x, graph_wall[1][i][j,1])
         push!(y, graph_wall[1][i][j,2])
         push!(θ, graph_wall[2][i,1][j])
+        push!(fx, graph_wall[3][i][j,1])
+        push!(fy, graph_wall[3][i][j,2])
+        push!(torque, graph_wall[4][i,1][j])
         end
     end
 
     touch(f1)
+
+    efg = open(f1, "w")
     
     #creating DataFrame
     data = DataFrame(
@@ -79,7 +97,11 @@ function file_store_txt(graph_wall,Nt,pathf;downsampling::Int=100)
     Time= time,
     xpos= x,
     ypos= y,
-    orientation=θ) 
+    orientation=θ,
+    fx=fx,
+    fy=fy,
+    torque=torque,
+    )  
 
     CSV.write(f1, data)
     
