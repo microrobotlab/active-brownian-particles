@@ -134,9 +134,9 @@ end
 
 function symmetry_analysis(a,b,R,pathf)
   f= pathf*".csv"
-  f1= pathf*"symmetry_analysis_p.csv"
-  f2= pathf*"symmetry_analysis_N.png"
-  f3= pathf*"symmetry_analysis_Ndiff.png"
+  f1= pathf*"_symmetry_analysis_p.csv"
+  f2= pathf*"_symmetry_analysis_N.png"
+  f3= pathf*"_symmetry_analysis_Ndiff.png"
   
   df= CSV.read(f, DataFrame)
   time= df[!,:Time]
@@ -159,11 +159,11 @@ function symmetry_analysis(a,b,R,pathf)
     
         θ = atan.(gdf[i][!,:ypos][j], gdf[i][!,:xpos][j]) 
 
-        if θ.>= -(π/2)  && θ.<= π/2                    #equator Left                                                                                                                                                                                      
+        if θ.>= -(π/2)  && θ.<= π/2                    #Right ellipse                                                                                                                                                                                     
            global  right+=1  
-             elseif θ.>= π/2 && θ.<= π        #pole up
+             elseif θ.>= π/2 && θ.<= π                 # Left ellipse
               global  left+=1 
-                elseif θ.>= -(π)   && θ.<= -π/2     #pole down
+                elseif θ.>= -(π)   && θ.<= -π/2        # Left ellipse
                 global    left+=1 
     end   
     
@@ -185,17 +185,17 @@ function symmetry_analysis(a,b,R,pathf)
 
         #########################################################################################
     # ploting in terms of particles number
-    yl=50
+    yl1=100
     xl=100
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
    
-   t1= scatter(time1,n_left, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_(Left)}}")
+   t1= scatter(time1,n_left, ylimit=(0,yl1),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_(Left)}}")
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
-   t2=scatter(time1,n_right, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false, ylabel=L"\mathrm{N_{(Right)}}")
+   t2=scatter(time1,n_right, ylimit=(0,yl1),mode="markers",markersize=0.5,legend=false, ylabel=L"\mathrm{N_{(Right)}}")
 
-   t3=scatter(time1,(n_left.-n_right)/25, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{(Left)}}-\mathrm{N_{(Right)}}") 
+   t3=scatter(time1,(n_left.-n_right), ylimit=(-yl1,yl1),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{(Left)}}-\mathrm{N_{(Right)}}") 
 
    p= plot(t3)
    q= plot(t1,t2, layout=(2,1))

@@ -16,6 +16,7 @@ dt=0.01
 time_step= df[:,:t]
 Neq1= df[:,:NeqL]
 Neq2= df[:,:NeqR]
+Neq2= df[:,:NeqR]
 Npole1= df[:,:NpoleU]
 Npole2= df[:,:NpoleD]
 Waqt = time_step .* dt

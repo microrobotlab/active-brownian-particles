@@ -9,6 +9,8 @@ include("ABP SD.jl")
 include("ABP multifolder.jl")
 # include("ABP average.jl")
 include("generation.jl")
+include("jyoti.jl")
+
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
 gr()
@@ -19,10 +21,10 @@ gr()
 
 L = 100.0 	# μm box length
 R = 2.0	# μm particle radius
-v = 10.0 	# μm/s particle velocity
+v = 5.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=1
+ICS=10
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
@@ -32,12 +34,12 @@ packing_fraction = 0.2
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
 Nt = 1000000# Nt is the number of steps 
-δt = 1.0e-4 #L/(v*Nt) # δt is the time step
+δt = 1.0e-3 #L/(v*Nt) # δt is the time step
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\10.October\ellipse\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\11.November" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -90,7 +92,12 @@ file_store(graph_wall,Nt,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
 inside_Np=stat_analysis1(a,b,R,pathf,2)
+
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------
+# FFT analysis
+FFT_analysis(pathf,δt)
 # mean and standard deviation
+
 
 #analysis_SD= stat_analysis2(a,b,R,pathf)
 
@@ -135,8 +142,15 @@ end
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
 # mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 # (average(mainfolder))   # passing path of the main folders which has all the runs
+# mainfolder= raw"D:\j.sharma\P07\workstationMRL\20241104-121620\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\run1\\"
+ 
+#    filename="20241029-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p"
+#    t= mainfolder*filename
+  
+#    f1000= joinpath(mainfolder,filename*".csv") 
 
-# mainfolder= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07 Coding\2024\10.October\ellipse\20241016-151502\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\run1\\"
-# filename="20241016-151502 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1 run1"
-
+#   #  f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
+#    df= CSV.read(f1000,DataFrame) 
+#    FFT_analysis(t,δt)
 # inside_Np=stat_analysis1(a,b,R,mainfolder*filename,0) # 0 for pole, ewuator, 1 for only right left, 2 for entire
+

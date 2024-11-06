@@ -61,7 +61,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
 
     # Np1= size(xyθ,1)  
    xy = iterative_gen(Np, a, b, R)[1]  # number of particles inside the boundary while Np is total number of particles
-   xyθ = [xy 2π*rand(Np)]
+   xyθ = [xy (2π.*(rand(Np).-0.5))] # 3 dim matrix with x, y and θ in -pi to pi range
 
 
     #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
@@ -215,8 +215,17 @@ function multiparticleE_wall(Np::Integer, L::Float64, R::Float64, v::Float64, Nt
     println("time steps $δt")
     ABPE = Vector{ABPE2}(undef,Nt+1)
     ABPE[1], matrices = initABPE( Np, L, R, v ) # including initial hardsphere correction
-    
     simulate_wall!(ABPE, matrices, Nt, δt)
+    # @time begin
+    #     println("Simulating $(Nt) steps")
+    #     simulate_wall!(ABPE, matrices, Nt, δt)
+    #     println("Simulation finished")
+    # end
+    # @allocated begin
+    #     println("Allocated memory per step: ")
+    #     simulate_wall!(ABPE, matrices, Nt, δt)
+    #     println("Simulation finished")
+    # end
     println("I am in multiwall update")
     return position.(ABPE), orientation.(ABPE)
 end
@@ -226,7 +235,7 @@ function simulate_wall!(ABPE, matrices, Nt, δt)
     # pθ = PΘ[1]
     
     for nt in 1:Nt
-        ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
+       ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
         #println("Step $nt")
       
     end
@@ -242,7 +251,7 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
     #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
     elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
 
-    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+  hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
