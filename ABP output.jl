@@ -3,7 +3,7 @@
 #VARIABLES: Destination folder path and filename
 
 include("ABP main.jl")
-include("ABP file.jl")
+include("ABP_file.jl")
 include("ABP analysis.jl")
 include("ABP SD.jl")
 include("ABP multifolder.jl")
@@ -31,13 +31,15 @@ packing_fraction = 0.2
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
-Nt = 100000# Nt is the number of steps 
+Nt = 1000# Nt is the number of steps 
+resample=100
+Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the actual simulation time step
 δt = 1.0e-2 #L/(v*Nt) # δt is the time step
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\10.October\ellipse\\" # destination folder path
+path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\11.November\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -78,18 +80,18 @@ plot!([-L/2], seriestype="vline")
 =#
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
-
-
-
 graph_wall = multiparticleE_wall(Np,L,R,v,Nt,δt) # has values of x and y posiiton in each frame in graph_wall[1]
-
+#  for i in 1:Nt_store
+#     k=plot!(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ")
+#  end  #square
+# display(k)
 println("multiparticleE_wall compiled\n")
 #---------------------------------------------------------------------------------------------------------------------
-# file store
-file_store(graph_wall,Nt,pathf)
+# file store  
+file_store_csv(graph_wall,Nt_store,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
-inside_Np=stat_analysis1(a,b,R,pathf,2)
+# inside_Np=stat_analysis1(a,b,R,pathf,2)
 # mean and standard deviation
 
 #analysis_SD= stat_analysis2(a,b,R,pathf)
@@ -116,11 +118,11 @@ end
 =#
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
 
-anim = @animate for i = 1:1000:Nt
-    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(inside_Np) particles, steps $i, ellipse a=L/2, b= L/4")
-    plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
-    quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
-end
+# anim = @animate for i = 1:Nt_store
+#     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$Np particles, steps $(i*resample), ellipse a=L/2, b= L/4")
+#     plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
+#     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
+# end
 #marker_z=graph_wall[2][i,1], color=:rainbow, for 
 
 f1= pathf*".gif"

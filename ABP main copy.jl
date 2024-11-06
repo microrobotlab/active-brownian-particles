@@ -89,18 +89,10 @@ end;
 function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Float64, Nt::Int64=2, δt::Float64=1e-3)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
  
-    ABPE = Vector{ABPE2}(undef,1) # Nt is number of time steps
+    ABPE = Vector{ABPE2}(undef,Nt+1) # Nt is number of time steps
     ABPE[1], matrices = initABPE( Np, L, R, v ) # including initial hardsphere correction
-    current_value = deepcopy(ABPE[1])  # This will be used for updates at each step
- 
-   for i in 2:Nt
-    current_value = update_wall(current_value,matrices,δt)
-        if mod(i,10) == 0
-           push!(ABPE,current_value)
-            
-        end
-end
-    #simulate!(ABPE, matrices, Nt, δt)
+    
+    simulate!(ABPE, matrices, Nt, δt)
 
     return position.(ABPE), orientation.(ABPE)
 end
@@ -221,22 +213,11 @@ end
 function multiparticleE_wall(Np::Integer, L::Float64, R::Float64, v::Float64, Nt::Int64=2, δt::Float64=1.0e-03)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
     println("time steps $δt")
-    ABPE = Vector{ABPE2}(undef,1) # Nt is number of time steps
+    ABPE = Vector{ABPE2}(undef,Nt+1)
     ABPE[1], matrices = initABPE( Np, L, R, v ) # including initial hardsphere correction
-    current_value = deepcopy(ABPE[1])  # This will be used for updates at each step
- 
-   for i in 2:Nt
-    current_value = update_wall(current_value,matrices,δt)
-        if mod(i,10) == 0
-           push!(ABPE,current_value)
-            
-        end
-end
-    # ABPE = Vector{ABPE2}(undef,Nt+1)
-    # ABPE[1], matrices = initABPE( Np, L, R, v ) # including initial hardsphere correction
     
-    # simulate_wall!(ABPE, matrices, Nt, δt)
-    # println("I am in multiwall update")
+    simulate_wall!(ABPE, matrices, Nt, δt)
+    println("I am in multiwall update")
     return position.(ABPE), orientation.(ABPE)
 end
 
