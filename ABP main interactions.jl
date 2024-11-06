@@ -129,7 +129,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
     return new_abpe
 end
 
-function step(abpe::ABPE, δt::Float64, force, torque) where {ABPE <: ABPsEnsemble}    
+function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{Float64,1}) where {ABPE <: ABPsEnsemble}    
     γₜ = diffusion_coeff(1e-6*abpe.R)[3]
     γᵣ = γₜ*abpe.R*abpe.R*8/6   
     if size(position(abpe),2) == 2
