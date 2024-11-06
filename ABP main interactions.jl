@@ -195,10 +195,7 @@ function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # calle
     Np = size(xy,1)
     dists = zeros(Np,Np)
     superpose = falses(Np,Np)
-    uptriang = falses(Np,Np)
-    for i = 1:Np-1
-        uptriang[i,i+1:Np] .= true
-    end
+    uptriang = triu(trues(Np,Np),1)
     hardsphere!(xy, dists, superpose, uptriang, R; tol=tol)
     return xy, dists, superpose, uptriang
 end
