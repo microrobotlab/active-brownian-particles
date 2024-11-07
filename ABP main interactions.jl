@@ -82,22 +82,26 @@ function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)
 end
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to simulate multiple spherical particles
-function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Union{Float64,Array{Float64,1},Distribution}, ω::Union{Float64,Array{Float64,1},Distribution}, Nt::Int64, δt::Float64, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...)
+function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Union{Float64,Array{Float64,1},Distribution}, ω::Union{Float64,Array{Float64,1},Distribution}, Nt::Int64, measevery::Int64, δt::Float64, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
-    
-    ABPE = Vector{ABPE2}(undef,Nt+1) # Nt is number of time steps
-    ABPE[1], matrices = initABPE( Np, L, R, v, ω, int_func, forward, offcenter, range, int_params...) # including initial hardsphere correction
 
-    simulate!(ABPE, matrices, Nt, δt, forward, offcenter, range, int_func, int_params...)
+    ABPE_history = Vector{ABPE2}(undef,Nt÷(measevery)+1) # Nt is number of time steps
 
-    return position.(ABPE), orientation.(ABPE), force.(ABPE), torque.(ABPE)
+    ABPE, matrices = initABPE( Np, L, R, v, ω, int_func, forward, offcenter, range, int_params...) # including initial hardsphere correction
+    ABPE_history[1] = ABPE
+    simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params...)
+
+    return position.(ABPE_history), orientation.(ABPE_history), force.(ABPE_history), torque.(ABPE_history)
 end
 
-function simulate!(ABPE, matrices, Nt, δt, forward, offcenter, range, int_func, int_params...)
+function simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params...)
     start = now()
     print_step = Nt÷100
-    for nt in 1:Nt
-        ABPE[nt+1] = update(ABPE[nt],matrices,δt, forward, offcenter, range, int_func, int_params...)#updating information at every step
+    for nt in 1:Nt+1
+        ABPE = update(ABPE,matrices,δt, forward, offcenter, range, int_func, int_params...)#updating information at every step
+        if (nt-1) % measevery == 0
+            ABPE_history[(nt-1)÷measevery+1] = ABPE
+        end
         if nt % print_step == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
