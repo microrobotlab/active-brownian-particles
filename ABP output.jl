@@ -153,12 +153,5 @@ end
 
  @time inside_Np=stat_analysis1(a,b,R,t,δt,2) # 0 for pole, equator, 1 for only right left, 2 for entire
 
-anim = @animate for i = 1:Nt_store
-    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$Np particles, steps $(i*resample), ellipse a=L/2, b= L/4")
-    plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
-    quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
-end
-
-f1= pathf*".gif"
-gif(anim, f1)
+ makegif(mainfolder,t)
 
