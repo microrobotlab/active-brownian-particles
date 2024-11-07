@@ -8,146 +8,41 @@ using  Plots, LaTeXStrings, Statistics, CSV, DataFrames,CategoricalArrays
 
 gr()
 
-function stat_analysis1(a,b,R,pathf,symmetry)
+function stat_analysis1(a,b,R,pathf,δt,symmetry)
   
+  fmain= pathf*".csv"
+  df= CSV.read(fmain, DataFrame)
+  time= df[!,:StepN]*δt
+  df[!,:StepN] = categorical(df[!,:StepN],compress=true) # it sorts out time step data 
+
+  ## Group dataframe by values in categorical column
+  gdf = groupby(df,:StepN,sort=true) # only 1000 data groups because I have omitted 100 time steps means 1 s
+
+
   if symmetry == 0
     # for number of particles at the poles and equators run this function
-    curvature_analysis(a,b,R,pathf)    
+    curvature_analysis(a,b,R,time,gdf,pathf,δt)    
   elseif symmetry == 1
     # for number of particles at the left or right side of the ellipse run this function
-    symmetry_analysis(a,b,R,pathf)
+    symmetry_analysis(a,b,R,time,gdf,pathf,δt)
   elseif  symmetry == 2
     # for number of particles at the left or right side of the ellipse run this function
-    symmetry_analysis(a,b,R,pathf)
-    curvature_analysis(a,b,R,pathf)
+    symmetry_analysis(a,b,R,time,gdf,pathf,δt)
+    curvature_analysis(a,b,R,time,gdf,pathf,δt)
     
-    return count
+    return nothing
   end
  
-
 end
 
-function curvature_analysis(a,b,R,pathf)
-  f= pathf*".csv"
-  f1= pathf*"_p.csv"
-  f2= pathf*"_N.png"
-  f3= pathf*"_Ndiff_eqs.png"
-  df= CSV.read(f, DataFrame)
-  #steps= df[!, :N]
-  time= df[!,:Time]
-  #x= df[!,:xpos]
-  #y= df[!,:ypos]
-  df[!,:Time] = categorical(df[!,:Time],compress=true) # it sorts out time step data 
-  ## Group dataframe by values in categorical column
-  gdf = groupby(df,:Time,sort=true) # only 1000 data groups because I have omitted 100 time steps means 1 s
-  
-  n1,n2,n3,n4=[], [], [], []
- dt= 1
-  i= (time/dt)
-  eθ = atan(b/a)   # angle at which area will be same
-# pf_factor = R*R
-# Aeq= a*b*(atan(a*tan(eθ)/b))  # equator area
-# Ap= a*b*(atan(b/(tan(eθ)*a)))   # pole area
-
-for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually time steps but in group counting it is 1, 2, 3---1000 , hence, time                                                                                                                                                                                                                     
-
-   global Npole1=0
-   global Npole2=0
-   global Neq1=0
-   global Neq2=0
-   global count1,count2,count3,count4=0,0,0,0 
-   
-    for j=1:length(gdf[i][!,:xpos]) 
-    
-        θ = atan.(gdf[i][!,:ypos][j], gdf[i][!,:xpos][j]) 
-
-        if θ.>= (π-eθ)  && θ.<= π                    #equator Left                                                                                                                                                                                      
-           global  Neq1+=1  
-        elseif θ.>= -π  && θ.<= -(π-eθ)  
-            global   Neq1+=1
-          elseif θ.>= -eθ  &&  θ.<= eθ              #equator Right                                                                                                                                                                                           
-              global   Neq2+=1  
-                
-                elseif θ.>= eθ && θ.<= (π-eθ)        #pole up
-              global  Npole1+=1 
-                elseif θ.>= -(π-eθ)   && θ.<= - eθ      #pole down
-                global    Npole2+=1 
-    end   
-    
-    end
-    push!(n1,Neq1)
-    push!(n2,Neq2)
-    push!(n3,Npole1)
-    push!(n4,Npole2)
-    #println("$count1, $count2, $i") 
-    
-    # pfe = count1*(0.5*π/Aeq)*pf_factor 
-    # pfp = count2*(0.5*π/Ap)*pf_factor 
-  
-
-    count= Neq1+Npole1+Npole2+Neq2
+function symmetry_analysis(a,b,R,time,gdf,pathf,δt)
  
-  end
-
-  
-############################################################################################################
-#file wriiting
-    touch(f1)
-
-    efg = open(f1, "w")
-    time1= unique(df[!,:Time])   # not to repeat the time in data
-
-        #########################################################################################
-    # ploting in terms of particles number
-    yl=30
-    xl=100
-  #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
-  #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
-   
-   t1= scatter(time1,n1, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}")
-  #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
-  #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
-   t2=scatter(time1,n2, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false, ylabel=L"\mathrm{N_{Eq(R)}}")
-   t3=scatter(time1,n3, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}") 
-  
- 
-   t4=scatter(time1,n4, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(D)}}") 
-
-   t5=scatter(time1,n1.-n2, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}-\mathrm{N_{Eq(R)}}") 
-
-   t6= scatter(time1,n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
-
-   p= plot(t1,t2,t3,t4, layout=(2,2))
-
-   q= plot(t5,t6, layout=(2,1))
-   savefig(p,f2)
-   savefig(q,f3)
-   
-    #creating DataFrame for number of particles at equators n1, and at poles n2
-    data = DataFrame(t= time1, NeqL = n1, NeqR = n2, NpoleU = n3, NpoleD = n4)
-     CSV.write(f1, data)
-    
-   
-    println("I am out of ABP analysis")
- return count
-end
-
-function symmetry_analysis(a,b,R,pathf)
-  f= pathf*".csv"
   f1= pathf*"_symmetry_analysis_p.csv"
   f2= pathf*"_symmetry_analysis_N.png"
   f3= pathf*"_symmetry_analysis_Ndiff.png"
   
-  df= CSV.read(f, DataFrame)
-  time= df[!,:Time]
-  df[!,:Time] = categorical(df[!,:Time],compress=true) # it sorts out time step data 
-
-  ## Group dataframe by values in categorical column
-  gdf = groupby(df,:Time,sort=true) # only 1000 data groups because I have omitted 100 time steps means 1 s
-  
   n_right,n_left=[], []
-  dt= 1
-  i= (time/dt)
+  i= (time/δt)
    # angle at which area will be same
 
   for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually time steps but in group counting it is 1, 2, 3---1000 , hence, time                                                                                                                                                                                                                     
@@ -181,7 +76,7 @@ function symmetry_analysis(a,b,R,pathf)
     touch(f1)
 
     efg = open(f1, "w")
-    time1= unique(df[!,:Time])   # not to repeat the time in data
+    time1= unique(df[!,:StepN])  # not to repeat the time in data
 
         #########################################################################################
     # ploting in terms of particles number
@@ -206,10 +101,105 @@ function symmetry_analysis(a,b,R,pathf)
     data = DataFrame(t= time1, Nleft = n_left, Nright = n_right)
      CSV.write(f1, data)
     
-   
-    println("I am out of ABP symmetry_analysis")
- return count
+     println("I am out of ABP symmetry_analysis")
+ return nothing
 end
+
+
+function curvature_analysis(a,b,R,time,gdf,pathf,δt)
+ 
+  f5= pathf*"_p.csv"
+  f6= pathf*"_N.png"
+  f7= pathf*"_Ndiff_eqs.png"
+  n1,n2,n3,n4=[], [], [], []
+
+  i= (time/δt)
+  eθ = atan(b/a)   # angle at which area will be same
+# pf_factor = R*R
+# Aeq= a*b*(atan(a*tan(eθ)/b))  # equator area
+# Ap= a*b*(atan(b/(tan(eθ)*a)))   # pole area
+
+for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually time steps but in group counting it is 1, 2, 3---1000 , hence, time                                                                                                                                                                                                                     
+
+   global Npole1=0
+   global Npole2=0
+   global Neq1=0
+   global Neq2=0
+  
+   
+    for j=1:length(gdf[i][!,:xpos]) 
+    
+        θ = atan.(gdf[i][!,:ypos][j], gdf[i][!,:xpos][j]) 
+
+        if θ.>= (π-eθ)  && θ.<= π                    #equator Left                                                                                                                                                                                      
+           global  Neq1+=1  
+        elseif θ.>= -π  && θ.<= -(π-eθ)  
+            global   Neq1+=1
+          elseif θ.>= -eθ  &&  θ.<= eθ              #equator Right                                                                                                                                                                                           
+              global   Neq2+=1  
+                
+                elseif θ.>= eθ && θ.<= (π-eθ)        #pole up
+              global  Npole1+=1 
+                elseif θ.>= -(π-eθ)   && θ.<= - eθ      #pole down
+                global    Npole2+=1 
+    end   
+    
+    end
+    push!(n1,Neq1)
+    push!(n2,Neq2)
+    push!(n3,Npole1)
+    push!(n4,Npole2)
+    #println("$count1, $count2, $i") 
+    
+    # pfe = count1*(0.5*π/Aeq)*pf_factor 
+    # pfp = count2*(0.5*π/Ap)*pf_factor 
+  
+ end
+
+  
+############################################################################################################
+#file wriiting
+    touch(f5)
+
+    efg = open(f5, "w")
+    time1= unique(df[!,:StepN])   # not to repeat the time in data
+
+        #########################################################################################
+    # ploting in terms of particles number
+    yl=30
+    xl=100
+  #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
+  #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
+   
+   t1= scatter(time1,n1, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}")
+  #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
+  #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
+   t2=scatter(time1,n2, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false, ylabel=L"\mathrm{N_{Eq(R)}}")
+   t3=scatter(time1,n3, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}") 
+  
+ 
+   t4=scatter(time1,n4, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(D)}}") 
+
+   t5=scatter(time1,n1.-n2, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}-\mathrm{N_{Eq(R)}}") 
+
+   t6= scatter(time1,n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
+
+   p= plot(t1,t2,t3,t4, layout=(2,2))
+
+   q= plot(t5,t6, layout=(2,1))
+   savefig(p,f6)
+   savefig(q,f7)
+   
+    #creating DataFrame for number of particles at equators n1, and at poles n2
+    data = DataFrame(t= time1, NeqL = n1, NeqR = n2, NpoleU = n3, NpoleD = n4)
+     CSV.write(f5, data)
+     close(efg)
+   
+    println("I am out of ABP analysis")
+ return nothing
+end
+
+
 
   #########################################################################################
     # ploting in terms of packing fraction

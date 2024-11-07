@@ -1,6 +1,5 @@
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-BlobTracking = "738e0a8b-9125-4fc4-8d4f-3a5b1a21603b"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 CalculusWithJulia = "a2e0e22d-7d4c-5312-9169-8b992201a882"
 CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
