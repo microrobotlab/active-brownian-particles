@@ -22,7 +22,7 @@ function file_store_csv(graph_wall,Nt,pathf;downsampling::Int=100)
     fx=[]
     fy=[]
     torque=[]
-    for i = 1:downsampling:Nt+1
+    for i = 1:downsampling:Nt
         for j = 1:length(graph_wall[1][i][:,1])
             push!(pnumber,j)
             push!(time, i)
@@ -74,7 +74,7 @@ function file_store_txt(graph_wall,Nt,pathf;downsampling::Int=100)
     fx=[]
     fy=[]
     torque=[]
-    for i = 1:downsampling:Nt+1
+    for i = 1:downsampling:Nt
         for j = 1:length(graph_wall[1][i][:,1])
             push!(pnumber,j)
             push!(time, i)
@@ -120,7 +120,7 @@ function file_store_parquet(graph_wall,Nt,pathf;downsampling::Int=100)
     fx=[]
     fy=[]
     torque=[]
-    for i = 1:downsampling:Nt+1
+    for i = 1:downsampling:Nt
         for j = 1:length(graph_wall[1][i][:,1])
             push!(pnumber,j)
             push!(time, i)
