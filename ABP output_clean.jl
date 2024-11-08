@@ -19,29 +19,37 @@ path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = 10000             # number of steps
-Delta_t = 1e-3          # s step time
-ICS=100                   # Number of intial conditons to be scanned 
-animation_ds = 100     # Downsampling in animation
-file_ds = 1           # Downsampling in file
+Nt = 1000000            # number of steps
+Delta_t = 1e-5          # s step time
+ICS=10                  # Number of intial conditons to be scanned 
+animation_ds = 1000     # Downsampling in animation
+measevery = 1000           # Downsampling in file
 animation = false
 radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
-L = 20.0 	           # μm box length
+L = 30.0 	           # μm box length
 R = 2.0		           # μm particle radius
-packing_fraction = pi/10 # Largest pf for spherical beads π/4 = 0.7853981633974483
+packing_fraction = (pi*R^2/L^2)*10 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = [10.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
+
+# Interaction parameters
+int_func = lennard_jones
+forward = false
+intrange = 10R # interaction range
+offcenter = 0.
+int_params = (2R, 10.) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(R).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
 T_tot = Delta_t*Nt
+actual_steps = (Nt÷measevery)+1
 
 if box_shape == :square
     Np = round(Int,packing_fraction*L^2/(pi*R^2))
@@ -70,7 +78,7 @@ mainfolder1= mkdir(patht)
 folders=  multipledir(patht,ICS) 
 
 # Info printing on shell and file
-infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s" box_shape Np density R v ω a b packing_fraction Delta_t Nt T_tot
+infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s" box_shape Np density R v ω a b packing_fraction Delta_t measevery  Nt T_tot
 
 println(infos)
 
@@ -90,18 +98,18 @@ if box_shape == :square
         start_sim = now()
         @info "$start_sim Started simulation #$i"
         if BC_type == :periodic
-            graph_wall = multiparticleE(Np,L,R,v,ω,Nt,Delta_t,) # has values of x and y position in each frame in graph_wall[1]
+            graph_wall = multiparticleE(Np,L,R,v,ω,Nt,measevery,Delta_t, int_func, forward, offcenter, intrange, int_params...) # has values of x and y position in each frame in graph_wall[1]
             elapsed_time = Dates.canonicalize(now()-start_sim)
             println("multiparticleE complied: elapsed time $elapsed_time\n")
         end
         #---------------------------------------------------------------------------------------------------------------------
         # file store
-        file_store_txt(graph_wall,Nt,pathf,downsampling = file_ds)
+        file_store_txt(graph_wall,actual_steps,pathf,downsampling = 1)
 
         #---------------------------------------------------------------------------------------------------------------------
         # animation
         if animation
-            anim = @animate for i = 1:animation_ds:Nt
+            anim = @animate for i = 1:(animation_ds ÷ measevery):actual_steps
                 scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
                 
                 plot!([L/2], seriestype="vline", color=:black)  #square
