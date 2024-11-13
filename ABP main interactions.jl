@@ -446,9 +446,9 @@ function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Fl
     # Threshold for selecting particles within interaction range
     threshold = l
 
-    for (i, xyc) in enumerate(eachrow(xy))
+    for i in axes(xy,1)
         # Compute distances and apply periodic boundary conditions
-        xy_shifted = xy .- xyc'
+        xy_shifted = xy .- [xy[i,1] xy[i,2]]
         periodic_BC_array!(xy_shifted, L, R)
 
         # Filter to get particles within interaction range and not at the origin
