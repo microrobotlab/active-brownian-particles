@@ -76,7 +76,7 @@ function symmetry_analysis(a,b,R,time,gdf,pathf,δt)
     touch(f1)
 
     efg = open(f1, "w")
-    time1= unique(df[!,:StepN])  # not to repeat the time in data
+    time1 = [first(g[!,:xpos]) for g in gdf]
 
         #########################################################################################
     # ploting in terms of particles number
@@ -100,7 +100,7 @@ function symmetry_analysis(a,b,R,time,gdf,pathf,δt)
     #creating DataFrame for number of particles at equators n1, and at poles n2
     data = DataFrame(t= time1, Nleft = n_left, Nright = n_right)
      CSV.write(f1, data)
-    
+    close(efg)
      println("I am out of ABP symmetry_analysis")
  return nothing
 end
@@ -162,7 +162,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
     touch(f5)
 
     efg = open(f5, "w")
-    time1= unique(df[!,:StepN])   # not to repeat the time in data
+    time1 = [first(g[!,:xpos]) for g in gdf]  # not to repeat the time in data
 
         #########################################################################################
     # ploting in terms of particles number

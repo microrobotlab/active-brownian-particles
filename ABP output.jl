@@ -9,7 +9,7 @@ include("ABP SD.jl")
 include("ABP multifolder.jl")
 # include("ABP average.jl")
 include("generation.jl")
-include("jyoti.jl")
+include("ABP freq analysis.jl")
 
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
@@ -24,14 +24,14 @@ R = 2.0	# μm particle radius
 v = 5.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=1
+ICS=90
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
 packing_fraction = 0.2
 
-Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
+Np = 1#round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
 Nt = 10000000# Nt is the number of steps 
 resample=100
@@ -41,7 +41,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\11.November" # destination folder path
+path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\11.November\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -93,7 +93,7 @@ println("multiparticleE_wall compiled\n")
 file_store_csv(graph_wall,Nt_store,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
-# inside_Np=stat_analysis1(a,b,R,pathf,2)
+inside_Np=stat_analysis1(a,b,R,pathf,δt,2)
 # mean and standard deviation
 
 
@@ -120,15 +120,17 @@ gif(anim, f1)
 end
 =#
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
-
-# anim = @animate for i = 1:Nt_store
+# println("making gif")
+# anim = @animate for i = 1:100:Nt_store
 #     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$Np particles, steps $(i*resample), ellipse a=L/2, b= L/4")
 #     plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
 #     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
 # end
-#marker_z=graph_wall[2][i,1], color=:rainbow, for 
+# #marker_z=graph_wall[2][i,1], color=:rainbow 
 
-# f1= pathf*".gif" # gif(anim, f1)
+# f1= pathf*".gif" 
+#  gif(anim, f1)
+#  println("gif completed")
     finish = time()
     println("Time taken for simulation run$i: $(round((finish-start)/60.0, digits=3)) minutes")
 
@@ -140,18 +142,21 @@ end
 # (average(mainfolder))   # passing path of the main folders which has all the runs
 
 
-  mainfolder= raw"D:\j.sharma\P07\workstationMRL\11.November20241106-230143\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\run1\\"
+#   mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\2024\\10.October\\ellipse\\20241023-135540\\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\\run10\\"
  
-   filename="20241106-230143 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1"
-   t= mainfolder*filename
+#    filename="20241023-135540 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run10"
+ 
+#    t = joinpath(mainfolder, filename)
+#    f1 = joinpath(mainfolder, filename * ".csv")
+#    #f1000= joinpath(mainfolder,filename*".csv") 
+#   #f1= t * ".csv"
+#   # t=raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\10.October\ellipse\20241023-135540\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\run1\20241023-135540 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1_p.csv"
+#   #  f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
+#    df= CSV.read(f1,DataFrame) 
   
-   f1000= joinpath(mainfolder,filename*".csv") 
+#    FFT_analysis(t,δt) 
 
-  #  f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
-   df= CSV.read(f1000,DataFrame) 
-   FFT_analysis(t,δt)
+#  @time inside_Np=stat_analysis1(a,b,R,t,δt,2) # 0 for pole, equator, 1 for only right left, 2 for entire
 
- @time inside_Np=stat_analysis1(a,b,R,t,δt,2) # 0 for pole, equator, 1 for only right left, 2 for entire
-
- makegif(mainfolder,t)
+#  makegif(mainfolder,t)
 

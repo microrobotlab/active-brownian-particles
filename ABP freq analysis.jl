@@ -2,7 +2,7 @@ using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics, FFTW
 
 function FFT_analysis(mainfolder,dt)
     
-@show f1= mainfolder*"_p.csv"
+f1= mainfolder*"_p.csv"
 
 f= mainfolder*"\\number of particles.png"
 # f1= mainfolder*"\\FFT_difference_equators_fs1000.png"
@@ -14,20 +14,23 @@ end_frame= 100000
 time_step= df[:,:t]
 Neq1= df[:,:NeqL]
 Neq2= df[:,:NeqR]
-Neq2= df[:,:NeqR]
 Npole1= df[:,:NpoleU]
 Npole2= df[:,:NpoleD]
 Waqt = time_step .* dt
 ########################################## FFT Analysis start #############################################################àà
 
 # please choose the value of i, 1 for poles and 2 for equators
-i=1
+i=2
 if i==1
     ydata = Npole1.-Npole2
-    f1= mainfolder*"FFT_diff_poles_fs1000.png"
-else
+    f1= mainfolder*"_FFt_diff_poles.png"
+elseif i==2
     ydata = Neq1.-Neq2
-    f1= mainfolder*"FFT_diff_equators_fs1000.png"
+    f1= mainfolder*"_FFT_diff_equators.png"
+elseif i==3
+    ydata = (Neq1.+Neq2).-(Npole1.+Npole2)
+    f1= mainfolder*"_FFT_diff_curvature.png"
+   # f= mainfolder*"\\number of particles.png"
 end
 
 ydata_corr= ydata[start_frame:end_frame].-mean(ydata[start_frame:end_frame])
@@ -46,7 +49,7 @@ top_peaks = sorted_peaks[1:min(4, length(sorted_peaks))]  # get up to the top 3 
  top_values = real_freq[top_peaks]
 
 # Plot the frequency data with peaks highlighted
-k=plot(freqs, real_freq, seriestype=:stem, xlim=(0, 0.5), ylim=(0.02, 10000), xlabel="Frequency (Hz)", ylabel="Power", legend=false)
+k=plot(freqs, real_freq, seriestype=:stem, xlim=(0, 0.1), ylim=(0.02, 20000), xlabel="Frequency (Hz)", ylabel="Power", legend=false)
 
 # Add the top peaks to the plot with annotations
 scatter!(top_frequencies, top_values, color=:red, label="Peaks", markersize=3)
@@ -55,7 +58,7 @@ for (i, peak) in enumerate(top_frequencies)
 end
 
 # Show or save the plot
-title!("Peaks in Frequency= $(round(top_frequencies[1], digits=3)) $(round(top_frequencies[2], digits=3)) $(round(top_frequencies[3], digits=3))")
+title!("Peaks in Frequency= $(round(top_frequencies[1]*1000, digits=3)) $(round(top_frequencies[2]*1000, digits=3)) $(round(top_frequencies[3]*1000, digits=3))")
 display(k)
 savefig(k, f1)
 Int(round(peaks))
