@@ -1,7 +1,7 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
-include("ABP main interactions.jl")
+include("ABP main interactions opt.jl")
 # include("ABP main.jl")
 include("ABP_file.jl")
 include("ABP analysis.jl")
@@ -19,20 +19,20 @@ path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = 1000000            # number of steps
-Delta_t = 1e-5          # s step time
-ICS=10                  # Number of intial conditons to be scanned 
-animation_ds = 1000     # Downsampling in animation
-measevery = 1000           # Downsampling in file
-animation = false
+Nt = Int(1e5)           # number of steps
+Delta_t = 1e-3          # s step time
+ICS=1                  # Number of intial conditons to be scanned 
+animation_ds = Int(1e3)     # Downsampling in animation
+measevery = Int(1e3)           # Downsampling in file
+animation = true
 radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
-L = 30.0 	           # μm box length
-R = 2.0		           # μm particle radius
-packing_fraction = (pi*R^2/L^2)*10 # Largest pf for spherical beads π/4 = 0.7853981633974483
+R = 4.0		           # μm particle radius
+L = 500.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = [10.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
@@ -40,9 +40,9 @@ v = [10.] 	            # μm/s particle s
 # Interaction parameters
 int_func = lennard_jones
 forward = false
-intrange = 10R # interaction range
+intrange = 50. # interaction range
 offcenter = 0.
-int_params = (2R, 10.) # σ and ϵ in the case of LJ 
+int_params = (2R, 0.1) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
