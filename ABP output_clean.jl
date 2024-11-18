@@ -15,7 +15,7 @@ gr()
 
 ## USER INTERFACE
 # destination folders selection
-path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\" # destination directory path
+path="C:\\Users\\picch\\abp_simulations\\simulations" # destination directory path
 
 ## PARAMETERS SET
 # Simulation parameters

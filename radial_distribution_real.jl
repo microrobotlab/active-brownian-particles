@@ -1,4 +1,5 @@
 using CSV, DataFrames, FFTW, FindPeaks1D, JSON3, LinearAlgebra, Plots, Random, Statistics
+include("ABP radialdistribution.jl")
 
 rdf = CSV.read("..\\simulations\\20241018-104630\\data\\run1\\20241018-104630_run1_rdf.csv", DataFrame)
 bindata = CSV.read("..\\simulations\\20241018-104630\\data\\run1\\20241018-104630_run1_rdfbin.csv", DataFrame)
@@ -38,3 +39,4 @@ begin
     display(p)
     # display(p2)
 end
+display(p)
