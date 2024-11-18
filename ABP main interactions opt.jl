@@ -36,8 +36,8 @@ function initABPE(Np::Int64, L::Float64, R::Float64, vd::Union{Float64,Array{Flo
     v = rand(vd, Np)
     ω = rand(ωd,Np)
     force, torque = force_torque(xyθ[:,1:2], xyθ[:,3], R, L, forward, offcenter, range, int_func, int_params...)
-    fx = force[:,1]
-    fy = force[:,2]
+    fx = 1e-6force[:,1]
+    fy = 1e-6force[:,2]
     abpe = ABPE2( Np, L, R, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3], fx, fy, torque)
     return abpe, (dists, superpose, uptriang)
 end
@@ -129,7 +129,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
 
     new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], new_force[:,1], new_force[:,2], new_torque )
+    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], 1e-6new_force[:,1], 1e-6new_force[:,2], new_torque )
 
     return new_abpe
 end
@@ -138,7 +138,7 @@ function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{F
     γₜ = diffusion_coeff(1e-6*abpe.R)[3]
     γᵣ = γₜ*abpe.R*abpe.R*8/6   
     if size(position(abpe),2) == 2
-        δp = 0*sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*torque/γᵣ
     else
         println("No step method available")
