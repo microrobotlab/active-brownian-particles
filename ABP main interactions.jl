@@ -16,12 +16,15 @@ struct ABPE2 <: ABPsEnsemble
 	x::Vector{Float64}    # x position (μm)
 	y::Vector{Float64}    # y position (μm)
 	θ::Vector{Float64}    # orientation (rad)
+    fx::Vector{Float64}    # force x
+    fy::Vector{Float64}    # force y
+    torque::Vector{Float64}    # torque
 end
 
 #------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
 
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, R::Float64, vd::Union{Float64,Array{Float64,1},Distribution}; ωd::Union{Float64,Array{Float64,1},Distribution}=Normal(0.,0.,), T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, R::Float64, vd::Union{Float64,Array{Float64,1},Distribution}, ωd::Union{Float64,Array{Float64,1},Distribution}, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...; T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     (vd isa Float64) ? vd = [vd] : Nt
@@ -31,7 +34,10 @@ function initABPE(Np::Int64, L::Float64, R::Float64, vd::Union{Float64,Array{Flo
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
     v = rand(vd, Np)
     ω = rand(ωd,Np)
-    abpe = ABPE2( Np, L, R, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    force, torque = force_torque(xyθ[:,1:2], xyθ[:,3], R, L, forward, offcenter, range, int_func, int_params...)
+    fx = force[:,1]
+    fy = force[:,2]
+    abpe = ABPE2( Np, L, R, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3], fx, fy, torque)
     return abpe, (dists, superpose, uptriang)
 end
 
@@ -76,29 +82,29 @@ function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)
 end
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to simulate multiple spherical particles
-function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Union{Float64,Array{Float64,1},Distribution}, ω::Union{Float64,Array{Float64,1},Distribution}, Nt::Int64=2, δt::Float64=1e-3)
+function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Union{Float64,Array{Float64,1},Distribution}, ω::Union{Float64,Array{Float64,1},Distribution}, Nt::Int64, measevery::Int64, δt::Float64, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
-    
-    ABPE = Vector{ABPE2}(undef,Nt+1) # Nt is number of time steps
-    ABPE[1], matrices = initABPE( Np, L, R, v, ωd = ω) # including initial hardsphere correction
-    
-    simulate!(ABPE, matrices, Nt, δt)
 
-    return position.(ABPE), orientation.(ABPE)
+    ABPE_history = Vector{ABPE2}(undef,Nt÷(measevery)+1) # Nt is number of time steps
+
+    ABPE, matrices = initABPE( Np, L, R, v, ω, int_func, forward, offcenter, range, int_params...) # including initial hardsphere correction
+    ABPE_history[1] = ABPE
+    simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params...)
+
+    return position.(ABPE_history), orientation.(ABPE_history), force.(ABPE_history), torque.(ABPE_history)
 end
 
-function simulate!(ABPE, matrices, Nt, δt)
-    # PΘ = [ (position(abpe), orientation(abpe)) ]
-    # pθ = PΘ[1]
+function simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params...)
     start = now()
     print_step = Nt÷100
-    for nt in 1:Nt
-        start_step = now()
-        ABPE[nt+1] = update(ABPE[nt],matrices,δt)#updating information at every step
+    for nt in 1:Nt+1
+        ABPE = update(ABPE,matrices,δt, forward, offcenter, range, int_func, int_params...)#updating information at every step
+        if (nt-1) % measevery == 0
+            ABPE_history[(nt-1)÷measevery+1] = ABPE
+        end
         if nt % print_step == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
-            # per_step = Dates.canonicalize(Dates.round((now()-start_step), Dates.Second))
-            print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")#, time per step $per_step")
+            print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
         end
     end
     print("\n")
@@ -107,37 +113,45 @@ end
 
 position(abpe::ABPE2) = [ abpe.x abpe.y ]
 orientation(abpe::ABPE2) = abpe.θ
+force(abpe::ABPE2) = [abpe.fx abpe.fy]
+torque(abpe::ABPE2) = abpe.torque
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to update particles for the next step
-function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64) where {ABPE <: ABPsEnsemble}
-    pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt)
+function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
+
+    pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt, force(abpe), abpe.torque)
 
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
+
+    new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
+    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], new_force[:,1], new_force[:,2], new_torque )
 
     return new_abpe
 end
 
-function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
-    
-    γₜ = diffusion_coeff(abpe.R)[3]
-    γᵣ = γₜ*abpe.R*abpe.R*8/6
-    intrange = 10abpe.R #2*abpe.R*2^(1/6) + 0.1/2
-    offcenter = .5
-    force, torque = interaction_torque(position(abpe), orientation(abpe), abpe.R, false, offcenter, abpe.L, intrange, shifted_lennard_jones, 2abpe.R, 0.4,-2abpe.R*offcenter)
+function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{Float64,1}) where {ABPE <: ABPsEnsemble}    
+    γₜ = diffusion_coeff(1e-6*abpe.R)[3]
+    γᵣ = γₜ*abpe.R*abpe.R*8/6   
     if size(position(abpe),2) == 2
-        # δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*interactions(position(abpe),abpe.R)/γ
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*torque/γᵣ
     else
         println("No step method available")
     end
 
     return (δp, δθ)
+end
+
+function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) #offcenter
+    xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
+    forces = hcat(interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...), zeros(size(xy,1)))
+    orientations = [cos.(θ) sin.(θ) zeros(size(xy,1))]
+    torques = offcenter * R * (cross.(eachrow(orientations), eachrow(forces)))
+    return forces[:,1:2], reduce(hcat, torques)'[:,3]
 end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -185,10 +199,7 @@ function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # calle
     Np = size(xy,1)
     dists = zeros(Np,Np)
     superpose = falses(Np,Np)
-    uptriang = falses(Np,Np)
-    for i = 1:Np-1
-        uptriang[i,i+1:Np] .= true
-    end
+    uptriang = triu(trues(Np,Np),1)
     hardsphere!(xy, dists, superpose, uptriang, R; tol=tol)
     return xy, dists, superpose, uptriang
 end
@@ -435,9 +446,9 @@ function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Fl
     # Threshold for selecting particles within interaction range
     threshold = l
 
-    for (i, xyc) in enumerate(eachrow(xy))
+    for i in axes(xy,1)
         # Compute distances and apply periodic boundary conditions
-        xy_shifted = xy .- xyc'
+        xy_shifted = xy .- [xy[i,1] xy[i,2]]
         periodic_BC_array!(xy_shifted, L, R)
 
         # Filter to get particles within interaction range and not at the origin
@@ -520,11 +531,3 @@ function contact_lj(x, σ::Float64, ϵ::Float64)
 end
 
 coulomb(x,k) = k/(x*x)
-
-function interaction_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, forward::Bool, offcenter::Float64, L::Float64, range::Float64, int_func::Function, int_params...) #offcenter
-    xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
-    forces = hcat(interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...), zeros(size(xy,1)))
-    orientations = [cos.(θ) sin.(θ) zeros(size(xy,1))]
-    torques = offcenter * R * (cross.(eachrow(orientations), eachrow(forces)))
-    return forces[:,1:2], reduce(hcat, torques)'[:,3]
-end
