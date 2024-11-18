@@ -483,7 +483,7 @@ lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
 shifted_lennard_jones(x, σ, ϵ, shift) = 24*ϵ*(((2*σ^(12))./((x-shift).^(13))).- (σ^(6)./((x-shift).^(7))))
 
 
-function rectified_lennard_jones(x::Array{Float64,2}, σ::Float64, ϵ::Float64)
+function weeks_chandler_anderson(x, σ::Float64, ϵ::Float64)
     rmin = σ*2^(1/6)
     if x > rmin
         return 0
