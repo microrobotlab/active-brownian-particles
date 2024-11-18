@@ -30,7 +30,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, vd::Union{Float64,Array{Flo
     # Intial condition will be choosen as per the geometry under study
     (vd isa Float64) ? vd = [vd] : Nt
     (ωd isa Float64) ? ωd = [ωd] : Nt
-    DT, DR = diffusion_coeff(1e-6R)
+    DT, DR = diffusion_coeff(1e-6R, T)
     xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],L, R, N = 10, M = 10) #xyθ[:,1:2] gives x and y positions of intitial particles
     v = rand(vd, Np)
@@ -83,14 +83,14 @@ function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)
 end
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to simulate multiple spherical particles
-function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Union{Float64,Array{Float64,1},Distribution}, ω::Union{Float64,Array{Float64,1},Distribution}, Nt::Int64, measevery::Int64, δt::Float64, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...)
+function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Union{Float64,Array{Float64,1},Distribution}, ω::Union{Float64,Array{Float64,1},Distribution}, Nt::Int64, measevery::Int64, δt::Float64, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...; T::Float64=300.)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
 
     ABPE_history = Vector{ABPE2}(undef,Nt÷(measevery)+1) # Nt is number of time steps
 
     ABPE, matrices = initABPE( Np, L, R, v, ω, int_func, forward, offcenter, range, int_params...) # including initial hardsphere correction
     ABPE_history[1] = ABPE
-    simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params...)
+    simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params..., T)
 
     return position.(ABPE_history), orientation.(ABPE_history), force.(ABPE_history), torque.(ABPE_history)
 end
@@ -136,10 +136,10 @@ end
 
 function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{Float64,1}) where {ABPE <: ABPsEnsemble}    
     γₜ = diffusion_coeff(1e-6*abpe.R)[3]
-    γᵣ = γₜ*abpe.R*abpe.R*8/6   
+    γᵣ = 1e-12γₜ*abpe.R*abpe.R*8/6   
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*force/γₜ
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*torque/γᵣ
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ
+        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-12torque/γᵣ
     else
         println("No step method available")
     end
@@ -147,7 +147,7 @@ function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{F
     return (δp, δθ)
 end
 
-function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) #offcenter
+function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
     xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
     forces = hcat(interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...), zeros(size(xy,1)))
     orientations = [cos.(θ) sin.(θ) zeros(size(xy,1))]
