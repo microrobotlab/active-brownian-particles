@@ -10,6 +10,7 @@ struct ABPE2 <: ABPsEnsemble
     Np::Int64                      # number of particles®®
     L::Float64                      # size of observation space (μm)
 	R::Float64  # Radius (μm)                                   --> Vector{Float64}(undef,Np)
+    T::Float64 #temperature (K)
 	v::Vector{Float64}  	# velocity (μm/s)                   --> Vector{Float64}(undef,Np)
     ω::Vector{Float64} #Angular velocity (rad/s)                --> Vector{Float64}(undef,Np)            
 	DT::Float64 # translational diffusion coefficient (μm^2/s)  --> Vector{Float64}(undef,Np)
@@ -25,7 +26,7 @@ end
 #------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
 
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, R::Float64, vd::Union{Float64,Array{Float64,1},Distribution}, ωd::Union{Float64,Array{Float64,1},Distribution}, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...; T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, R::Float64, T::Float64, vd::Union{Float64,Array{Float64,1},Distribution}, ωd::Union{Float64,Array{Float64,1},Distribution}, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...; η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     (vd isa Float64) ? vd = [vd] : Nt
@@ -38,7 +39,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, vd::Union{Float64,Array{Flo
     force, torque = force_torque(xyθ[:,1:2], xyθ[:,3], R, L, forward, offcenter, range, int_func, int_params...)
     fx = force[:,1]
     fy = force[:,2]
-    abpe = ABPE2( Np, L, R, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3], fx, fy, torque)
+    abpe = ABPE2( Np, L, R, T, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3], fx, fy, torque)
     return abpe, (dists, superpose, uptriang)
 end
 
@@ -83,14 +84,14 @@ function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)
 end
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to simulate multiple spherical particles
-function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Union{Float64,Array{Float64,1},Distribution}, ω::Union{Float64,Array{Float64,1},Distribution}, Nt::Int64, measevery::Int64, δt::Float64, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...; T::Float64=300.)
+function multiparticleE(Np::Integer, L::Float64, R::Float64, T::Float64,  v::Union{Float64,Array{Float64,1},Distribution}, ω::Union{Float64,Array{Float64,1},Distribution}, Nt::Int64, measevery::Int64, δt::Float64, int_func::Function, forward::Bool, offcenter::Float64, range::Float64, int_params...;)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
 
     ABPE_history = Vector{ABPE2}(undef,Nt÷(measevery)+1) # Nt is number of time steps
 
-    ABPE, matrices = initABPE( Np, L, R, v, ω, int_func, forward, offcenter, range, int_params...) # including initial hardsphere correction
+    ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, forward, offcenter, range, int_params...,) # including initial hardsphere correction
     ABPE_history[1] = ABPE
-    simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params..., T)
+    simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params...)
 
     return position.(ABPE_history), orientation.(ABPE_history), force.(ABPE_history), torque.(ABPE_history)
 end
@@ -129,13 +130,13 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
 
     new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], new_force[:,1], new_force[:,2], new_torque )
+    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], new_force[:,1], new_force[:,2], new_torque )
 
     return new_abpe
 end
 
 function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{Float64,1}) where {ABPE <: ABPsEnsemble}    
-    γₜ = diffusion_coeff(1e-6*abpe.R)[3]
+    γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3]
     γᵣ = 1e-12γₜ*abpe.R*abpe.R*8/6   
     if size(position(abpe),2) == 2
         δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ
