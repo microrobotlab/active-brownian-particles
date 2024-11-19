@@ -15,14 +15,14 @@ gr()
 
 ## USER INTERFACE
 # destination folders selection
-path="C:\\Users\\picch\\abp_simulations\\simulations" # destination directory path
+path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations" # destination directory path
 
 ## PARAMETERS SET
 # Simulation parameters
 Nt = Int(1e5)           # number of steps
 Delta_t = 1e-3          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
-animation_ds = Int(1e3)     # Downsampling in animation
+animation_ds = Int(1e4)     # Downsampling in animation
 measevery = Int(1e3)           # Downsampling in file
 animation = true
 radialdensity = false
@@ -30,19 +30,20 @@ radialdensity = false
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
-R = 4.0		           # μm particle radius
+R = 2.0		           # μm particle radius
 L = 500.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = [10.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
+T = 300.       # K temperature
 
 # Interaction parameters
-int_func = lennard_jones
+int_func = coulomb
 forward = false
 intrange = 50. # interaction range
-offcenter = 0.
-int_params = (2R, 0.1) # σ and ϵ in the case of LJ 
+offcenter = 0.5
+int_params = (0.01) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -98,7 +99,7 @@ if box_shape == :square
         start_sim = now()
         @info "$start_sim Started simulation #$i"
         if BC_type == :periodic
-            graph_wall = multiparticleE(Np,L,R,v,ω,Nt,measevery,Delta_t, int_func, forward, offcenter, intrange, int_params...) # has values of x and y position in each frame in graph_wall[1]
+            graph_wall = multiparticleE(Np,L,R,T,v,ω,Nt,measevery,Delta_t, int_func, forward, offcenter, intrange, int_params...) # has values of x and y position in each frame in graph_wall[1]
             elapsed_time = Dates.canonicalize(now()-start_sim)
             println("multiparticleE complied: elapsed time $elapsed_time\n")
         end
@@ -116,7 +117,7 @@ if box_shape == :square
                 plot!([-L/2], seriestype="vline", color=:black)
                 plot!([L/2], seriestype="hline", color=:black)
                 plot!([-L/2], seriestype="hline", color=:black)
-                # quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
+                quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(2*cos.(graph_wall[2][i,1]),2*sin.(graph_wall[2][i,1])), color=:red)
             end
     
             f1= pathf*".gif"
