@@ -20,7 +20,7 @@ path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations"
 ## PARAMETERS SET
 # Simulation parameters
 Nt = Int(1e5)           # number of steps
-Delta_t = 1e-3          # s step time
+Delta_t = 1e-5          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = Int(1e4)     # Downsampling in animation
 measevery = Int(1e3)           # Downsampling in file
@@ -34,9 +34,9 @@ R = 2.0		           # μm particle radius
 L = 500.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [10.] 	            # μm/s particle s
+v = [50.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
-T = 300.       # K temperature
+T = 300. # K temperature
 
 # Interaction parameters
 int_func = coulomb
@@ -79,7 +79,7 @@ mainfolder1= mkdir(patht)
 folders=  multipledir(patht,ICS) 
 
 # Info printing on shell and file
-infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s" box_shape Np density R v ω a b packing_fraction Delta_t measevery  Nt T_tot
+infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s" box_shape Np density R T v ω a b packing_fraction Delta_t measevery  Nt T_tot
 
 println(infos)
 
@@ -99,7 +99,7 @@ if box_shape == :square
         start_sim = now()
         @info "$start_sim Started simulation #$i"
         if BC_type == :periodic
-            graph_wall = multiparticleE(Np,L,R,T,v,ω,Nt,measevery,Delta_t, int_func, forward, offcenter, intrange, int_params...) # has values of x and y position in each frame in graph_wall[1]
+            graph_wall = multiparticleE(Np,L,R,T,v,ω,Nt,measevery,Delta_t, int_func, forward, offcenter, intrange, int_params...,) # has values of x and y position in each frame in graph_wall[1]
             elapsed_time = Dates.canonicalize(now()-start_sim)
             println("multiparticleE complied: elapsed time $elapsed_time\n")
         end
