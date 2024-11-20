@@ -1,4 +1,4 @@
-using Base.Threads
+using .Threads
 using CalculusWithJulia, Dates, Distributions, ForwardDiff, Random, Statistics
 include("geo_toolbox.jl")
 
@@ -33,7 +33,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, T::Float64, vd::Union{Float
     (ωd isa Float64) ? ωd = [ωd] : Nt
     DT, DR = diffusion_coeff(1e-6R, T)
     xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
-    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],L, R, N = 10, M = 10) #xyθ[:,1:2] gives x and y positions of intitial particles
+    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],L, R, N = 5, M = 5) #xyθ[:,1:2] gives x and y positions of intitial particles
     v = rand(vd, Np)
     ω = rand(ωd,Np)
     force, torque = force_torque(xyθ[:,1:2], xyθ[:,3], R, L, forward, offcenter, range, int_func, int_params...)
@@ -126,7 +126,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
 
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3],abpe.L, abpe.R, N = 10, M = 10)
+    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3],abpe.L, abpe.R, N = 5, M = 5)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
 
     new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
