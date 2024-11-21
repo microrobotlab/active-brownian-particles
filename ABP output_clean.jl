@@ -1,7 +1,7 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
-include("ABP main interactions opt.jl")
+include("ABP main interactions.jl")
 # include("ABP main.jl")
 include("ABP_file.jl")
 include("ABP analysis.jl")
@@ -15,7 +15,7 @@ gr()
 
 ## USER INTERFACE
 # destination folders selection
-path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations" # destination directory path
+path="C:\\Users\\picch\\thesis\\abp_simulations\\simulations" # destination directory path
 
 ## PARAMETERS SET
 # Simulation parameters
@@ -36,7 +36,7 @@ packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.78
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = [20.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
-T = 300. # K temperature
+T = 250. # K temperature
 
 # Interaction parameters
 int_func = coulomb
