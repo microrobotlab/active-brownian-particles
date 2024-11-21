@@ -19,7 +19,7 @@ path="C:\\Users\\picch\\thesis\\abp_simulations\\simulations" # destination dire
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e7)           # number of steps
+Nt = Int(1e6)           # number of steps
 Delta_t = 1e-5          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = Int(1e4)     # Downsampling in animation
@@ -31,7 +31,7 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
-L = 1000.0 	           # μm box length
+L = 200.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = [5.] 	            # μm/s particle s
