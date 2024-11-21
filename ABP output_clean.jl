@@ -19,31 +19,33 @@ path="C:\\Users\\picch\\thesis\\abp_simulations\\simulations" # destination dire
 
 ## PARAMETERS SET
 # Simulation parameters
+Nt = Int(1e3)           # number of steps
 Nt = Int(1e6)           # number of steps
 Delta_t = 1e-5          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
-animation_ds = Int(1e4)     # Downsampling in animation
-measevery = Int(1e3)           # Downsampling in file
-animation = true
+animation_ds = Int(1e0)     # Downsampling in animation
+measevery = Int(1e0)           # Downsampling in file
+animation = false
 radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
+L = 100.0 	           # μm box length
 L = 200.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [5.] 	            # μm/s particle s
+v = [20.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
 T = 250. # K temperature
 
 # Interaction parameters
-int_func = lennard_jones
-forward = false
-intrange = 25R # interaction range
-offcenter = 0.
-int_params = (2R, 0.1) # σ and ϵ in the case of LJ 
+int_func = coulomb
+forward = true
+intrange = 5. # interaction range
+offcenter = 0.5
+int_params = (0.001) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -79,7 +81,7 @@ mainfolder1= mkdir(patht)
 folders=  multipledir(patht,ICS) 
 
 # Info printing on shell and file
-infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s" box_shape Np density R T v ω a b packing_fraction Delta_t measevery  Nt T_tot
+infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nRange: %.1f μm\nOffcenter: %.2f" box_shape Np density R T v ω a b packing_fraction Delta_t measevery  Nt T_tot int_func int_params intrange offcenter*(2*forward-1)
 
 println(infos)
 
@@ -111,13 +113,14 @@ if box_shape == :square
         # animation
         if animation
             anim = @animate for i = 1:(animation_ds ÷ measevery):actual_steps
-                scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
+                markersize = 350L/R
+                scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=markersize,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
                 
                 plot!([L/2], seriestype="vline", color=:black)  #square
                 plot!([-L/2], seriestype="vline", color=:black)
                 plot!([L/2], seriestype="hline", color=:black)
                 plot!([-L/2], seriestype="hline", color=:black)
-                quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
+                quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(markersize*cos.(graph_wall[2][i,1]),markersize*sin.(graph_wall[2][i,1])), color=:red)
             end
     
             f1= pathf*".gif"
