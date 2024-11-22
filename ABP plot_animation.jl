@@ -1,7 +1,8 @@
-using GLMakie, GeometryBasics
+using GLMakie
+using GeometryBasics: Point2f, Circle
 using CSV, DataFrames, DelimitedFiles,LinearAlgebra, Markdown, Parquet
 
-function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, downsampling::Int, ext::String=".txt"; record::Bool=false)
+function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, downsampling::Int, ext::String=".txt"; record::Bool=false, final_format::String="gif")
     fname = pathf*ext
     timestep *= downsampling
     df = CSV.read(fname, DataFrame)    
@@ -22,25 +23,68 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     us = @lift u[:,$simstep]
     vs = @lift v[:,$simstep]
 
-    fig = Figure()
-    ax = Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
-    mrk = decompose(Point2f,Circle(Point2f0(0), 2R))
-    sc = scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L)
-    ar = arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+    fig = GLMakie.Figure()
+    ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
+    mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
+    sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L)
+    ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
 
     timestamps = 1:maximum(df[!,:Time])÷downsampling
 
-    slider = Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1)
+    slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1)
 
     on(slider.value) do val
         simstep[] = round(Int, val)
     end
-    fig
+    
     if record
-        record(fig, pathf*".gif", timestamps;
+        GLMakie.record(fig, pathf*".$final_format", timestamps;
         framerate = Int(1/timestep)) do t
             simstep[] = t
         end
     end
+    return fig
+
+end
+
+function animation_from_graph(graph_wall, pathf, L::Float64, R::Float64, Np::Int, timestep::Float64,Nt::Int,downsampling::Int; record::Bool=false)
+    pos = vcat(graph_wall[1]...)
+    orient = vcat(graph_wall[2]...)
+
+    timestep *= downsampling
+
+    xpos = reshape(pos[:,1], Np,:)[:,1:downsampling:end]
+    ypos = reshape(pos[:,2], Np,:)[:,1:downsampling:end]
+    θ = reshape(orient, Np,:)[:,1:downsampling:end]
+    u,v = cos.(θ), sin.(θ)
+
+    simstep = Observable(1)
+
+    xs = @lift xpos[:,$simstep]
+    ys = @lift ypos[:,$simstep]
+    us = @lift u[:,$simstep]
+    vs = @lift v[:,$simstep]
+
+    fig = GLMakie.Figure()
+    ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
+    mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
+    sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L)
+    ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+
+    timestamps = 1:Nt÷downsampling
+
+    slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1)
+
+    on(slider.value) do val
+        simstep[] = round(Int, val)
+    end
+    
+    if record
+        GLMakie.record(fig, pathf*".$final_format", timestamps;
+        framerate = Int(1/timestep)) do t
+            simstep[] = t
+        end
+    end
+    return fig
 
 end
