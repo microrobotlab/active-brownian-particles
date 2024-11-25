@@ -170,7 +170,7 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
         # @show(superpositions)
         if superpositions > 0
             # println("correcting...")
-            hardsphere_correction2!(xy,dists,superpose,R,tol=tol)
+            hardsphere_correction!(xy,dists,superpose,R,tol=tol)
         end
         counter += 1
         # @show(counter)
