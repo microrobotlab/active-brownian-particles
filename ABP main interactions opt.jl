@@ -134,7 +134,12 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
     hardsphere!(pθ[1], matrices[1], matrices[2],abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
 
-    new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
+    if (!isapprox(offcenter,0.0))
+        new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
+    else
+        new_force = interactions_range(pθ[1], pθ[2], abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
+        new_torque = zeros(abpe.Np)
+    end    
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], new_force[:,1], new_force[:,2], new_torque )
 
     return new_abpe
