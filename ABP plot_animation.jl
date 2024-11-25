@@ -1,5 +1,5 @@
 using GLMakie
-using GeometryBasics: Point2f, Circle
+using GeometryBasics: Point2f, Circle, Point2f0
 using CSV, DataFrames, DelimitedFiles,LinearAlgebra, Markdown, Parquet
 
 function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, downsampling::Int, ext::String=".txt"; record::Bool=false, final_format::String="gif")
