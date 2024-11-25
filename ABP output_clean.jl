@@ -1,51 +1,49 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
-include("ABP main interactions.jl")
+include("ABP main interactions opt.jl")
 # include("ABP main.jl")
 include("ABP_file.jl")
-include("ABP analysis.jl")
 include("ABP radialdistribution.jl")
 # include("ABP SD.jl")
 include("ABP multifolder.jl")
-include("ABP radialdensity.jl")
+# include("ABP radialdensity.jl")
+include("ABP plot_animation.jl")
 # include("ABP average.jl")
-using CSV, DataFrames, Dates, Distances, Distributions, Logging, NaNStatistics, Plots, Printf, Random
+using CSV, DataFrames, Dates, Distances, Distributions, Logging, NaNStatistics, Printf, Random
 gr()
 
 ## USER INTERFACE
 # destination folders selection
-path="C:\\Users\\picch\\thesis\\abp_simulations\\simulations" # destination directory path
+path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations" # destination directory path
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e3)           # number of steps
-Nt = Int(1e6)           # number of steps
+Nt = Int(1e5)           # number of steps
 Delta_t = 1e-5          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
-animation_ds = Int(1e0)     # Downsampling in animation
-measevery = Int(1e0)           # Downsampling in file
-animation = false
+animation_ds = Int(1)     # Downsampling in animation
+measevery = Int(1e1)           # Downsampling in file
+animation = true
 radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
-L = 100.0 	           # μm box length
-L = 200.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 25.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*20 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = [20.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
 T = 250. # K temperature
 
 # Interaction parameters
-int_func = coulomb
+int_func = lennard_jones
 forward = true
-intrange = 5. # interaction range
-offcenter = 0.5
-int_params = (0.001) # σ and ϵ in the case of LJ 
+intrange = 20. # interaction range
+offcenter = 0.
+int_params = (2R, 0.1) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -112,19 +110,22 @@ if box_shape == :square
         #---------------------------------------------------------------------------------------------------------------------
         # animation
         if animation
-            anim = @animate for i = 1:(animation_ds ÷ measevery):actual_steps
-                markersize = 350L/R
-                scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=markersize,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
+            fig = animation_from_graph(graph_wall,pathf,L,R,Np,Delta_t,actual_steps,measevery,animation_ds,record=true, final_format = "mp4")
+            display(fig)
+
+            # anim = @animate for i = 1:(animation_ds ÷ measevery):actual_steps
+            #     markersize = 350L/R
+            #     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=markersize,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
                 
-                plot!([L/2], seriestype="vline", color=:black)  #square
-                plot!([-L/2], seriestype="vline", color=:black)
-                plot!([L/2], seriestype="hline", color=:black)
-                plot!([-L/2], seriestype="hline", color=:black)
-                quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(markersize*cos.(graph_wall[2][i,1]),markersize*sin.(graph_wall[2][i,1])), color=:red)
-            end
+            #     plot!([L/2], seriestype="vline", color=:black)  #square
+            #     plot!([-L/2], seriestype="vline", color=:black)
+            #     plot!([L/2], seriestype="hline", color=:black)
+            #     plot!([-L/2], seriestype="hline", color=:black)
+            #     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(markersize*cos.(graph_wall[2][i,1]),markersize*sin.(graph_wall[2][i,1])), color=:red)
+            # end
     
-            f1= pathf*".gif"
-            gif(anim, f1)
+            # f1= pathf*".gif"
+            # gif(anim, f1)
         end
         #---------------------------------------------------------------------------------------------------------------------
         # analysis
