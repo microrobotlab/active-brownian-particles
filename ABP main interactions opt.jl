@@ -456,6 +456,8 @@ function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Fl
         # Remove central particle [0, 0] from interaction set
         xy_inside = xy_inside[xy_inside[:,1] .!= 0 .|| xy_inside[:,2] .!= 0, :]
 
+        dirs = Array{Float64}(undef, size(xy_inside))
+
         if isempty(xy_inside)
             ΣFtot[i, :] .= 0.0
             continue
