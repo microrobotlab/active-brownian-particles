@@ -160,33 +160,17 @@ end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions for the hard sphere corrections
-function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
-    Np = size(superpose,1) ##gives me the number of superpose lines 
-    for np1 in 1:Np
-        if any(superpose[np1,:]) #if at least one value of the np1 row is true 
-            np2 = findfirst(superpose[np1,:])
-            Δp = (xy[np1,:] - xy[np2,:]) .* ( ( (1+tol)*2R / dists[np1,np2] - 1 ) / 2 )
-            xy[np1,:] += Δp
-            xy[np2,:] -= Δp
-            dists[np2,np2+1:Np] = pairwise(Euclidean(), xy[np2:np2,:], xy[np2+1:Np,:], dims=1 )  # distances for the row wise pair operation
-            superpose[np2,np2+1:Np] = (dists[np2,np2+1:Np] .< 2R*(1-tol))  #????
-        end
-    end
-    return nothing
-end
-
-function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, uptriang::BitArray{2}, R::Float64; tol::Float64=1e-3)
+function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
     superpositions = 1
     counter = 0
-    # @time begin
     while superpositions > 0
-        dists .= pairwise(Euclidean(),xy,dims=1)
-        superpose .= (dists .< 2R*(1-tol)).*uptriang
-        # @show(findall(superpose))
-        superpositions = sum(superpose)
+        pairwise!(Euclidean(),dists,xy,xy,dims=1)
+        superpose .= (0 .< dists .< 2R*(1-tol))#.*uptriang
+        superpositions = sum(superpose)÷2
         # @show(superpositions)
         if superpositions > 0
-            hardsphere_correction!(xy,dists,superpose,R,tol=tol)
+            # println("correcting...")
+            hardsphere_correction2!(xy,dists,superpose,R,tol=tol)
         end
         counter += 1
         # @show(counter)
@@ -195,7 +179,17 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
             break
         end
     end
-    # end
+    return nothing
+end
+ 
+function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
+    # Np = size(superpose,1)
+    # Δxy = zeros(size(dists)...,2)
+    Δpi(Δxi,d,s) = s==0 ? 0.0 : Δxi*(((1+tol)*2R / d - 1) / 2 )
+    Threads.@threads for i in 1:2
+        # Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
+        xy[:,i] .+= sum(Δpi.(pairwise(-,xy[:,i],xy[:,i]),dists,superpose),dims=2)
+    end
     return nothing
 end
 
@@ -204,9 +198,10 @@ function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # calle
     dists = zeros(Np,Np)
     superpose = falses(Np,Np)
     uptriang = triu(trues(Np,Np),1)
-    hardsphere!(xy, dists, superpose, uptriang, R; tol=tol)
+    hardsphere!(xy, dists, superpose, R; tol=tol)
     return xy, dists, superpose, uptriang
 end
+
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
 	# Boundary conditions: horizontal edge
