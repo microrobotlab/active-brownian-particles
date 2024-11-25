@@ -162,10 +162,9 @@ end
 
 function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
     xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
-    forces = hcat(interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...), zeros(size(xy,1)))
-    orientations = [cos.(θ) sin.(θ) zeros(size(xy,1))]
-    torques = offcenter * R * (cross.(eachrow(orientations), eachrow(forces)))
-    return forces[:,1:2], reduce(hcat, torques)'[:,3]
+    forces = interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...)
+    torques = offcenter * R * (forces[:,2] .* cos.(θ) .- forces[:,1] .* sin.(θ))
+    return forces[:,1:2], torques
 end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
