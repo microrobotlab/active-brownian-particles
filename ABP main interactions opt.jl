@@ -36,7 +36,12 @@ function initABPE(Np::Int64, L::Float64, R::Float64, T::Float64, vd::Union{Float
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2], R) #xyθ[:,1:2] gives x and y positions of intitial particles
     v = rand(vd, Np)
     ω = rand(ωd,Np)
-    force, torque = force_torque(xyθ[:,1:2], xyθ[:,3], R, L, forward, offcenter, range, int_func, int_params...)
+    if (!isapprox(offcenter,0.0))
+        force, torque = force_torque(xyθ[:,1:2], xyθ[:,3], R, L, forward, offcenter, range, int_func, int_params...)
+    else
+        force = interactions_range(xyθ[:,1:2], R, L, range, Np, int_func, int_params...)
+        torque = zeros(Np)
+    end
     fx = force[:,1]
     fy = force[:,2]
     abpe = ABPE2( Np, L, R, T, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3], fx, fy, torque)
