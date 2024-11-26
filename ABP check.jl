@@ -2,7 +2,7 @@ using CSV, DataFrames
 
 path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\"
 
-datestamp = "20241125-174109"
+datestamp = "20241126-173133"
 
 df_list = []
 for p in readdir(joinpath(path,datestamp,"data"), join = true)
