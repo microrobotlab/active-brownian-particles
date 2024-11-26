@@ -33,7 +33,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, T::Float64, vd::Union{Float
     (ωd isa Float64) ? ωd = [ωd] : Nt
     DT, DR = diffusion_coeff(1e-6R, T)
     xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
-    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2], R) #xyθ[:,1:2] gives x and y positions of intitial particles
+    xyθ[:,1:2], dists, superpose, uptriang = hardsphere_periodic(xyθ[:,1:2], R, L) #xyθ[:,1:2] gives x and y positions of intitial particles
     v = rand(vd, Np)
     ω = rand(ωd,Np)
     if (!isapprox(offcenter,0.0))
@@ -104,10 +104,10 @@ end
 function simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params...)
     start = now()
     print_step = Nt÷100
-    for nt in 1:Nt+1
+    for nt in 1:Nt
         ABPE = update(ABPE,matrices,δt, forward, offcenter, range, int_func, int_params...)#updating information at every step
-        if (nt-1) % measevery == 0
-            ABPE_history[(nt-1)÷measevery+1] = ABPE
+        if (nt) % measevery == 0
+            ABPE_history[(nt)÷measevery+1] = ABPE
         end
         if nt % print_step == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
@@ -128,10 +128,9 @@ torque(abpe::ABPE2) = abpe.torque
 function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
 
     pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt, force(abpe), abpe.torque)
-
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    hardsphere!(pθ[1], matrices[1], matrices[2],abpe.R)
+    hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
 
     if (!isapprox(offcenter,0.0))
@@ -169,12 +168,16 @@ end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions for the hard sphere corrections
-function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=0.)
+function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
     superpositions = 1
     counter = 0
+    Δxy = zeros(size(dists)...,2)
     while superpositions > 0
         pairwise!(Euclidean(),dists,xy,xy,dims=1)
-        superpose .= (0 .< dists .< 2R*(1-tol))#.*uptriang
+        Threads.@threads for i in 1:2
+            Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
+        end
+        superpose .= (0 .< dists .< 2R*(1-tol))
         superpositions = sum(superpose)÷2
         # @show(superpositions)
         if superpositions > 0
@@ -183,15 +186,15 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
         end
         counter += 1
         # @show(counter)
-        if counter >= 100
-            println("$superpositions superpositions remaining after 100 cycles")
+        if counter >= 250
+            println("$superpositions superpositions remaining after 250 cycles")
             break
         end
     end
     return nothing
 end
  
-function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=0.)
+function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
     # Np = size(superpose,1)
     # Δxy = zeros(size(dists)...,2)
     Δpi(Δxi,d,s) = s==0 ? 0.0 : Δxi*(((1+tol)*2R / d - 1) / 2 )
@@ -202,7 +205,7 @@ function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, s
     return nothing
 end
 
-function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=0.) # called in initABPE
+function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # called in initABPE
     Np = size(xy,1)
     dists = zeros(Np,Np)
     superpose = falses(Np,Np)
@@ -211,6 +214,54 @@ function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=0.) # called 
     return xy, dists, superpose, uptriang
 end
 
+function hardsphere_periodic!(xy::Array{Float64,2}, periodicdists::Array{Float64,2}, superpose::BitArray{2}, R::Float64,L::Float64; tol::Float64=0.)
+    superpositions = 1
+    counter = 0
+    Δxy = zeros(size(periodicdists)...,2)
+    while superpositions > 0
+        Threads.@threads for i in 1:2
+            Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
+            ix = abs.(Δxy[:,:,i]) .> abs.(abs.(Δxy[:,:,i]).-L)
+            Δxy[ix,i] = -sign.(Δxy[ix,i]).*abs.(abs.(Δxy[ix,i]).-L)
+        end
+        periodicdists .= sqrt.(Δxy[:,:,1].^2 .+ Δxy[:,:,2].^2)
+        superpose .= 0. .< periodicdists.<2R
+        superpositions = sum(superpose)÷2
+        # @show(superpositions)
+        if superpositions > 0
+            # println("correcting...")
+            hardsphere_correction_periodic!(xy,Δxy,periodicdists,superpose,R,tol=1e-3)
+            periodic_BC_array!(xy,L,R)
+        end
+        counter += 1
+        # @show(counter)
+        if counter >= 100
+            println("$superpositions superpositions remaining after 100 cycles")
+            break
+        end
+    end
+    return nothing
+end
+
+function hardsphere_correction_periodic!(xy::Array{Float64,2}, Δxy::Array{Float64,3}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
+    # Np = size(superpose,1)
+    # Δxy = zeros(size(dists)...,2)
+    Δpi(Δxi,d,s) = s==0 ? 0.0 : Δxi*(((1+tol)*2R / d - 1) / 2 )
+    Threads.@threads for i in 1:2
+        # Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
+        xy[:,i] .+= sum(Δpi.(Δxy[:,:,i],dists,superpose),dims=2)
+    end
+    return nothing
+end
+
+function hardsphere_periodic(xy::Array{Float64,2}, R::Float64, L::Float64; tol::Float64=1e-3) # called in initABPE
+    Np = size(xy,1)
+    periodicdists = zeros(Np,Np)
+    superpose = falses(Np,Np)
+    uptriang = triu(trues(Np,Np),1)
+    hardsphere_periodic!(xy, periodicdists, superpose, R,L; tol=tol)
+    return xy, periodicdists, superpose, uptriang
+end
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
 	# Boundary conditions: horizontal edge
