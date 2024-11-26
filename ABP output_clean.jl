@@ -19,8 +19,8 @@ path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations"
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e5)           # number of steps
-Delta_t = 1e-5          # s step time
+Nt = Int(1e4)           # number of steps
+Delta_t = 1e-3          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = Int(1)     # Downsampling in animation
 measevery = Int(1e1)           # Downsampling in file
@@ -43,7 +43,7 @@ int_func = lennard_jones
 forward = true
 intrange = 20. # interaction range
 offcenter = 0.
-int_params = (2R, 0.1) # σ and ϵ in the case of LJ 
+int_params = (2R, 1.0) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 

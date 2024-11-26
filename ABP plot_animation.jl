@@ -29,7 +29,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L)
     ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
 
-    timestamps = 1:downsampling:(maximum(df[!,:Time])÷downsampling)
+    timestamps = 1:downsampling:(maximum(df[!,:Time]))
 
     slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1)
 
@@ -71,7 +71,7 @@ function animation_from_graph(graph_wall, pathf, L::Float64, R::Float64, Np::Int
     sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L)
     ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
 
-    timestamps = 1:downsampling:(Nt÷downsampling)
+    timestamps = 1:downsampling:(Nt)
 
     slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1)
 
