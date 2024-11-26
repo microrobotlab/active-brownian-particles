@@ -164,12 +164,12 @@ function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L:
     xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
     forces = interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...)
     torques = offcenter * R * (forces[:,2] .* cos.(θ) .- forces[:,1] .* sin.(θ))
-    return forces[:,1:2], torques
+    return forces, torques
 end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions for the hard sphere corrections
-function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
+function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=0.)
     superpositions = 1
     counter = 0
     while superpositions > 0
@@ -191,7 +191,7 @@ function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::B
     return nothing
 end
  
-function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
+function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=0.)
     # Np = size(superpose,1)
     # Δxy = zeros(size(dists)...,2)
     Δpi(Δxi,d,s) = s==0 ? 0.0 : Δxi*(((1+tol)*2R / d - 1) / 2 )
@@ -202,7 +202,7 @@ function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, s
     return nothing
 end
 
-function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # called in initABPE
+function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=0.) # called in initABPE
     Np = size(xy,1)
     dists = zeros(Np,Np)
     superpose = falses(Np,Np)
