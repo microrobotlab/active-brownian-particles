@@ -147,11 +147,11 @@ end
 function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{Float64,1}) where {ABPE <: ABPsEnsemble}    
     δp = Array{Float64,2}(undef,abpe.Np,2)
     δθ = Array{Float64,1}(undef,abpe.Np)
-    γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3]
-    γᵣ = 1e-12γₜ*abpe.R*abpe.R*8/6   
+    γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units
+    γᵣ = 1e-12γₜ*abpe.R*abpe.R*8/6               #Output in international system units
     if size(position(abpe),2) == 2
         δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ
-        δθ .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-12torque/γᵣ
+        δθ .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-18torque/γᵣ
     else
         println("No step method available")
     end
@@ -162,7 +162,7 @@ end
 function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
     xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
     forces = interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...)
-    torques = offcenter * R * (forces[:,2] .* cos.(θ) .- forces[:,1] .* sin.(θ))
+    torques = offcenter * R .* (forces[:,2] .* cos.(θ) .- forces[:,1] .* sin.(θ))
     return forces, torques
 end
 
