@@ -1,7 +1,7 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
-include("ABP main interactions.jl")
+include("ABP main interactions opt.jl")
 # include("ABP main.jl")
 include("ABP_file.jl")
 include("ABP analysis.jl")
@@ -19,13 +19,12 @@ path="C:\\Users\\picch\\thesis\\abp_simulations\\simulations" # destination dire
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e3)           # number of steps
 Nt = Int(1e6)           # number of steps
 Delta_t = 1e-5          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
-animation_ds = Int(1e0)     # Downsampling in animation
-measevery = Int(1e0)           # Downsampling in file
-animation = false
+animation_ds = Int(1e4)     # Downsampling in animation
+measevery = Int(1e3)           # Downsampling in file
+animation = true
 radialdensity = false
 
 # Physical parameters
@@ -33,19 +32,18 @@ BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
 L = 100.0 	           # μm box length
-L = 200.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [20.] 	            # μm/s particle s
+v = [10.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
 T = 250. # K temperature
 
 # Interaction parameters
-int_func = coulomb
+int_func = lennard_jones
 forward = true
-intrange = 5. # interaction range
-offcenter = 0.5
-int_params = (0.001) # σ and ϵ in the case of LJ 
+intrange = 20R # interaction range
+offcenter = 0.
+int_params = (2R, 0.1) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
