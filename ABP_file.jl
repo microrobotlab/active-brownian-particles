@@ -86,7 +86,7 @@ function file_store_txt(graph_wall,Nt,pathf;downsampling::Int=100)
         push!(torque, graph_wall[4][i,1][j])
         end
     end
-
+    
     touch(f1)
 
     efg = open(f1, "w")
