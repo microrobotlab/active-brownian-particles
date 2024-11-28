@@ -70,7 +70,7 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
     fig = GLMakie.Figure()
     ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
     mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
-    sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L)
+    sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
     ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
 
     if record
@@ -83,7 +83,7 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
     end
 
     if show
-        slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1)
+        slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1, color_active =:grey12, color_inactive = :grey60, color_active_dimmed = :grey30)
 
         on(slider.value) do val
             simstep[] = round(Int, val)
