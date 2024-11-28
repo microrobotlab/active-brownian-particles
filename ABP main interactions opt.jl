@@ -148,7 +148,7 @@ function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{F
     δp = Array{Float64,2}(undef,abpe.Np,2)
     δθ = Array{Float64,1}(undef,abpe.Np)
     γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units
-    γᵣ = 1e-12γₜ*abpe.R*abpe.R*8/6               #Output in international system units
+    γᵣ = (8e-12γₜ / 6) * abpe.R^2             #Output in international system units
     if size(position(abpe),2) == 2
         δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ
         δθ .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-18torque/γᵣ
@@ -590,4 +590,4 @@ function contact_lj(x, σ::Float64, ϵ::Float64)
     return 24*ϵ*(((2*σ^(12))/((x+shift)^(13)))- (σ^(6)/((x+shift)^(7))))
 end
 
-coulomb(x,k) = k/(x*x)
+coulomb(x,k) = k / x^2
