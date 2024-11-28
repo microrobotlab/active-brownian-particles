@@ -34,7 +34,7 @@ R = 2.0		           # μm particle radius
 L = 50.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [20.] 	            # μm/s particle s
+v = [10.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
 T = 250. # K temperature
 
