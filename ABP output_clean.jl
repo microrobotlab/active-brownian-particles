@@ -4,26 +4,26 @@
 include("ABP main interactions opt.jl")
 # include("ABP main.jl")
 include("ABP_file.jl")
-include("ABP analysis.jl")
 include("ABP radialdistribution.jl")
 # include("ABP SD.jl")
 include("ABP multifolder.jl")
-include("ABP radialdensity.jl")
+# include("ABP radialdensity.jl")
+include("ABP plot_animation.jl")
 # include("ABP average.jl")
-using CSV, DataFrames, Dates, Distances, Distributions, Logging, NaNStatistics, Plots, Printf, Random
+using CSV, DataFrames, Dates, Distances, Distributions, JLD2, Logging, NaNStatistics, Printf, Random
 gr()
 
 ## USER INTERFACE
 # destination folders selection
-path="C:\\Users\\picch\\thesis\\abp_simulations\\simulations" # destination directory path
+path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations" # destination directory path
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e6)           # number of steps
-Delta_t = 1e-5          # s step time
+Nt = Int(1e4)           # number of steps
+Delta_t = 1e-3          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
-animation_ds = Int(1e4)     # Downsampling in animation
-measevery = Int(1e3)           # Downsampling in file
+animation_ds = Int(1)     # Downsampling in animation
+measevery = Int(1e1)           # Downsampling in file
 animation = true
 radialdensity = false
 
@@ -32,7 +32,7 @@ BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
 L = 100.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
+packing_fraction = (pi*R^2/L^2)*50 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = [10.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
@@ -40,10 +40,10 @@ T = 250. # K temperature
 
 # Interaction parameters
 int_func = lennard_jones
-forward = true
-intrange = 20R # interaction range
-offcenter = 0.
-int_params = (2R, 0.1) # σ and ϵ in the case of LJ 
+forward = false
+intrange = 20. # interaction range
+offcenter = 0.5
+int_params = (2R, 1.0) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -83,46 +83,52 @@ infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s �
 
 println(infos)
 
-info_file_path = joinpath(patht, "simulation_info.txt")
-
+info_file_path = joinpath(mainfolder, "simulation_info.txt")
 open(info_file_path, "w") do infile
     write(infile, infos)
 end
+
+info_dict = Dict(
+    "Box shape" => box_shape,
+    "Np" => Np,
+    "numdensity" => density,
+    "R" => R,
+    "T" => T,
+    "v" => v,
+    "ω" => ω,
+    "a" => a,
+    "b" => b,
+    "pf" => packing_fraction,
+    "dt" => Delta_t,
+    "measevery" => measevery,
+    "Nt" => Nt,
+    "T_tot" => T_tot,
+    "int_func" => string(int_func),
+    "int_params" => int_params,
+    "intrange" => intrange,
+    "offcenter" => offcenter,
+)
+
+JLD2.save(joinpath(mainfolder, "siminfo_dict.jld2"), info_dict)
 
 if box_shape == :square
     for i=1:ICS
         pathf= joinpath(patht, "run$i\\")
         filename= "$datestamp"*"_run$i"
-        pathf= pathf*filename
+        @show pathf= pathf*filename
 
         # Simulation and file storage
-        start_sim = now()
-        @info "$start_sim Started simulation #$i"
+        @info "$(now()) Started simulation #$i"
         if BC_type == :periodic
-            graph_wall = multiparticleE(Np,L,R,T,v,ω,Nt,measevery,Delta_t, int_func, forward, offcenter, intrange, int_params...,) # has values of x and y position in each frame in graph_wall[1]
-            elapsed_time = Dates.canonicalize(now()-start_sim)
-            println("multiparticleE complied: elapsed time $elapsed_time\n")
+            history = multiparticleE(Np,L,R,T,v,ω,Nt,measevery,Delta_t, int_func, forward, offcenter, intrange, int_params...,) # has values of x and y position in each frame in history[1]
         end
         #---------------------------------------------------------------------------------------------------------------------
         # file store
-        file_store_txt(graph_wall,actual_steps,pathf,downsampling = 1)
-
+        file_store_txt(history,actual_steps,pathf,downsampling = 1)
         #---------------------------------------------------------------------------------------------------------------------
         # animation
         if animation
-            anim = @animate for i = 1:(animation_ds ÷ measevery):actual_steps
-                markersize = 350L/R
-                scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=markersize,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ",)
-                
-                plot!([L/2], seriestype="vline", color=:black)  #square
-                plot!([-L/2], seriestype="vline", color=:black)
-                plot!([L/2], seriestype="hline", color=:black)
-                plot!([-L/2], seriestype="hline", color=:black)
-                quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(markersize*cos.(graph_wall[2][i,1]),markersize*sin.(graph_wall[2][i,1])), color=:red)
-            end
-    
-            f1= pathf*".gif"
-            gif(anim, f1)
+            animation_from_history(history,pathf,L,R,Np,Delta_t,actual_steps,measevery,animation_ds,record=false, final_format = "mkv")
         end
         #---------------------------------------------------------------------------------------------------------------------
         # analysis

@@ -33,10 +33,15 @@ function initABPE(Np::Int64, L::Float64, R::Float64, T::Float64, vd::Union{Float
     (ωd isa Float64) ? ωd = [ωd] : Nt
     DT, DR = diffusion_coeff(1e-6R, T)
     xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
-    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],L, R, N = 5, M = 5) #xyθ[:,1:2] gives x and y positions of intitial particles
+    xyθ[:,1:2], dists, superpose, uptriang = hardsphere_periodic(xyθ[:,1:2], R, L) #xyθ[:,1:2] gives x and y positions of intitial particles
     v = rand(vd, Np)
     ω = rand(ωd,Np)
-    force, torque = force_torque(xyθ[:,1:2], xyθ[:,3], R, L, forward, offcenter, range, int_func, int_params...)
+    if (!isapprox(offcenter,0.0))
+        force, torque = force_torque(xyθ[:,1:2], xyθ[:,3], R, L, forward, offcenter, range, int_func, int_params...)
+    else
+        force = interactions_range(xyθ[:,1:2], R, L, range, Np, int_func, int_params...)
+        torque = zeros(Np)
+    end
     fx = force[:,1]
     fy = force[:,2]
     abpe = ABPE2( Np, L, R, T, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3], fx, fy, torque)
@@ -99,10 +104,10 @@ end
 function simulate!(ABPE_history, ABPE, matrices, Nt, measevery, δt, forward, offcenter, range, int_func, int_params...)
     start = now()
     print_step = Nt÷100
-    for nt in 1:Nt+1
+    for nt in 1:Nt
         ABPE = update(ABPE,matrices,δt, forward, offcenter, range, int_func, int_params...)#updating information at every step
-        if (nt-1) % measevery == 0
-            ABPE_history[(nt-1)÷measevery+1] = ABPE
+        if (nt) % measevery == 0
+            ABPE_history[(nt)÷measevery+1] = ABPE
         end
         if nt % print_step == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
@@ -123,24 +128,30 @@ torque(abpe::ABPE2) = abpe.torque
 function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
 
     pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt, force(abpe), abpe.torque)
-
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3],abpe.L, abpe.R, N = 5, M = 5)
+    hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
 
-    new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
+    if (!isapprox(offcenter,0.0))
+        new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
+    else
+        new_force = interactions_range(pθ[1], abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
+        new_torque = zeros(abpe.Np)
+    end    
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], new_force[:,1], new_force[:,2], new_torque )
 
     return new_abpe
 end
 
 function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{Float64,1}) where {ABPE <: ABPsEnsemble}    
-    γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3]
-    γᵣ = 1e-12γₜ*abpe.R*abpe.R*8/6   
+    δp = Array{Float64,2}(undef,abpe.Np,2)
+    δθ = Array{Float64,1}(undef,abpe.Np)
+    γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units
+    γᵣ = 1e-12γₜ*abpe.R*abpe.R*8/6               #Output in international system units
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-12torque/γᵣ
+        δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ
+        δθ .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-18torque/γᵣ
     else
         println("No step method available")
     end
@@ -150,200 +161,108 @@ end
 
 function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
     xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
-    forces = hcat(interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...), zeros(size(xy,1)))
-    orientations = [cos.(θ) sin.(θ) zeros(size(xy,1))]
-    torques = offcenter * R * (cross.(eachrow(orientations), eachrow(forces)))
-    return forces[:,1:2], reduce(hcat, torques)'[:,3]
+    forces = interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...)
+    torques = offcenter * R .* (forces[:,2] .* cos.(θ) .- forces[:,1] .* sin.(θ))
+    return forces, torques
 end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Functions for particle collisions correction. The space where particles evolve will 
-# be divided in cells and the calculation will be performed in parallel on these cells.
-
-function borders(L) 
-    # Give borders for the total area.
-    # L is the size of the area and it is centered around 0.
-    # (FIXED in the current version but could depend upon wall condition) 
-    
-    # Add a small margin for safety
-    ϵ = 0.5
-    x_min = -L/2 - ϵ
-    x_max = L/2 + ϵ
-    y_min = -L/2 - ϵ
-    y_max = L/2 + ϵ
-    return x_min, x_max, y_min, y_max
-end
-
-# Partition particles (xy gives their positions) in order to perform parallel computation
-function indices_per_cell(xy, R, tol, N, M, x_min, x_max, y_min, y_max)
-    indices_partition = [Array{Integer}([]) for _=1:N*M]
-
-    # Cell dimensions (without overlapping)
-    cell_height = (y_max - y_min) / N
-    cell_width = (x_max - x_min) / M
-
-    # Distribute particles into the different cells
-    for i in axes(xy, 1)
-        for n=1:N
-            for m=1:M
-                # We overlap regions with border 2R*(1-tol), otherwise collisions at the border of the cells will never be detected 
-                if((xy[i,1] > x_min + (m-1)*cell_width - 2R*(1-tol)) && (xy[i,1] < x_min + m*cell_width + 2R*(1-tol)) && (xy[i,2] > y_min + (n-1)*cell_height - 2R*(1-tol)) && (xy[i,2] < y_min + n*cell_height + 2R*(1-tol)))
-                    push!(indices_partition[(n-1)*M + m], i)
-                end 
-            end
-        end
-    end
-
-    return indices_partition
-end
-
-# Distance / superpositions matrices update (see `hardsphere` function)
-function update_superpositions(xy::Array{Float64,2}, indices, dists::Matrix{Float64}, superpose::BitMatrix, uptriang::BitArray{2}, R::Float64; tol::Float64)
-    dists[indices, indices] .= pairwise(Euclidean(),xy[indices, :],xy[indices, :],dims=1)
-    superpose[indices, indices] .= (dists[indices, indices] .< 2R*(1-tol)) .* uptriang[indices, indices]
-end
-
-# Hardsphere correction for one cell; `indices` provides the indices of the particles in the cell in which we want to apply collisions correction 
-function local_hardsphere_correction!(xy::Array{Float64,2}, indices, dists::Matrix{Float64}, superpose::BitMatrix, R::Float64; tol::Float64)
-    # Number of superpositions in considered cell
-    superpositions = sum(superpose[indices, indices])
-
-    if(superpositions > 0)
-        for np1 in indices
-            # If at least one value of the np1 row is true, i.e. there is a superposition with the corresponding particle
-            if any(superpose[np1,indices]) 
-                # Take the first pair of superposed particles (np1, np2)
-                # /!\ `findfirst(superpose_list[cell_index][np1,indices])` gives the np2 position in the matrix
-                # restricted to [indices, indices] so we have to take the element at this relative position in indices, hence:
-                np2 = indices[findfirst(superpose[np1,indices])]
-
-                # superposition correction
-                Δp = (xy[np1,:] - xy[np2,:]) .* ( ( (1+tol)*2R / dists[np1,np2] - 1 ) / 2 )
-                xy[np1,:] += Δp
-                xy[np2,:] -= Δp
-                
-                # update distances and superpositions matrices (see `hardsphere` function)
-                dists[np2,indices[indices .> np2]] = pairwise(Euclidean(), xy[np2:np2,:], xy[indices[indices .> np2],:], dims=1 )  # distances for the row wise pair operation
-                superpose[np2,indices[indices .> np2]] = dists[np2,indices[indices .> np2]] .< 2R*(1-tol)
-            end
-        end
-    end
-    return superpositions
-end
-
-# Main function for hardsphere correction
-function hardsphere!(
-    xy::Array{Float64,2},
-    dists::Matrix{Float64}, superpose::BitMatrix, uptriang::BitArray{2}, 
-    L::Float64, 
-    R::Float64;
-    tol::Float64=1e-3, 
-    N::Integer, M::Integer,
-    )
-
-    # Borders of the area where the particles evolve
-    x_min, x_max, y_min, y_max = borders(L)
-
-    # We introduced overlapping regions (see `indices_per_cell` function) of size 2R(1-tol)
-    # If those regions are bigger than half a cell, they start overlapping themselves
-    # Vertically, (y_max - y_min) gives the height of the area where particles evolve and N is 
-    # the number of vertical divisions. ((y_max - y_min) / N) / 2 thus gives half the height of one cell.
-    # Finally, we want: 2R(1-tol) <= ((y_max - y_min) / N) / 2, or: N >= (y_max - y_min) / (4R * (1-tol))
-    # and horizontally: M >= (x_max - x_min) / (4R * (1-tol)) where M is the number of horizontal divisions.
-    if(N >= (y_max - y_min) / (4R * (1-tol)))
-        throw("N must be smaller, possible overlapping between parallel-computed regions")
-    elseif(M >= (x_max - x_min) / (4R * (1-tol)))
-        throw("M must be smaller, possible overlapping between parallel-computed regions")
-    end
-
-    # Partition the particles w.r.t. the cells
-    indices_partition = indices_per_cell(xy, R, tol, N, M, x_min, x_max, y_min, y_max)
-
-    # Due to overlaps, neighboring cells will have particles in common and will therefore perform simultaneous accesses 
-    # during collision corrections. To avoid it, cells are separated in 4 groups : considering cells division as a checkerboard 
-    # (here indices_per_cell is just a 1 dimension list), they correspond to even/even, even/odd, odd/even, odd/odd indices of the cells. 
-    # For proper choice of N and M (see above), cells grouped this way by parity  won't have particles in common because they are spaced 
-    # by exactly one cell horizontally and vertically. As mentioned below, collision corrections are applied in a "semi-parallel" way: 
-    # they are performed in parallel within the 4 groups, but sequentially between them.
-    # Here we compute the corresponding indices (of the cells not the particles); indices_per_cell has a linear indexing:
-
-    even_even_cells_indices = []
-    even_odd_cells_indices = []
-    odd_even_cells_indices = []
-    odd_odd_cells_indices = []
-    for i in eachindex(indices_partition)
-        # to switch from linear to row / colum indexing and then check parity of vertical / horizontal index
-        if (iseven(((i-1) ÷ M) + 1) && iseven(((i-1) % M) + 1)); push!(even_even_cells_indices,i);
-        elseif (iseven(((i-1) ÷ M) + 1) && isodd(((i-1) % M) + 1)); push!(even_odd_cells_indices,i);
-        elseif (isodd(((i-1) ÷ M) + 1) && iseven(((i-1) % M) + 1)); push!(odd_even_cells_indices,i);
-        else push!(odd_odd_cells_indices,i); end
-    end
-
-    # Keep track of the number of superpositions for each cell of the partition (the threads will access it separately)
-    superposition_partition = zeros(Int, length(indices_partition))
-    # initialized as 1 to pass the while loop condition at first iteration
+# Functions for the hard sphere corrections
+function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
     superpositions = 1
-    # set a limit to avoid too much hardsphere correction iterations
     counter = 0
-  
+    Δxy = zeros(size(dists)...,2)
     while superpositions > 0
-        # Reset superpositions count
-        superposition_partition = zero(superposition_partition)
-        # THREADING REGION: calculation will be carried out in parallel within the four groups, 
-        # but separately between them (sequentially). See explanations above. 
-        for parity_cell_indices in [even_even_cells_indices, even_odd_cells_indices, odd_even_cells_indices, odd_odd_cells_indices]
-            @threads for cell_index in parity_cell_indices
-                # update distances and superposition matrices
-                update_superpositions(xy, indices_partition[cell_index], dists, superpose, uptriang, R; tol=tol)
-                # local hardsphere correction
-                superposition_partition[cell_index] += local_hardsphere_correction!(xy, indices_partition[cell_index], dists, superpose, R; tol=tol)
-            end
+        pairwise!(Euclidean(),dists,xy,xy,dims=1)
+        Threads.@threads for i in 1:2
+            Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
         end
-
-        # Sum superpositions for each cell   
-        superpositions = sum(superposition_partition)  
+        superpose .= (0 .< dists .< 2R*(1-tol))
+        superpositions = sum(superpose)÷2
+        # @show(superpositions)
+        if superpositions > 0
+            # println("correcting...")
+            hardsphere_correction!(xy,dists,superpose,R,tol=tol)
+        end
         counter += 1
-        # To avoid spending too much time in hardsphere correction
+        # @show(counter)
+        if counter >= 250
+            println("$superpositions superpositions remaining after 250 cycles")
+            break
+        end
+    end
+    return nothing
+end
+ 
+function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
+    # Np = size(superpose,1)
+    # Δxy = zeros(size(dists)...,2)
+    Δpi(Δxi,d,s) = s==0 ? 0.0 : Δxi*(((1+tol)*2R / d - 1) / 2 )
+    Threads.@threads for i in 1:2
+        # Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
+        xy[:,i] .+= sum(Δpi.(pairwise(-,xy[:,i],xy[:,i]),dists,superpose),dims=2)
+    end
+    return nothing
+end
+
+function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # called in initABPE
+    Np = size(xy,1)
+    dists = zeros(Np,Np)
+    superpose = falses(Np,Np)
+    uptriang = triu(trues(Np,Np),1)
+    hardsphere!(xy, dists, superpose, R; tol=tol)
+    return xy, dists, superpose, uptriang
+end
+
+function hardsphere_periodic!(xy::Array{Float64,2}, periodicdists::Array{Float64,2}, superpose::BitArray{2}, R::Float64,L::Float64; tol::Float64=0.)
+    superpositions = 1
+    counter = 0
+    Δxy = zeros(size(periodicdists)...,2)
+    while superpositions > 0
+        Threads.@threads for i in 1:2
+            Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
+            ix = abs.(Δxy[:,:,i]) .> abs.(abs.(Δxy[:,:,i]).-L)
+            Δxy[ix,i] = -sign.(Δxy[ix,i]).*abs.(abs.(Δxy[ix,i]).-L)
+        end
+        periodicdists .= sqrt.(Δxy[:,:,1].^2 .+ Δxy[:,:,2].^2)
+        superpose .= 0. .< periodicdists.<2R
+        superpositions = sum(superpose)÷2
+        # @show(superpositions)
+        if superpositions > 0
+            # println("correcting...")
+            hardsphere_correction_periodic!(xy,Δxy,periodicdists,superpose,R,tol=1e-3)
+            periodic_BC_array!(xy,L,R)
+        end
+        counter += 1
+        # @show(counter)
         if counter >= 100
             println("$superpositions superpositions remaining after 100 cycles")
             break
         end
     end
-        
-    # QUALITY TEST TO SEE THE ACTUAL AMOUNT OF SUPERPOSITIONS AFTER CORRECTION
-    # (COMPUTED ON THE OVERALL SYSTEM, NOT PER CELL) 
-    # dists_total = pairwise(Euclidean(),xy,xy,dims=1)
-    # superpose_total = (dists_total .< 2R*(1-tol)) .* uptriang
-    # superpositions_total = sum(superpose_total)
-    # println("SUPERPOSITIONS REMAINING (REAL TOTAL) : $superpositions_total")
-
     return nothing
 end
- 
-# (Called in initABPE) initialize distance and superposition matrices that will store distances and superpositions between particles
-# during simulation (they are continuously updated). Also run `hardsphere!` once.
-function hardsphere(
-    xy::Array{Float64,2},
-    L::Float64,
-    R::Float64; 
-    tol::Float64=1e-3, 
-    N::Integer, M::Integer,
-    ) 
 
-    Np = size(xy,1)
-    dists = zeros(Np,Np) 
-    superpose = falses(Np,Np)
-    uptriang = falses(Np,Np)
-    for i = 1:Np-1
-        uptriang[i,i+1:Np] .= true
+function hardsphere_correction_periodic!(xy::Array{Float64,2}, Δxy::Array{Float64,3}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
+    # Np = size(superpose,1)
+    # Δxy = zeros(size(dists)...,2)
+    Δpi(Δxi,d,s) = s==0 ? 0.0 : Δxi*(((1+tol)*2R / d - 1) / 2 )
+    Threads.@threads for i in 1:2
+        # Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
+        xy[:,i] .+= sum(Δpi.(Δxy[:,:,i],dists,superpose),dims=2)
     end
-
-    hardsphere!(xy, dists, superpose, uptriang, L, R; tol=tol, N=N, M=M)
-    return xy, dists, superpose, uptriang
+    return nothing
 end
 
+function hardsphere_periodic(xy::Array{Float64,2}, R::Float64, L::Float64; tol::Float64=1e-3) # called in initABPE
+    Np = size(xy,1)
+    periodicdists = zeros(Np,Np)
+    superpose = falses(Np,Np)
+    uptriang = triu(trues(Np,Np),1)
+    hardsphere_periodic!(xy, periodicdists, superpose, R,L; tol=tol)
+    return xy, periodicdists, superpose, uptriang
+end
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
 	# Boundary conditions: horizontal edge
 	idx = abs.(xy[:,1]) .> L/2 + R #I create vector idx in which I have 1 where the absolute value of the x coordinate of the particles is outside the observation area
@@ -357,7 +276,7 @@ function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a partic
 	end
 	return nothing
 end
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #  Functions for updating reflective boundary AND WALL UPDATE
 
 function multiparticleE_wall(Np::Integer, L::Float64, R::Float64, v::Float64, Nt::Int64=2, δt::Float64=1e-3)
@@ -597,6 +516,8 @@ function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Fl
         # Remove central particle [0, 0] from interaction set
         xy_inside = xy_inside[xy_inside[:,1] .!= 0 .|| xy_inside[:,2] .!= 0, :]
 
+        dirs = Array{Float64}(undef, size(xy_inside))
+
         if isempty(xy_inside)
             ΣFtot[i, :] .= 0.0
             continue
@@ -608,7 +529,7 @@ function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Fl
         forces = int_func.(dists_nonzero, int_params...)
         
         # Compute normalized direction vectors
-        dirs = xy_inside ./ dists_nonzero
+        dirs .= xy_inside ./ dists_nonzero
 
         # Sum forces for each direction and assign to ΣFtot
         ΣFtot[i, :] .= .-sum(forces .* dirs, dims=1)'
@@ -618,8 +539,8 @@ function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Fl
 end
 
 
-lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))./(x.^(13))).- (σ^(6)./(x.^(7))))
-shifted_lennard_jones(x, σ, ϵ, shift) = 24*ϵ*(((2*σ^(12))./((x-shift).^(13))).- (σ^(6)./((x-shift).^(7))))
+lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))/(x^(13)))- (σ^(6)/(x^(7))))
+shifted_lennard_jones(x, σ, ϵ, shift) = 24*ϵ*(((2*σ^(12))/((x-shift)^(13)))- (σ^(6)/((x-shift)^(7))))
 
 
 function weeks_chandler_anderson(x, σ::Float64, ϵ::Float64)
@@ -627,20 +548,20 @@ function weeks_chandler_anderson(x, σ::Float64, ϵ::Float64)
     if x > rmin
         return 0
     else
-        return 24*ϵ*(((2*σ^(12))./(x^(13))).- (σ^(6)./(x^(7))))
+        return 24*ϵ*(((2*σ^(12))/(x^(13)))- (σ^(6)/(x^(7))))
     end
 end
 
 function purely_attractive_lennard_jones(x, σ::Float64, ϵ::Float64)
     rmin = σ*2^(1/6) + σ/2
     if x > rmin
-        return 24*ϵ*(((2*σ^(12))./((x + σ/2)^(13))).- (σ^(6)./((x + σ/2)^(7))))
+        return 24*ϵ*(((2*σ^(12))/((x + σ/2)^(13)))- (σ^(6)/((x + σ/2)^(7))))
     else
         return 0
     end
 end
 
-function rlj_boundary(x::Vector{Float64}, σ::Float64, ϵ::Float64)
+function rlj_boundary(x::Float64, σ::Float64, ϵ::Float64)
     rmin = σ*2^(1/6) + σ/2
     if x > rmin
         return 0
@@ -648,7 +569,7 @@ function rlj_boundary(x::Vector{Float64}, σ::Float64, ϵ::Float64)
     elseif x < σ
         return 390144*ϵ/σ
     else
-        return 24*ϵ*(((2*σ^(12))./((x.-σ/2)^(13))).- (σ^(6)./((x.-σ/2)^(7)))) 
+        return 24*ϵ*(((2*σ^(12))/((x-σ/2)^(13)))- (σ^(6)/((x-σ/2)^(7)))) 
     end
 end
 
@@ -666,7 +587,7 @@ end
 
 function contact_lj(x, σ::Float64, ϵ::Float64)
     shift = 2^(1/6)-1
-    return 24*ϵ*(((2*σ^(12))./((x+shift)^(13))).- (σ^(6)./((x+shift)^(7))))
+    return 24*ϵ*(((2*σ^(12))/((x+shift)^(13)))- (σ^(6)/((x+shift)^(7))))
 end
 
 coulomb(x,k) = k/(x*x)
