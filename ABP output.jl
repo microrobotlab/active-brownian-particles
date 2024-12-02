@@ -1,6 +1,7 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
+@show Threads.nthreads()
 
 include("ABP main.jl")
 include("ABP_file.jl")
@@ -21,17 +22,17 @@ gr()
 
 L = 100.0 	# μm box length
 R = 2.0	# μm particle radius
-v = 5.0 	# μm/s particle velocity
+v = 15.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=90
+ICS=5
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
 packing_fraction = 0.2
 
-Np = 1#round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
+Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
 Nt = 10000000# Nt is the number of steps 
 resample=100
@@ -41,7 +42,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\11.November\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\11.November\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -55,7 +56,7 @@ patht= path*"$datestamp\\R=$R v=$v a=$a b=$b pf=$packing_fraction\\"
 
 
 folders=  multipledir(patht,ICS) 
-
+@show start_sim= time()
 for i=1:ICS
   start = time()
     pathf= patht*"\\run$i\\"
@@ -93,7 +94,7 @@ println("multiparticleE_wall compiled\n")
 file_store_csv(graph_wall,Nt_store,pathf)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
-inside_Np=stat_analysis1(a,b,R,pathf,δt,2)
+#  inside_Np=stat_analysis1(a,b,R,pathf,δt,2)
 # mean and standard deviation
 
 
@@ -120,21 +121,22 @@ gif(anim, f1)
 end
 =#
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
-# println("making gif")
-# anim = @animate for i = 1:100:Nt_store
+
+# anim = @animate for i = 1:Nt_store
 #     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$Np particles, steps $(i*resample), ellipse a=L/2, b= L/4")
 #     plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
 #     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
 # end
-# #marker_z=graph_wall[2][i,1], color=:rainbow 
+#marker_z=graph_wall[2][i,1], color=:rainbow, for 
 
-# f1= pathf*".gif" 
-#  gif(anim, f1)
-#  println("gif completed")
+# f1= pathf*".gif" # gif(anim, f1)
     finish = time()
     println("Time taken for simulation run$i: $(round((finish-start)/60.0, digits=3)) minutes")
 
 end
+@show time_end = time()
+@show time_end-start_sim
+# println("Total time taken for all runs: $(((time_end-start_sim), digits=3)) seconds")
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA

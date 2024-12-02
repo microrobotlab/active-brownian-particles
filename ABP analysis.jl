@@ -12,7 +12,7 @@ function stat_analysis1(a,b,R,pathf,δt,symmetry)
   
   fmain= pathf*".csv"
   df= CSV.read(fmain, DataFrame)
-  time= df[!,:StepN]*δt
+  time= unique(df[!,:StepN])*δt  # not to repeat the time in data df[!,:StepN]*δt
   df[!,:StepN] = categorical(df[!,:StepN],compress=true) # it sorts out time step data 
 
   ## Group dataframe by values in categorical column
@@ -76,7 +76,7 @@ function symmetry_analysis(a,b,R,time,gdf,pathf,δt)
     touch(f1)
 
     efg = open(f1, "w")
-    time1 = [first(g[!,:xpos]) for g in gdf]
+    #time1= unique(df[!,:StepN])  # not to repeat the time in data
 
         #########################################################################################
     # ploting in terms of particles number
@@ -85,12 +85,12 @@ function symmetry_analysis(a,b,R,time,gdf,pathf,δt)
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
    
-   t1= scatter(time1,n_left, ylimit=(0,yl1),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_(Left)}}")
+   t1= scatter(time,n_left, ylimit=(0,yl1),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_(Left)}}")
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
-   t2=scatter(time1,n_right, ylimit=(0,yl1),mode="markers",markersize=0.5,legend=false, ylabel=L"\mathrm{N_{(Right)}}")
+   t2=scatter(time,n_right, ylimit=(0,yl1),mode="markers",markersize=0.5,legend=false, ylabel=L"\mathrm{N_{(Right)}}")
 
-   t3=scatter(time1,(n_left.-n_right), ylimit=(-yl1,yl1),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{(Left)}}-\mathrm{N_{(Right)}}") 
+   t3=scatter(time,(n_left.-n_right), ylimit=(-yl1,yl1),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{(Left)}}-\mathrm{N_{(Right)}}") 
 
    p= plot(t3)
    q= plot(t1,t2, layout=(2,1))
@@ -98,7 +98,7 @@ function symmetry_analysis(a,b,R,time,gdf,pathf,δt)
    savefig(p,f3)
    
     #creating DataFrame for number of particles at equators n1, and at poles n2
-    data = DataFrame(t= time1, Nleft = n_left, Nright = n_right)
+    data = DataFrame(t= time, Nleft = n_left, Nright = n_right)
      CSV.write(f1, data)
     close(efg)
      println("I am out of ABP symmetry_analysis")
@@ -162,7 +162,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
     touch(f5)
 
     efg = open(f5, "w")
-    time1 = [first(g[!,:xpos]) for g in gdf]  # not to repeat the time in data
+    # time1= unique(df[!,:StepN])   # not to repeat the time in data
 
         #########################################################################################
     # ploting in terms of particles number
@@ -171,18 +171,18 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
    
-   t1= scatter(time1,n1, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}")
+   t1= scatter(time,n1, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}")
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
-   t2=scatter(time1,n2, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false, ylabel=L"\mathrm{N_{Eq(R)}}")
-   t3=scatter(time1,n3, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}") 
+   t2=scatter(time,n2, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false, ylabel=L"\mathrm{N_{Eq(R)}}")
+   t3=scatter(time,n3, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}") 
   
  
-   t4=scatter(time1,n4, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(D)}}") 
+   t4=scatter(time,n4, ylimit=(0,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(D)}}") 
 
-   t5=scatter(time1,n1.-n2, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}-\mathrm{N_{Eq(R)}}") 
+   t5=scatter(time,n1.-n2, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}-\mathrm{N_{Eq(R)}}") 
 
-   t6= scatter(time1,n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
+   t6= scatter(time,n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
 
    p= plot(t1,t2,t3,t4, layout=(2,2))
 
@@ -191,7 +191,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
    savefig(q,f7)
    
     #creating DataFrame for number of particles at equators n1, and at poles n2
-    data = DataFrame(t= time1, NeqL = n1, NeqR = n2, NpoleU = n3, NpoleD = n4)
+    data = DataFrame(t= time, NeqL = n1, NeqR = n2, NpoleU = n3, NpoleD = n4)
      CSV.write(f5, data)
      close(efg)
    
