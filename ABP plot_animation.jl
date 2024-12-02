@@ -30,7 +30,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
 
     if record
-        timestamps = 1:downsampling:(maximum(df[!,:Time]))
+        timestamps = 1:(size(xpos,2))
         GLMakie.record(fig, pathf*".$final_format", timestamps;
         framerate = Int(1/timestep)) do t
             simstep[] = t
@@ -74,7 +74,7 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
     ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
 
     if record
-        timestamps = 1:downsampling:(Nt)
+        timestamps = 1:(size(xpos,2))
         GLMakie.record(fig, pathf*".$final_format", timestamps;
         framerate = Int(1/timestep)) do t
             simstep[] = t
