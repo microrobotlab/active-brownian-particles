@@ -1,6 +1,6 @@
 using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics, FFTW
 
-function FFT_analysis(mainfolder,dt)
+function FFT_analysis(mainfolder,dt,resample)
     
 f1= mainfolder*"_p.csv"
 
@@ -34,7 +34,7 @@ elseif i==3
 end
 
 ydata_corr= ydata[start_frame:end_frame].-mean(ydata[start_frame:end_frame])
-fs=Int(1/dt) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
+@show fs=Int(1/(dt*resample)) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
 freq= fftshift(fft(ydata_corr))
 freqs = fftshift(fftfreq(length(ydata_corr), fs))
 peaks, peak_values = findmax(real.(freq)) 
@@ -49,7 +49,7 @@ top_peaks = sorted_peaks[1:min(4, length(sorted_peaks))]  # get up to the top 3 
  top_values = real_freq[top_peaks]
 
 # Plot the frequency data with peaks highlighted
-k=plot(freqs, real_freq, seriestype=:stem, xlim=(0, 0.1), ylim=(0.02, 20000), xlabel="Frequency (Hz)", ylabel="Power", legend=false)
+k=plot(freqs, real_freq, seriestype=:stem, xlim=(0, 0.01), ylim=(0.02, 55000), xlabel="Frequency (Hz)", ylabel="Power", legend=false)
 
 # Add the top peaks to the plot with annotations
 scatter!(top_frequencies, top_values, color=:red, label="Peaks", markersize=3)
@@ -58,7 +58,7 @@ for (i, peak) in enumerate(top_frequencies)
 end
 
 # Show or save the plot
-title!("Peaks in Frequency= $(round(top_frequencies[1]*1000, digits=3)) $(round(top_frequencies[2]*1000, digits=3)) $(round(top_frequencies[3]*1000, digits=3))")
+title!("Peaks in Freq(mHZ)= $(round(top_frequencies[1]*1000, digits=3)) $(round(top_frequencies[2]*1000, digits=3)) $(round(top_frequencies[3]*1000, digits=3))")
 display(k)
 savefig(k, f1)
 Int(round(peaks))

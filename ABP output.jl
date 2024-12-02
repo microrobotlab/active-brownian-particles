@@ -142,19 +142,19 @@ end
 # (average(mainfolder))   # passing path of the main folders which has all the runs
 
 
-#   mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\2024\\10.October\\ellipse\\20241023-135540\\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\\run10\\"
+ mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\2024\\11.November\\20241126-174736\\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\\run1\\"
  
-#    filename="20241023-135540 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run10"
+   filename="20241126-174736 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1"
  
-#    t = joinpath(mainfolder, filename)
-#    f1 = joinpath(mainfolder, filename * ".csv")
-#    #f1000= joinpath(mainfolder,filename*".csv") 
-#   #f1= t * ".csv"
-#   # t=raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\10.October\ellipse\20241023-135540\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\run1\20241023-135540 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1_p.csv"
-#   #  f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
-#    df= CSV.read(f1,DataFrame) 
+   t = joinpath(mainfolder, filename)
+   f1 = joinpath(mainfolder, filename * ".csv")
+   #f1000= joinpath(mainfolder,filename*".csv") 
+  #f1= t * ".csv"
+  # t=raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\10.October\ellipse\20241023-135540\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\run1\20241023-135540 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1_p.csv"
+  #  f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
+   df= CSV.read(f1,DataFrame) 
   
-#    FFT_analysis(t,δt) 
+   FFT_analysis(t,δt,resample) 
 
 #  @time inside_Np=stat_analysis1(a,b,R,t,δt,2) # 0 for pole, equator, 1 for only right left, 2 for entire
 
