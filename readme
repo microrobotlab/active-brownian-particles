@@ -1,0 +1,2 @@
+20.3 h for 5 runs 10000s at 0.001 dt with the threads
+14.725 h for 5 runs 10000s at 0.001 dt without the threads

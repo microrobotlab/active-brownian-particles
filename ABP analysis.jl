@@ -162,7 +162,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
     touch(f5)
 
     efg = open(f5, "w")
-    time1= unique(df[!,:StepN])   # not to repeat the time in data
+    # time1= unique(df[!,:StepN])   # not to repeat the time in data
 
         #########################################################################################
     # ploting in terms of particles number
