@@ -106,8 +106,6 @@ info_dict = Dict(
 
 JLD2.save(joinpath(mainfolder, "siminfo_dict.jld2"), info_dict)
 
-ABPE = ABPE2
-ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, forward, offcenter, intrange, int_params...,)
 for i in 1:ICS
     pathf= joinpath(patht, "run$i\\")
 
@@ -126,8 +124,8 @@ for i in 1:ICS
     start = now()
     @info "$(start) Started simulation #$i"
 
+    ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, forward, offcenter, intrange, int_params...,)
     for nt in 0:Nt
-        update!(ABPE,matrices,δt, forward, offcenter, intrange, int_func, int_params...)
         if nt % measevery == 0
             pnumber = collect(1:Np)
             time = fill(nt, Np)
@@ -144,6 +142,7 @@ for i in 1:ICS
             )  
             CSV.write(fr, data, append = true)
         end
+        ABPE =update(ABPE,matrices,δt, forward, offcenter, intrange, int_func, int_params...)
         if nt % (Nt÷100) == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
