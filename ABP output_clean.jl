@@ -20,9 +20,9 @@ path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations"
 ## PARAMETERS SET
 # Simulation parameters
 Nt = Int(1e5)           # number of steps
-Delta_t = 1e-4          # s step time
+Delta_t = 1e-3          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
-animation_ds = Int(1)     # Downsampling in animation
+animation_ds = 4     # Downsampling in animation
 measevery = Int(1e1)           # Downsampling in file
 animation = true
 radialdensity = false
@@ -31,24 +31,24 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
-L = 50.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 100.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [10.] 	            # μm/s particle s
+v = [20.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
-T = 250. # K temperature
+T = 300. # K temperature
 
 # Interaction parameters
 int_func = coulomb
 forward = true
 intrange = 5. # interaction range
-offcenter = 0.5
-int_params = (0.001) # σ and ϵ in the case of LJ 
+offcenter = 2e-1
+int_params = (1.) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
 ## PRELIMINARY CALCULATIONS
-DT, DR, γ = diffusion_coeff(R).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
+DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
 T_tot = Delta_t*Nt
 actual_steps = (Nt÷measevery)+1
 
@@ -128,7 +128,7 @@ if box_shape == :square
         #---------------------------------------------------------------------------------------------------------------------
         # animation
         if animation
-            animation_from_history(history,pathf,L,R,Np,Delta_t,actual_steps,measevery,animation_ds, show = false, record=true, final_format = "mkv")
+            animation_from_history(history,pathf,L,R,Np,Delta_t,actual_steps,measevery,animation_ds, show = true, record=false, final_format = "mkv", color_code_dir = true)
         end
         #---------------------------------------------------------------------------------------------------------------------
         # analysis

@@ -153,7 +153,7 @@ function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{F
     γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units kg/s
     γᵣ = (8e-12γₜ / 6) * abpe.R^2                #Output in international system units
     if size(position(abpe),2) == 2
-        δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ .+ δt*1e-6interactions_range(position(abpe), abpe.R, abpe.L, 2R, abpe.Np, excluded_volume, abpe.R, 1.)/γₜ
+        δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ .+ δt*1e-6interactions_range(position(abpe), abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)/γₜ
         δθ .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-18torque/γᵣ
     else
         println("No step method available")
