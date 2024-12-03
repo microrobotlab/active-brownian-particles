@@ -1,8 +1,9 @@
 using GLMakie
 using GeometryBasics: Point2f, Circle, Point2f0, Polygon
 using CSV, DataFrames, Dates, Logging
+include("geo_toolbox.jl")
 
-function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, downsampling::Int=1; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif")
+function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, downsampling::Int=1; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
     fname = pathf*ext
     timestep *= measevery*downsampling
     df = CSV.read(fname, DataFrame)    
@@ -15,6 +16,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     ypos = reshape(ypos, Np,:)[:,1:downsampling:end]
     θ = reshape(θ, Np,:)[:,1:downsampling:end]
     u,v = cos.(θ), sin.(θ)
+    pirotation!(θ)
 
     simstep = Observable(1)
 
@@ -22,12 +24,17 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     ys = @lift ypos[:,$simstep]
     us = @lift u[:,$simstep]
     vs = @lift v[:,$simstep]
+    θs = @lift θ[:,$simstep]
 
     fig = GLMakie.Figure()
     ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
     mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
-    sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L)
-    ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+    sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
+    if color_code_dir
+        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
+    else
+        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+    end
 
     if record
         timestamps = 1:(size(xpos,2))
@@ -50,7 +57,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
 
 end
 
-function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int, timestep::Float64,Nt::Int,measevery::Int, downsampling::Int=1; show::Bool=true, record::Bool=false, final_format::String="gif")
+function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int, timestep::Float64,Nt::Int,measevery::Int, downsampling::Int=1; show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
     pos = vcat(history[1]...)
     orient = vcat(history[2]...)
 
@@ -60,18 +67,24 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
     ypos = reshape(pos[:,2], Np,:)[:,1:downsampling:end]
     θ = reshape(orient, Np,:)[:,1:downsampling:end]
     u,v = cos.(θ), sin.(θ)
+    pirotation!(θ)
 
     simstep = Observable(1)
     xs = @lift xpos[:,$simstep]
     ys = @lift ypos[:,$simstep]
     us = @lift u[:,$simstep]
     vs = @lift v[:,$simstep]
+    θs = @lift θ[:,$simstep]
 
     fig = GLMakie.Figure()
     ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
     mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
     sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
-    ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+    if color_code_dir
+        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
+    else
+        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+    end
 
     if record
         timestamps = 1:(size(xpos,2))
