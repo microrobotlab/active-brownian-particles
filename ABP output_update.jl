@@ -16,9 +16,9 @@ path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulation
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e4)           # number of steps
+Nt = Int(1e6)           # number of steps
 δt = 1e-3          # s step time
-ICS=1                  # Number of intial conditons to be scanned 
+ICS=5                  # Number of intial conditons to be scanned 
 animation_ds = 4     # Downsampling in animation
 measevery = Int(1e1)           # Downsampling in file
 animation = true
@@ -28,10 +28,10 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
-L = 100.0 	           # μm box length
+L = 150.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [20.] 	            # μm/s particle s
+v = [15.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
@@ -39,7 +39,7 @@ T = 300. # K temperature
 int_func = coulomb
 forward = true
 intrange = 5. # interaction range
-offcenter = 2e-1
+offcenter = 5e-3
 int_params = (1.) # σ and ϵ in the case of LJ 
 
 ## PRELIMINARY CALCULATIONS
@@ -150,7 +150,7 @@ for i in 1:ICS
     end
     @info "$(now()) Simulation and file writing finished"
     close(fr)
-    if animation
+    if i==1
         animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = true, record=false, final_format = "mkv", color_code_dir = true)
     end
 end
