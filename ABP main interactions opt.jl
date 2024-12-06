@@ -130,7 +130,10 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
     pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt, force(abpe), abpe.torque)
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
+    # hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
+    # xy = [Tuple(pθ[1][i,:]) for i in axes(pθ[1],1)]
+    # hardsphere2_periodic!(xy,abpe.R)
+    # pθ[1] .= reduce(vcat, [[e[1] e[2]] for e in xy])
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
 
     if (!isapprox(offcenter,0.0))
@@ -144,13 +147,35 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
     return new_abpe
 end
 
+function update!(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
+
+    pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt, force(abpe), abpe.torque)
+    periodic_BC_array!(pθ[1],abpe.L, abpe.R)
+    #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
+    # hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
+    # xy = [Tuple(pθ[1][i,:]) for i in axes(pθ[1],1)]
+    # hardsphere2_periodic!(xy,abpe.R)
+    # pθ[1] .= reduce(vcat, [[e[1] e[2]] for e in xy])
+    # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
+
+    if (!isapprox(offcenter,0.0))
+        new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
+    else
+        new_force = interactions_range(pθ[1], abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
+        new_torque = zeros(abpe.Np)
+    end    
+    abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], new_force[:,1], new_force[:,2], new_torque )
+
+    return nothing
+end
+
 function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{Float64,1}) where {ABPE <: ABPsEnsemble}    
     δp = Array{Float64,2}(undef,abpe.Np,2)
     δθ = Array{Float64,1}(undef,abpe.Np)
-    γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units
-    γᵣ = (8e-12γₜ / 6) * abpe.R^2             #Output in international system units
+    γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units kg/s
+    γᵣ = (8e-12γₜ / 6) * abpe.R^2                #Output in international system units
     if size(position(abpe),2) == 2
-        δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ
+        δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ .+ δt*1e-6interactions_range(position(abpe), abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)/γₜ
         δθ .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-18torque/γᵣ
     else
         println("No step method available")
@@ -222,7 +247,7 @@ function hardsphere_periodic!(xy::Array{Float64,2}, periodicdists::Array{Float64
         Threads.@threads for i in 1:2
             Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
             ix = abs.(Δxy[:,:,i]) .> abs.(abs.(Δxy[:,:,i]).-L)
-            Δxy[ix,i] = -sign.(Δxy[ix,i]).*abs.(abs.(Δxy[ix,i]).-L)
+            Δxy[ix,i] .= -sign.(Δxy[ix,i]).*abs.(abs.(Δxy[ix,i]).-L)
         end
         periodicdists .= sqrt.(Δxy[:,:,1].^2 .+ Δxy[:,:,2].^2)
         superpose .= 0. .< periodicdists.<2R
@@ -261,6 +286,42 @@ function hardsphere_periodic(xy::Array{Float64,2}, R::Float64, L::Float64; tol::
     uptriang = triu(trues(Np,Np),1)
     hardsphere_periodic!(xy, periodicdists, superpose, R,L; tol=tol)
     return xy, periodicdists, superpose, uptriang
+end
+
+# Building
+function hardsphere2_periodic!(xy::Vector{Tuple{Float64,Float64}}, R::Float64; tol::Float64=1e-3)
+    superpositions = 1
+    counter = 0
+    periodicdists = zeros(length(xy),length(xy))
+    Δxy = Matrix{Tuple{Float64,Float64}}(undef,size(periodicdists)...)
+    Δp = Matrix{Tuple{Float64,Float64}}(undef,size(periodicdists)...)
+    superpose = falses(size(periodicdists)...)
+
+    displace(Δxy::Tuple{Float64,Float64},d::Float64) = Δxy.*(((1+tol)*2R / d - 1) / 2)
+    correct(xy::Tuple{Float64,Float64},Δp_row) = xy.+reduce((x,y)->x.+y,Δp_row)
+    periodic(d,L) = abs(d) > L-abs(d) ? -sign(d)*(L-abs(d)) : d
+
+    while superpositions > 0
+        pairwise!(.-,Δxy,xy,xy)
+        Δxy .=  map(x->periodic.(x,L), Δxy)
+        periodicdists = map(x->sqrt(x[1]^2+x[2]^2),Δxy)       
+        superpose .= (0. .< periodicdists .< 2R*(1-tol))
+        superpositions = sum(superpose)÷2
+        if superpositions > 0
+            fill!(Δp,(0.,0.))
+            # Threads.@threads for s in findall(superpose)
+            #     Δp[s] = displace(xy[s[1]].-xy[s[2]],dists[s])
+            # end
+            Δp[superpose] .= displace.(Δxy[superpose],periodicdists[superpose])
+            xy = correct.(xy,eachrow(Δp)) 
+        end
+        counter += 1
+        if counter >= 100
+            println("$superpositions superpositions remaining after 100 cycles")
+            break
+        end
+    end
+    return nothing
 end
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
@@ -591,3 +652,5 @@ function contact_lj(x, σ::Float64, ϵ::Float64)
 end
 
 coulomb(x,k) = k / x^2
+
+excluded_volume(x::Float64,R::Float64, ϵ::Float64) = 12ϵ*((2R)^12)x^(-13)

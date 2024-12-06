@@ -15,40 +15,40 @@ gr()
 
 ## USER INTERFACE
 # destination folders selection
-path="C:\\Users\\picch\\thesis\\abp_simulations\\simulations" # destination directory path
+path="C:\\Users\\NiccoloP\\Documents\\thesis\\simulations" # destination directory path
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e5)           # number of steps
+Nt = Int(1e3)           # number of steps
 Delta_t = 1e-3          # s step time
-ICS=1                  # Number of intial conditons to be scanned 
-animation_ds = Int(1)     # Downsampling in animation
+ICS=10                  # Number of intial conditons to be scanned 
+animation_ds = 4     # Downsampling in animation
 measevery = Int(1e1)           # Downsampling in file
-animation = true
+animation = false
 radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
-L = 50.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 200.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = [20.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
-T = 350. # K temperature
+T = 300. # K temperature
 
 # Interaction parameters
 int_func = coulomb
 forward = true
 intrange = 5. # interaction range
-offcenter = .5
-int_params = (10.) # σ and ϵ in the case of LJ 
+offcenter = 1e-4
+int_params = (1.) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
 ## PRELIMINARY CALCULATIONS
-DT, DR, γ = diffusion_coeff(R).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
+DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
 T_tot = Delta_t*Nt
 actual_steps = (Nt÷measevery)+1
 
@@ -127,8 +127,8 @@ if box_shape == :square
         file_store_txt(history,actual_steps,pathf,downsampling = 1)
         #---------------------------------------------------------------------------------------------------------------------
         # animation
-        if animation
-            animation_from_history(history,pathf,L,R,Np,Delta_t,actual_steps,measevery,animation_ds,record=false, final_format = "mp4")
+        if i==1
+            animation_from_history(history,pathf,L,R,Np,Delta_t,actual_steps,measevery,animation_ds, show = false, record=true, final_format = "mkv", color_code_dir = true)
         end
         #---------------------------------------------------------------------------------------------------------------------
         # analysis
