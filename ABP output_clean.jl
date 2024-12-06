@@ -15,12 +15,12 @@ gr()
 
 ## USER INTERFACE
 # destination folders selection
-path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations" # destination directory path
+path="C:\\Users\\picch\\thesis\\abp_simulations\\simulations" # destination directory path
 
 ## PARAMETERS SET
 # Simulation parameters
 Nt = Int(1e5)           # number of steps
-Delta_t = 1e-4          # s step time
+Delta_t = 1e-3          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = Int(1)     # Downsampling in animation
 measevery = Int(1e1)           # Downsampling in file
@@ -34,16 +34,16 @@ R = 2.0		           # μm particle radius
 L = 50.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [10.] 	            # μm/s particle s
+v = [20.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
-T = 250. # K temperature
+T = 350. # K temperature
 
 # Interaction parameters
 int_func = coulomb
 forward = true
 intrange = 5. # interaction range
-offcenter = 0.5
-int_params = (0.001) # σ and ϵ in the case of LJ 
+offcenter = .5
+int_params = (10.) # σ and ϵ in the case of LJ 
 
 #-------------------------------------------------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ if box_shape == :square
     for i=1:ICS
         pathf= joinpath(patht, "run$i\\")
         filename= "$datestamp"*"_run$i"
-        pathf= pathf*filename
+        @show pathf= pathf*filename
 
         # Simulation and file storage
         @info "$(now()) Started simulation #$i"
@@ -128,7 +128,7 @@ if box_shape == :square
         #---------------------------------------------------------------------------------------------------------------------
         # animation
         if animation
-            animation_from_history(history,pathf,L,R,Np,Delta_t,actual_steps,measevery,animation_ds, show = false, record=true, final_format = "mkv")
+            animation_from_history(history,pathf,L,R,Np,Delta_t,actual_steps,measevery,animation_ds,record=false, final_format = "mp4")
         end
         #---------------------------------------------------------------------------------------------------------------------
         # analysis
