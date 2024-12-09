@@ -19,7 +19,7 @@ path="C:\\Users\\NiccoloP\\Documents\\thesis\\simulations" # destination directo
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e6)           # number of steps
+Nt = Int(1e3)           # number of steps
 Delta_t = 1e-3          # s step time
 ICS=10                  # Number of intial conditons to be scanned 
 animation_ds = 4     # Downsampling in animation
@@ -34,7 +34,7 @@ R = 2.0		           # μm particle radius
 L = 200.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = [10.] 	            # μm/s particle s
+v = [20.] 	            # μm/s particle s
 ω = 0.        # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
@@ -115,7 +115,7 @@ if box_shape == :square
     for i=1:ICS
         pathf= joinpath(patht, "run$i\\")
         filename= "$datestamp"*"_run$i"
-        pathf= pathf*filename
+        @show pathf= pathf*filename
 
         # Simulation and file storage
         @info "$(now()) Started simulation #$i"

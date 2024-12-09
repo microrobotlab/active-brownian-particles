@@ -17,6 +17,7 @@ path = "D:\\NiccoloP\\simulations"
 ## PARAMETERS SET
 # Simulation parameters
 Nt = Int(1e6)           # number of steps
+Nt = Int(1e6)           # number of steps
 δt = 1e-3          # s step time
 ICS=5                  # Number of intial conditons to be scanned 
 animation_ds = 4     # Downsampling in animation
@@ -39,7 +40,7 @@ T = 300. # K temperature
 int_func = coulomb
 forward = true
 intrange = 5. # interaction range
-offcenter = 1.
+offcenter = 5e-3
 int_params = (1.) # σ and ϵ in the case of LJ 
 
 ## PRELIMINARY CALCULATIONS
@@ -151,7 +152,7 @@ for i in 1:ICS
     end
     @info "$(now()) Simulation and file writing finished"
     close(fr)
-    if animation
+    if i==1
         animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = true, record=false, final_format = "mkv", color_code_dir = true)
     end
     sleep(60)
