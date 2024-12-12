@@ -130,7 +130,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
     pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt, force(abpe), abpe.torque)
     periodic_BC_array!(pθ[1],abpe.L, abpe.R)
     #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    # hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
+    hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
     # xy = [Tuple(pθ[1][i,:]) for i in axes(pθ[1],1)]
     # hardsphere2_periodic!(xy,abpe.R)
     # pθ[1] .= reduce(vcat, [[e[1] e[2]] for e in xy])
@@ -147,35 +147,13 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
     return new_abpe
 end
 
-function update!(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
-
-    pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt, force(abpe), abpe.torque)
-    periodic_BC_array!(pθ[1],abpe.L, abpe.R)
-    #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    # hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
-    # xy = [Tuple(pθ[1][i,:]) for i in axes(pθ[1],1)]
-    # hardsphere2_periodic!(xy,abpe.R)
-    # pθ[1] .= reduce(vcat, [[e[1] e[2]] for e in xy])
-    # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
-
-    if (!isapprox(offcenter,0.0))
-        new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
-    else
-        new_force = interactions_range(pθ[1], abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
-        new_torque = zeros(abpe.Np)
-    end    
-    abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], new_force[:,1], new_force[:,2], new_torque )
-
-    return nothing
-end
-
 function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{Float64,1}) where {ABPE <: ABPsEnsemble}    
     δp = Array{Float64,2}(undef,abpe.Np,2)
     δθ = Array{Float64,1}(undef,abpe.Np)
     γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units kg/s
     γᵣ = (8e-12γₜ / 6) * abpe.R^2                #Output in international system units
     if size(position(abpe),2) == 2
-        δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ .+ δt*1e-6interactions_range(position(abpe), abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)/γₜ
+        δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ #.+ δt*1e-6interactions_range(position(abpe), abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)/γₜ
         δθ .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-18torque/γᵣ
     else
         println("No step method available")
