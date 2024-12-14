@@ -9,6 +9,7 @@ include("ABP radialdistribution.jl")
 include("ABP multifolder.jl")
 # include("ABP radialdensity.jl")
 include("ABP plot_animation.jl")
+include("ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
@@ -16,12 +17,12 @@ path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulation
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e4)           # number of steps
+Nt = Int(1e3)           # number of steps
 δt = 5e-2          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
 measevery = Int(1e0)           # Downsampling in file
-animation = true
+animation = false
 radialdensity = false
 
 # Physical parameters
@@ -113,13 +114,12 @@ for i in offcenter
     pathf= pathf*filename
 
     datafname = pathf*".txt"
+    polarfname = pathf*"_polarization.txt"
 
     # Simulation and file storage
     open(datafname, "w") do infile
         writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation"], ",")
     end
-
-    fr = open(datafname, "a")
 
     start = now()
     @info "$(start) Started simulation #$i"
@@ -137,7 +137,10 @@ for i in offcenter
                 ypos= ABPE.y,
                 orientation=ABPE.θ,
             )  
-            CSV.write(fr, data, append = true)
+            CSV.write(datafname, data, append = true)
+            open(polarfname, "a") do polfile
+                write(polfile, "$(mean_polarization(ABPE.θ))\n")
+            end
         end
         ABPE =update_heun(ABPE,matrices,δt, forward, i, intrange, int_func, int_params...)
         if nt % (Nt÷100) == 0
@@ -146,7 +149,6 @@ for i in offcenter
         end
     end
     @info "$(now()) Simulation and file writing finished"
-    close(fr)
     if animation
         animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = false, record=true, final_format = "mkv", color_code_dir = true)
     end

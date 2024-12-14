@@ -1,6 +1,6 @@
 using Clustering
 using Markdown
-include("ABP main interactions opt.jl")
+# include("ABP main interactions heun.jl")
 
 """
     mean_polarizantion(θ::Vector{Float64})
@@ -31,9 +31,9 @@ julia> mean_polarizantion(rand(1000)*2pi)
 0.010532168326974655
 ```
 """
-mean_polarizantion(θ::Vector{Float64}) = abs(mean(exp.(im*θ)))
+mean_polarization(θ::Vector{Float64}) = abs(mean(exp.(im*θ)))
 
-"""
+"""s
     orient_corr_func(x::Vector{Float64}, y::Vector{Float64}, θ::Vector{Float64})
 In development
 
