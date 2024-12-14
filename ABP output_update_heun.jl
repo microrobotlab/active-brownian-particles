@@ -12,7 +12,7 @@ include("ABP plot_animation.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations"
+path = "D:\\NiccoloP\\simulations\\flocking2"
 
 ## PARAMETERS SET
 # Simulation parameters
@@ -21,7 +21,7 @@ Nt = Int(2e5)           # number of steps
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
 measevery = Int(1e0)           # Downsampling in file
-animation = true
+animation = false
 radialdensity = false
 
 # Physical parameters
@@ -144,10 +144,10 @@ for i in offcenter
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
         end
-    end
-    @info "$(now()) Simulation and file writing finished"
+    end 
     close(fr)
+    @info "$(now()) Simulation and file writing finished"
     if animation
-        animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = false, record=true, final_format = "mkv", color_code_dir = true)
+        animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = false, record=false, final_format = "mkv", color_code_dir = true)
     end
 end
