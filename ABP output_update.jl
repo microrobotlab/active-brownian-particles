@@ -17,7 +17,6 @@ path = "D:\\NiccoloP\\simulations"
 ## PARAMETERS SET
 # Simulation parameters
 Nt = Int(1e6)           # number of steps
-Nt = Int(1e6)           # number of steps
 δt = 1e-3          # s step time
 ICS=5                  # Number of intial conditons to be scanned 
 animation_ds = 4     # Downsampling in animation
@@ -40,7 +39,7 @@ T = 300. # K temperature
 int_func = coulomb
 forward = true
 intrange = 5. # interaction range
-offcenter = 5e-3
+offcenter = 0.65
 int_params = (1.) # σ and ϵ in the case of LJ 
 
 ## PRELIMINARY CALCULATIONS
