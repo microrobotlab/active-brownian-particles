@@ -1,7 +1,7 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
-include("ABP main interactions opt.jl")
+include("ABP main interactions heun.jl")
 # include("ABP main.jl")
 include("ABP_file.jl")
 include("ABP radialdistribution.jl")
@@ -10,18 +10,18 @@ include("ABP multifolder.jl")
 # include("ABP radialdensity.jl")
 include("ABP plot_animation.jl")
 # include("ABP average.jl")
-using  CSV, DataFrames, Dates, Distances, Distributions, JLD2, Logging, NaNStatistics, Printf, Random
+using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = "D:\\NiccoloP\\simulations"
+path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations"
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e5)           # number of steps
-δt = 1e-3          # s step time
+Nt = Int(1e4)           # number of steps
+δt = 5e-2          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
-animation_ds = 4     # Downsampling in animation
-measevery = Int(1e1)           # Downsampling in file
-animation = false
+animation_ds = 1     # Downsampling in animation
+measevery = Int(1e0)           # Downsampling in file
+animation = true
 radialdensity = false
 
 # Physical parameters
@@ -31,16 +31,16 @@ R = 2.0		           # μm particle radius
 L = 100.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = Exponential(3.)	            # μm/s particle s
-ω = Normal(0,0.025)        # s⁻¹ particle angular velocity
+v = 10.	            # μm/s particle s
+ω = 0.       # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
 int_func = lennard_jones
 forward = false
 intrange = 20. # interaction range
-offcenter = 0.
-int_params = (2R, 1.) # σ and ϵ in the case of LJ 
+offcenter = 0.5
+int_params = (2R, 0.01) # σ and ϵ in the case of LJ 
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
@@ -116,7 +116,7 @@ for i in 1:ICS
 
     # Simulation and file storage
     open(datafname, "w") do infile
-        writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation" "fx" "fy" "torque"], ",")
+        writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation"], ",")
     end
 
     fr = open(datafname, "a")
@@ -136,17 +136,13 @@ for i in 1:ICS
                 xpos= ABPE.x,
                 ypos= ABPE.y,
                 orientation=ABPE.θ,
-                fx=ABPE.fx,
-                fy=ABPE.fy,
-                torque=ABPE.torque,
             )  
             CSV.write(fr, data, append = true)
         end
-        ABPE =update(ABPE,matrices,δt, forward, offcenter, intrange, int_func, int_params...)
+        ABPE =update_heun(ABPE,matrices,δt, forward, offcenter, intrange, int_func, int_params...)
         if nt % (Nt÷100) == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
-            flush(stdout)
         end
     end
     @info "$(now()) Simulation and file writing finished"
@@ -154,5 +150,4 @@ for i in 1:ICS
     if animation
         animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = true, record=true, final_format = "mkv", color_code_dir = true)
     end
-    sleep(60)
 end

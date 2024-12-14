@@ -18,9 +18,6 @@ struct ABPE2 <: ABPsEnsemble
 	x::Vector{Float64}    # x position (μm)
 	y::Vector{Float64}    # y position (μm)
 	θ::Vector{Float64}    # orientation (rad)
-    fx::Vector{Float64}    # force x
-    fy::Vector{Float64}    # force y
-    torque::Vector{Float64}    # torque
 end
 
 #------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
@@ -36,43 +33,9 @@ function initABPE(Np::Int64, L::Float64, R::Float64, T::Float64, vd::Union{Float
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere_periodic(xyθ[:,1:2], R, L) #xyθ[:,1:2] gives x and y positions of intitial particles
     v = rand(vd, Np)
     ω = rand(ωd,Np)
-    if (!isapprox(offcenter,0.0))
-        force, torque = force_torque(xyθ[:,1:2], xyθ[:,3], R, L, forward, offcenter, range, int_func, int_params...)
-    else
-        force = interactions_range(xyθ[:,1:2], R, L, range, Np, int_func, int_params...)
-        torque = zeros(Np)
-    end
-    fx = force[:,1]
-    fy = force[:,2]
-    abpe = ABPE2( Np, L, R, T, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3], fx, fy, torque)
+    abpe = ABPE2( Np, L, R, T, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
     return abpe, (dists, superpose, uptriang)
 end
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#Generating inside ellipse
-
-# function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
-#     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
-#     # Intial condition will be choosen as per the geometry under study
-#     DT, DR = diffusion_coeff(1e-6R)
-
-
-#     α = rand(Np).*2π
-
-#     rₑ = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))  # r value for boundary
-
-#     r = rand(Np).*rₑ
-#     θ = rand(Np).*2π
-
-#     xyθ = [r.*cos.(α) r.*sin.(α) θ]
-
-#     Np1= size(xyθ,1)    # number of particles inside the boundary while Np is total number of particles
-#     #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
-#     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-#     abpe = ABPE2( Np1, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
-
-#     return abpe, (dists, superpose, uptriang)
-# end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ##Calculate diffusion coefficient and friction coefficient
@@ -125,41 +88,57 @@ torque(abpe::ABPE2) = abpe.torque
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to update particles for the next step
-function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
 
-    pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt, force(abpe), abpe.torque)
-    periodic_BC_array!(pθ[1],abpe.L, abpe.R)
-    #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
-    # xy = [Tuple(pθ[1][i,:]) for i in axes(pθ[1],1)]
-    # hardsphere2_periodic!(xy,abpe.R)
-    # pθ[1] .= reduce(vcat, [[e[1] e[2]] for e in xy])
-    # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
+function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
 
-    if (!isapprox(offcenter,0.0))
-        new_force, new_torque = force_torque(pθ[1], pθ[2], abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
-    else
-        new_force = interactions_range(pθ[1], abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
-        new_torque = zeros(abpe.Np)
-    end    
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2], new_force[:,1], new_force[:,2], new_torque )
-
-    return new_abpe
-end
-
-function step(abpe::ABPE, δt::Float64, force::Array{Float64,2}, torque::Array{Float64,1}) where {ABPE <: ABPsEnsemble}    
-    δp = Array{Float64,2}(undef,abpe.Np,2)
-    δθ = Array{Float64,1}(undef,abpe.Np)
+    δp_i = Array{Float64,2}(undef,abpe.Np,2)
+    δθ_i = Array{Float64,1}(undef,abpe.Np)
+    δp_f = Array{Float64,2}(undef,abpe.Np,2)
+    δθ_f = Array{Float64,1}(undef,abpe.Np)
     γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units kg/s
     γᵣ = (8e-12γₜ / 6) * abpe.R^2                #Output in international system units
-    if size(position(abpe),2) == 2
-        δp .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ δt*1e-6force/γₜ #.+ δt*1e-6interactions_range(position(abpe), abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)/γₜ
-        δθ .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*abpe.ω .+ δt*1e-18torque/γᵣ
-    else
-        println("No step method available")
-    end
 
-    return (δp, δθ)
+    #intermediate step
+    if (!isapprox(offcenter,0.0))
+        f_i, t_i = force_torque(position(abpe), orientation(abpe), abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
+        # f_i .+= interactions_range(position(abpe), abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)
+    else
+        f_i = interactions_range(position(abpe), abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
+        # f_i .+= interactions_range(position(abpe), abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)
+        t_i = zeros(abpe.Np)
+    end 
+
+    det_part_i = (abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ 1e-6f_i/γₜ, abpe.ω .+ 1e-18t_i/γᵣ)
+    δp_i .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*det_part_i[1]
+    δθ_i .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*det_part_i[2]
+
+    pθ_i = (position(abpe), orientation(abpe)) .+ (δp_i, δθ_i)
+
+    periodic_BC_array!(pθ_i[1], abpe.L, abpe.R)
+    hardsphere_periodic!(pθ_i[1], matrices[1], matrices[2],abpe.R, abpe.L)
+
+    #final step
+    if (!isapprox(offcenter,0.0))
+        f_f, t_f = force_torque(pθ_i..., abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
+        # f_f .+= interactions_range(pθ_i[1], abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)
+    else
+        f_f = interactions_range(pθ_i[1], abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
+        # f_f .+= interactions_range(pθ_i[1], abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)
+        t_f = zeros(abpe.Np)
+    end 
+
+    det_part_f = (abpe.v.*[cos.(pθ_i[2]) sin.(pθ_i[2])] .+ 1e-6f_f/γₜ, abpe.ω .+ 1e-18t_f/γᵣ)
+    δp_f .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*(det_part_f[1] .+ det_part_i[1])/2
+    δθ_f .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*(det_part_f[2] + det_part_i[2])/2
+
+    pθ = (position(abpe), orientation(abpe)) .+ (δp_f, δθ_f)
+
+    periodic_BC_array!(pθ[1],abpe.L, abpe.R)
+    hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
+
+    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
+
+    return new_abpe
 end
 
 function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
@@ -171,51 +150,6 @@ end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions for the hard sphere corrections
-function hardsphere!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
-    superpositions = 1
-    counter = 0
-    Δxy = zeros(size(dists)...,2)
-    while superpositions > 0
-        pairwise!(Euclidean(),dists,xy,xy,dims=1)
-        Threads.@threads for i in 1:2
-            Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
-        end
-        superpose .= (0 .< dists .< 2R*(1-tol))
-        superpositions = sum(superpose)÷2
-        # @show(superpositions)
-        if superpositions > 0
-            # println("correcting...")
-            hardsphere_correction!(xy,dists,superpose,R,tol=tol)
-        end
-        counter += 1
-        # @show(counter)
-        if counter >= 250
-            println("$superpositions superpositions remaining after 250 cycles")
-            break
-        end
-    end
-    return nothing
-end
- 
-function hardsphere_correction!(xy::Array{Float64,2}, dists::Array{Float64,2}, superpose::BitArray{2}, R::Float64; tol::Float64=1e-3)
-    # Np = size(superpose,1)
-    # Δxy = zeros(size(dists)...,2)
-    Δpi(Δxi,d,s) = s==0 ? 0.0 : Δxi*(((1+tol)*2R / d - 1) / 2 )
-    Threads.@threads for i in 1:2
-        # Δxy[:,:,i] .= pairwise(-,xy[:,i],xy[:,i])
-        xy[:,i] .+= sum(Δpi.(pairwise(-,xy[:,i],xy[:,i]),dists,superpose),dims=2)
-    end
-    return nothing
-end
-
-function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # called in initABPE
-    Np = size(xy,1)
-    dists = zeros(Np,Np)
-    superpose = falses(Np,Np)
-    uptriang = triu(trues(Np,Np),1)
-    hardsphere!(xy, dists, superpose, R; tol=tol)
-    return xy, dists, superpose, uptriang
-end
 
 function hardsphere_periodic!(xy::Array{Float64,2}, periodicdists::Array{Float64,2}, superpose::BitArray{2}, R::Float64,L::Float64; tol::Float64=0.)
     superpositions = 1
@@ -315,206 +249,7 @@ function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a partic
 	end
 	return nothing
 end
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#  Functions for updating reflective boundary AND WALL UPDATE
 
-function multiparticleE_wall(Np::Integer, L::Float64, R::Float64, v::Float64, Nt::Int64=2, δt::Float64=1e-3)
-    (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
-    
-    ABPE = Vector{ABPE2}(undef,Nt+1)
-    ABPE[1], matrices = initABPE( Np, L, R, v ) # including initial hardsphere correction
-    
-    simulate_wall!(ABPE, matrices, Nt, δt)
-    println("I am in multiwall update")
-    return position.(ABPE), orientation.(ABPE)
-end
-
-function simulate_wall!(ABPE, matrices, Nt, δt)
-    # PΘ = [ (position(abpe), orientation(abpe)) ]
-    # pθ = PΘ[1]
-    print_step = Nt÷100
-    start = now()
-    for nt in 1:Nt
-        # start_step = now()
-        ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
-        if nt % print_step == 0
-            elapsed = Dates.canonicalize(now()-start)
-            # per_step = Dates.canonicalize(now()-start_step)
-            print("\r$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)")#, time per step $per_step")
-        end
-    end
-    print("\n")
-    return nothing
-end
-
-function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64) where {ABPE <: ABPsEnsemble}
-    memory_step = step(abpe,δt)
-  
-    pθ = ( position(abpe), orientation(abpe) ) .+ memory_step
-
-    wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
-    #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
-    # elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
-
-    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
-    # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
-
-    return new_abpe
-end
-
-function wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for square reflective boundary
-  
-	# Boundary conditions: horizontal edge
-	idx = abs.(xy[:,1]) .> (L/2 - R)
-	if any(idx)
-		xy[idx,1] .-= 2*sign.(xy[idx,1]).*(abs.(xy[idx,1]) .- (L/2 - R)) 
-	end
-	# Boundary conditions: vertical edge
-	idy = abs.(xy[:,2]) .> (L/2 - R)
-	if any(idy)
-        xy[idy,2] .-= 2*sign.(xy[idy,2]).*(abs.(xy[idy,2]) .- (L/2 - R))
-	end
-    #println("I am in square wall")
-	return nothing
-end
-
-#----------------------------------------------------------------------------------------------------------------------------------------------------------------
-#=function circular_wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
-  # here the condition is calculated w.r.t to r value of the particle and have no edges here
-  # this is first method used 
-     
-    r = (xy[:,1]).*(xy[:,1]) + (xy[:,2]).*(xy[:,2])
-
-    rr = sqrt.(r)
-
-    rθ= atan.(xy[:,2], xy[:,1])   # angle which the particle make with the origin 
-     
-    id = rr.> (L/2 - R)        # checking the condition for r vector id = 1 when true, 0 when false
-    
-    Δr = zeros(length(r),1)
-    #println("$id")
-             
-        Δr[id] = rr[id].- (L/2 - R)
-        rr.-= 2*(Δr)
-        #println(size(rr)) # gives size of an array
-        xy[id,1] = rr[id].*(cos.(rθ[id]))
-        xy[id,2] = rr[id].*(sin.(rθ[id]))
-
-
-	
-	#println("I am in circular wall")
-	return nothing
-end
-=#
-function circular_wall_condition1g!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
-    # here the condition is calculated w.r.t to the normal at the intersection point of the radial distance with the wall
-    # this is second method used 
-       
-      r = (xy[:,1]).*(xy[:,1]) + (xy[:,2]).*(xy[:,2])
-  
-      rr = sqrt.(r)
-  
-      rθ= atan.(xy[:,2], xy[:,1])   # angle which the particle make with the origin 
-       
-      id = rr.> (L/2 - R)        # checking the condition for r vector id = 1 when true, 0 when false
-      
-      correction = zeros(length(r),1)
-      projection = zeros(length(r),1)
-      inside = zeros(length(r),1)
-      hat_normal = zeros(length(r),1)
-      x = [[p[1],p[2]] for p in eachrow(xy)]
-      
-      function grad(x::Array{Float64},R::Float64)
-       f(x) = x[1]^2 + x[2]^2 - (L*L)/4
-       df=ForwardDiff.gradient(f, [x[1],x[2]])
-       return df
-    end
-    normal = grad.(x,R)
-     
-    hat_normal = normal./norm.(normal)  # unit normal vector
-   
-    correction = (rr.-(L/2 - 2*R)).*[[cos.(θ),sin.(θ)] for θ in rθ]
-    
-    projection = dot.(correction,hat_normal)
-                                  
-    
-    inside = (0.5*L.-1*projection).*[[cos.(θ),sin.(θ)] for θ in rθ]         # the vector which is inside the boundry now
-      #println("$id")
-
-      xpos= [p[1] for p in inside]
-
-      ypos= [p[2] for p in inside]
-          
-          xy[id,1] = xpos[id,1]
-          xy[id,2] = ypos[id,1]
-  
-        println("I am in circular wall 1g")
-    
-      return nothing
-  end
-
-function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
-    # here the condition is calculated w.r.t to the normal at the intersection point of the radial distance with the wall
-    # this is second method used 
-    # orientation of particle will also change   
-        a= L/2
-        b= L/4
-
-        a1= a-R
-        b1= b-R
-         
-        #e = sqrt(1-(b/a)^2)
-      r = (xy[:,1]).*(xy[:,1]) + (xy[:,2]).*(xy[:,2])
-  
-      rₚ = sqrt.(r)                # particle r co ordinate
-  
-      rθ= atan.(xy[:,2], xy[:,1])   # angle which the particle make with the origin 
-
-      rₒ = ((a*b)./(sqrt.(((a*sin.(rθ)).^2) .+ (b*cos.(rθ)).^2)))
-
-      rₑ = rₒ .- R
-   
-      #rₑ = b/sqrt.(1 .-((e*cos.(rθ)).^2))
-      id = (rₚ .> (rₑ))
-    
-      x = [[p[1],p[2]] for p in eachrow(xy)]
-      
-      function grad(x::Array{Float64},a::Float64,b::Float64)
-        
-       f(x) = (x[1]^2)*b^2 + (x[2]^2)*a^2 - (a*b)^2
-       df=ForwardDiff.gradient(f, [x[1],x[2]])
-       return df
-       end
-    normal = grad.(x,a1,b1)     # gradient calculated from each particle position onto the ellipse boundary 
-     
-    hat_normal = normal./norm.(normal)  # unit normal vector
-
-    
-    correction_x = (rₚ .- rₑ) .*[(cos.(θ)) for θ in rθ]
-
-    correction_y = (rₚ .- rₑ) .*[(sin.(θ)) for θ in rθ]
-    
-    c= [correction_x correction_y]
-
-    correction = [[p[1],p[2]] for p in eachrow(c)]
-  
-    projection = dot.(correction,hat_normal)
-
-
-    cᵥ = 2*(projection.+0*R).* hat_normal #vector of vector
-    # to access this vector I am breaking it in x and y in the following lines
-
-    cᵥx =  [p[1] for p in cᵥ]
-
-    cᵥy =  [p[2] for p in cᵥ]
-############################# calculations for orientation vector###############################
-###########################3 conversion of vector into matrix was job of this part###########################
-        xy[id,1] .-= cᵥx[id]
-        xy[id,2] .-= cᵥy[id]
-
-      return nothing
-  end
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Function to calculate force vectors
 function interactions(xy::Array{Float64,2}, R::Float64)
