@@ -9,6 +9,7 @@ include("ABP radialdistribution.jl")
 include("ABP multifolder.jl")
 # include("ABP radialdensity.jl")
 include("ABP plot_animation.jl")
+include("ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
@@ -113,13 +114,12 @@ for i in offcenter
     pathf= pathf*filename
 
     datafname = pathf*".txt"
+    polarfname = pathf*"_polarization.txt"
 
     # Simulation and file storage
     open(datafname, "w") do infile
         writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation"], ",")
     end
-
-    fr = open(datafname, "a")
 
     start = now()
     @info "$(start) Started simulation #$i"
@@ -137,7 +137,10 @@ for i in offcenter
                 ypos= ABPE.y,
                 orientation=ABPE.θ,
             )  
-            CSV.write(fr, data, append = true)
+            CSV.write(datafname, data, append = true)
+            open(polarfname, "a") do polfile
+                write(polfile, "$(mean_polarization(ABPE.θ))\n")
+            end
         end
         ABPE =update_heun(ABPE,matrices,δt, forward, i, intrange, int_func, int_params...)
         if nt % (Nt÷100) == 0
