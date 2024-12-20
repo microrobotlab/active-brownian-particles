@@ -98,38 +98,40 @@ function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
     γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units kg/s
     γᵣ = (8e-12γₜ / 6) * abpe.R^2                #Output in international system units
 
+    wca_sigma = 2abpe.R
+    wca_range = wca_sigma*2^(1/6)
     #intermediate step
     if (!isapprox(offcenter,0.0))
         f_i, t_i = force_torque(position(abpe), orientation(abpe), abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
-        # f_i .+= interactions_range(position(abpe), abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)
+        # f_i .+= interactions_range(position(abpe), abpe.R, abpe.L, wca_range, abpe.Np, weeks_chandler_andersen, wca_sigma, 1.)
     else
         f_i = interactions_range(position(abpe), abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
-        # f_i .+= interactions_range(position(abpe), abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)
+        # f_i .+= interactions_range(position(abpe), abpe.R, abpe.L, wca_range, abpe.Np, weeks_chandler_andersen, wca_sigma, 1.)
         t_i = zeros(abpe.Np)
     end 
 
     det_part_i = (abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ 1e-6f_i/γₜ, abpe.ω .+ 1e-18t_i/γᵣ)
-    δp_i .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*det_part_i[1]
-    δθ_i .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*det_part_i[2]
+    noise_part =  (sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2), sqrt(2*abpe.DR*δt)*randn(abpe.Np))
+    δp_i .= noise_part[1] .+ δt.*det_part_i[1]
+    δθ_i .= noise_part[2] .+ δt.*det_part_i[2]
 
     pθ_i = (position(abpe), orientation(abpe)) .+ (δp_i, δθ_i)
 
     periodic_BC_array!(pθ_i[1], abpe.L, abpe.R)
-    hardsphere_periodic!(pθ_i[1], matrices[1], matrices[2],abpe.R, abpe.L)
 
     #final step
     if (!isapprox(offcenter,0.0))
         f_f, t_f = force_torque(pθ_i..., abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
-        # f_f .+= interactions_range(pθ_i[1], abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)
+        # f_f .+= interactions_range(pθ_i[1], abpe.R, abpe.L, wca_range, abpe.Np, weeks_chandler_andersen, wca_sigma, 1.)
     else
         f_f = interactions_range(pθ_i[1], abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
-        # f_f .+= interactions_range(pθ_i[1], abpe.R, abpe.L, 2R-1e-3, abpe.Np, excluded_volume, abpe.R, 1.)
+        # f_f .+= interactions_range(pθ_i[1], abpe.R, abpe.L, wca_range, abpe.Np, weeks_chandler_andersen, wca_sigma, 1.)
         t_f = zeros(abpe.Np)
     end 
 
     det_part_f = (abpe.v.*[cos.(pθ_i[2]) sin.(pθ_i[2])] .+ 1e-6f_f/γₜ, abpe.ω .+ 1e-18t_f/γᵣ)
-    δp_f .= sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ δt.*(det_part_f[1] .+ det_part_i[1])/2
-    δθ_f .= sqrt(2*abpe.DR*δt)*randn(abpe.Np) .+ δt.*(det_part_f[2] + det_part_i[2])/2
+    δp_f .= noise_part[1] .+ δt.*(det_part_f[1] .+ det_part_i[1])/2
+    δθ_f .= noise_part[2] .+ δt.*(det_part_f[2] + det_part_i[2])/2
 
     pθ = (position(abpe), orientation(abpe)) .+ (δp_f, δθ_f)
 
@@ -317,7 +319,7 @@ lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))/(x^(13)))- (σ^(6)/(x^(7))))
 shifted_lennard_jones(x, σ, ϵ, shift) = 24*ϵ*(((2*σ^(12))/((x-shift)^(13)))- (σ^(6)/((x-shift)^(7))))
 
 
-function weeks_chandler_anderson(x, σ::Float64, ϵ::Float64)
+function weeks_chandler_andersen(x, σ::Float64, ϵ::Float64)
     rmin = σ*2^(1/6)
     if x > rmin
         return 0

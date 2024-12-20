@@ -17,7 +17,7 @@ path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulation
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e3)           # number of steps
+Nt = Int(2e5)           # number of steps
 δt = 5e-2          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
@@ -29,10 +29,10 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
-L = 100.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 150.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = 10.	            # μm/s particle s
+v = 15.	            # μm/s particle s
 ω = 0.       # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
@@ -40,7 +40,7 @@ T = 300. # K temperature
 int_func = coulomb
 forward = true
 intrange = 5. # interaction range
-offcenter = collect(0:0.5:1)
+offcenter = collect(0.01:0.01:0.05)
 int_params = (10.) # σ and ϵ in the case of LJ 
 
 ## PRELIMINARY CALCULATIONS
@@ -72,7 +72,7 @@ patht= joinpath(pathmain,"data\\")
 
 mainfolder1= mkdir(patht)
 
-folders=  multipledir_oc(patht,offcenter) 
+folders=  multipledir_oc(patht, offcenter) 
 
 # Info printing on shell and file
 infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nRange: %.1f μm\nOffcenter: %s" box_shape Np density R T v ω a b packing_fraction δt measevery  Nt T_tot int_func int_params intrange offcenter*(2*forward-1)
@@ -150,6 +150,6 @@ for i in offcenter
     end
     @info "$(now()) Simulation and file writing finished"
     if animation
-        animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = false, record=true, final_format = "mkv", color_code_dir = true)
+        animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = true, record=false, final_format = "mkv", color_code_dir = true)
     end
 end
