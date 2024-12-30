@@ -29,8 +29,8 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
-L = 150.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 100.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 15.	            # μm/s particle s
 ω = 0.       # s⁻¹ particle angular velocity
@@ -40,7 +40,7 @@ T = 300. # K temperature
 int_func = coulomb
 forward = true
 intrange = 5. # interaction range
-offcenter = collect(0:0.5:1)
+offcenter = collect(0.0:0.05:1.0)
 int_params = (10.) # σ and ϵ in the case of LJ 
 
 ## PRELIMINARY CALCULATIONS
@@ -129,7 +129,7 @@ for i in offcenter
         if nt % measevery == 0
             pnumber = collect(1:Np)
             time = fill(nt, Np)
-            #creating DataFrame
+            #creating Data
             data = DataFrame(
                 N= pnumber,
                 Time= time,
@@ -147,8 +147,7 @@ for i in offcenter
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
         end
-    end 
-    close(fr)
+    end
     @info "$(now()) Simulation and file writing finished"
     if animation
         animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = false, record=false, final_format = "mkv", color_code_dir = true)
