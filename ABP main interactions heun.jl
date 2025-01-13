@@ -369,3 +369,5 @@ end
 coulomb(x,k) = k / x^2
 
 excluded_volume(x::Float64,R::Float64, ϵ::Float64) = 12ϵ*((2R)^12)x^(-13)
+
+spring(x,k, x0) = -k*(x-x0)
