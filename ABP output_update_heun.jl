@@ -13,35 +13,36 @@ include("ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = "D:\\NiccoloP\\simulations\\flocking2"
+path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations"
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(2e5)           # number of steps
+Nt = Int(2e3)           # number of stepss
 δt = 5e-2          # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
 measevery = Int(1e0)           # Downsampling in file
-animation = false
+animation = true
 radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
-L = 100.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 50.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*20 # Largest pf for spherical beads π/4 = 0.7853981633974483
+
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = 10.	            # μm/s particle s
+v = 15.	            # μm/s particle s
 ω = 0.       # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
-int_func = coulomb
+int_func = spring
 forward = true
-intrange = 5. # interaction range
-offcenter = collect(0.0:0.025:0.25)
-int_params = (1.) # σ and ϵ in the case of LJ 
+intrange = L*sqrt(2) # interaction range
+offcenter = 0.#collect(0.0:0.05:1.0)
+int_params = [(.01, 3R),(.01, 5R)] # σ and ϵ in the case of LJ 
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
@@ -60,96 +61,99 @@ elseif box_shape == :ellipse
     density = Np/area_el
 end
 
-## NAMING AND FILE MANAGEMENT
-datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # today's date
-println(datestamp)
+for pars in int_params
+    
+    ## NAMING AND FILE MANAGEMENT
+    datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # today's date
+    println(datestamp)
 
-pathmain= joinpath(path, datestamp)
+    pathmain= joinpath(path, datestamp)
 
-mainfolder= mkdir(pathmain)    # creates a folder named today's date
+    mainfolder= mkdir(pathmain)    # creates a folder named today's date
 
-patht= joinpath(pathmain,"data\\")
+    patht= joinpath(pathmain,"data\\")
 
-mainfolder1= mkdir(patht)
+    mainfolder1= mkdir(patht)
 
-folders=  multipledir_oc(patht, offcenter) 
+    folders=  multipledir(patht, ICS) 
 
-# Info printing on shell and file
-infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nRange: %.1f μm\nOffcenter: %s" box_shape Np density R T v ω a b packing_fraction δt measevery  Nt T_tot int_func int_params intrange offcenter*(2*forward-1)
+    # Info printing on shell and file
+    infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nRange: %.1f μm\nOffcenter: %s" box_shape Np density R T v ω a b packing_fraction δt measevery  Nt T_tot int_func pars intrange offcenter*(2*forward-1)
 
-println(infos)
+    println(infos)
 
-info_file_path = joinpath(mainfolder, "simulation_info.txt")
-open(info_file_path, "w") do infile
-    write(infile, infos)
-end
-
-info_dict = Dict(
-    "Box shape" => box_shape,
-    "Np" => Np,
-    "numdensity" => density,
-    "R" => R,
-    "T" => T,
-    "v" => v,
-    "ω" => ω,
-    "a" => a,
-    "b" => b,
-    "pf" => packing_fraction,
-    "dt" => δt,
-    "measevery" => measevery,
-    "Nt" => Nt,
-    "T_tot" => T_tot,
-    "int_func" => string(int_func),
-    "int_params" => int_params,
-    "intrange" => intrange,
-    "offcenter" => offcenter,
-)
-
-JLD2.save(joinpath(mainfolder, "siminfo_dict.jld2"), info_dict)
-
-for i in offcenter
-    pathf= joinpath(patht, "oc$i\\")
-
-    filename= "$datestamp"*"_oc$i"
-    pathf= pathf*filename
-
-    datafname = pathf*".txt"
-    polarfname = pathf*"_polarization.txt"
-
-    # Simulation and file storage
-    open(datafname, "w") do infile
-        writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation"], ",")
+    info_file_path = joinpath(mainfolder, "simulation_info.txt")
+    open(info_file_path, "w") do infile
+        write(infile, infos)
     end
 
-    start = now()
-    @info "$(start) Started simulation #$i"
+    info_dict = Dict(
+        "Box shape" => box_shape,
+        "Np" => Np,
+        "numdensity" => density,
+        "R" => R,
+        "T" => T,
+        "v" => v,
+        "ω" => ω,
+        "a" => a,
+        "b" => b,
+        "pf" => packing_fraction,
+        "dt" => δt,
+        "measevery" => measevery,
+        "Nt" => Nt,
+        "T_tot" => T_tot,
+        "int_func" => string(int_func),
+        "int_params" => pars,
+        "intrange" => intrange,
+        "offcenter" => offcenter,
+    )
 
-    ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, forward, i, intrange, int_params...,)
-    for nt in 0:Nt
-        if nt % measevery == 0
-            pnumber = collect(1:Np)
-            time = fill(nt, Np)
-            #creating Data
-            data = DataFrame(
-                N= pnumber,
-                Time= time,
-                xpos= ABPE.x,
-                ypos= ABPE.y,
-                orientation=ABPE.θ,
-            )  
-            CSV.write(datafname, data, append = true)
-            open(polarfname, "a") do polfile
-                write(polfile, "$(mean_polarization(ABPE.θ))\n")
+    JLD2.save(joinpath(mainfolder, "siminfo_dict.jld2"), info_dict)
+
+    for i in ICS
+        pathf= joinpath(patht, "run$i\\")
+
+        filename= "$datestamp"*"_run$i"
+        pathf= pathf*filename
+
+        datafname = pathf*".txt"
+        # polarfname = pathf*"_polarization.txt"
+
+        # Simulation and file storage
+        open(datafname, "w") do infile
+            writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation"], ",")
+        end
+
+        start = now()
+        @info "$(start) Started simulation #$i"
+
+        ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, forward, offcenter, intrange, pars...,)
+        for nt in 0:Nt
+            if nt % measevery == 0
+                pnumber = collect(1:Np)
+                time = fill(nt, Np)
+                #creating Data
+                data = DataFrame(
+                    N= pnumber,
+                    Time= time,
+                    xpos= ABPE.x,
+                    ypos= ABPE.y,
+                    orientation=ABPE.θ,
+                )  
+                CSV.write(datafname, data, append = true)
+                # open(polarfname, "a") do polfile
+                #     write(polfile, "$(mean_polarization(ABPE.θ))\n")
+                # end
+            end
+            ABPE =update_heun(ABPE,matrices,δt, forward, offcenter, intrange, int_func, pars...)
+            if nt % (Nt÷100) == 0
+                elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
+                print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
             end
         end
-        ABPE =update_heun(ABPE,matrices,δt, forward, i, intrange, int_func, int_params...)
-        if nt % (Nt÷100) == 0
-            elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
-            print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
+        @info "$(now()) Simulation and file writing finished"
+        if animation
+            animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = true, record=false, final_format = "mkv", color_code_dir = true)
         end
-    end
-    @info "$(now()) Simulation and file writing finished"
-    if animation
-        animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = true, record=false, final_format = "mkv", color_code_dir = true)
     end
 end
