@@ -54,6 +54,5 @@ Takes a position matrix and a range as arguments and returns the cluster size di
 """
 function cluster_size_distribution(xy::Array{Float64,2}, intrange::Float64)
     res = dbscan(xy', intrange, min_cluster_size = 2)
-    cs_distribution = countmap(res.assignments)
-    return cs_distribution
+    return res.counts
 end 
