@@ -1,17 +1,18 @@
 using DelimitedFiles, Plots
 include("stat_toolbox.jl")
 
-folder = joinpath("..", "simulations", "flocking2")
+folder = "D:\\NiccoloP\\simulations\\flocking2\\20250110-111152\\data"
 
 filevec = readdir(folder)
 oc=Float64[]
 pol_list = Vector{Float64}[]
-for filename in filevec
-    from = findfirst("oc", filename)[end] +1
-    to = findfirst("_p", filename)[1] -1
-    offc = filename[from:to]
+for foldername in filevec
+    from = findfirst("oc", foldername)[end] +1
+    offc = foldername[from:end]
     push!(oc, parse(Float64, offc))
-    pv = readdlm(joinpath(folder, filename))
+    polarfile = filter(name -> occursin("polarization", name), readdir(joinpath(folder, foldername)))
+    println(polarfile)
+    pv = readdlm(joinpath(folder, foldername, polarfile[1]))
     push!(pol_list, vec(pv))
 end
 sort_ind = sortperm(oc)
