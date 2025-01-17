@@ -150,6 +150,42 @@ function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L:
     return forces, torques
 end
 
+function offcenter_nosuperpose!(abpe::ABPE2, δt::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...)
+    xy = position(abpe)
+    θ = orientation(abpe)
+    R = abpe.R
+    L = abpe.L
+    γₜ = diffusion_coeff(1e-6*R, T)[3] #Output in international system units kg/s
+    γᵣ = (8e-12γₜ / 6) * R^2                #Output in international system units
+
+    xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
+
+    ocdists = pairwise(Euclidean(), xy_chgcen, xy_chgcen, dims=1)
+    superpositions = sum(0.0 .< ocdists .< 2R)/2
+    j = 0
+    while superpositions > 0
+        # sup_per_particle = sum(ocdists .< 2R, dims=1)
+        # println(sup_per_particle)
+        # break
+        # if j<=100
+        #     t = force_torque(xy_chgcen, θ, R, L, forward, offcenter, range, int_func, int_params...)[2]
+        #     δθ = (δt)*1e-18t/γᵣ
+        #     abpe.θ .+= δθ
+        #     xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
+        #     superpositions = sum(0.0 .< pairwise(Euclidean(), xy_chgcen, xy_chgcen, dims=1) .< 2R)/2
+        #     j +=1
+        #     else
+        ocdists = pairwise(Euclidean(), xy_chgcen, xy_chgcen, dims=1)
+        sup_per_particle = sum(0.0 .< ocdists .< 2R, dims=1)
+        id = vec(sup_per_particle .> 0)
+        abpe.θ[id] .+= rand(abpe.θ[id.>0]).*2π
+        xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
+        superpositions = sum(0.0 .< pairwise(Euclidean(), xy_chgcen, xy_chgcen, dims=1) .< 2R)/2
+        j +=1
+        # end
+    end
+    return nothing
+end
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions for the hard sphere corrections
 
