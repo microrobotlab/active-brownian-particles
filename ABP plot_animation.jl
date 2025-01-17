@@ -3,9 +3,15 @@ using GeometryBasics: Point2f, Circle, Point2f0, Polygon
 using CSV, DataFrames, Dates, Logging
 include("geo_toolbox.jl")
 
-function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, downsampling::Int=1; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
+function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
     fname = pathf*ext
-    timestep *= measevery*downsampling
+    timestep *= measevery
+    if output_framerate > 1/timestep
+        output_framerate = Int(1/timestep)
+        downsampling = 1
+    else
+        downsampling = Int(1/(timestep*output_framerate))
+    end
     df = CSV.read(fname, DataFrame)    
     Np = maximum(df[!,:N])
     xpos = Array(df[!,:xpos])
@@ -39,7 +45,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     if record
         timestamps = 1:(size(xpos,2))
         GLMakie.record(fig, pathf*".$final_format", timestamps;
-        framerate = Int(1/timestep)) do t
+        framerate = output_framerate) do t
             simstep[] = t
         end
         @info "$(now()) Animation saved to $pathf.$final_format"

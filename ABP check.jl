@@ -2,7 +2,7 @@ using CSV, DataFrames
 
 path="D:\\NiccoloP\\simulations\\spring"
 
-datestamp = "20250113-112135"
+datestamp = "20250117-092238"
 
 df_list = []
 for p in readdir(joinpath(path,datestamp,"data"), join = true)

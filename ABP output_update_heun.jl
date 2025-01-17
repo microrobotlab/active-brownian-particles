@@ -17,9 +17,9 @@ path = "D:\\nic_simulations\\spring2"
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e3)           # number of stepss
-δt = 1e-4          # s step time
-ICS=100                  # Number of intial conditons to be scanned 
+Nt = Int(2e5)           # number of stepss
+δt = 5e-3       # s step time
+ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
 measevery = Int(1e0)           # Downsampling in file
 animation = false
@@ -30,7 +30,7 @@ BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
 L = 100.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
+packing_fraction = 0.1#(pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 10.	            # μm/s particle s
@@ -38,13 +38,11 @@ v = 10.	            # μm/s particle s
 T = 300. # K temperature
 
 # Interaction parameters
-int_func = spring
+int_func = lennard_jones
 forward = true
-intrange = L*sqrt(2) # interaction range
-offcenter = 0.#collect(0.0:0.05:1.0)
-# σ = 2R
-# ϵ = exp10.(collect(-5:1:0))
-int_params = (0.01, 4.) # σ and ϵ in the case of LJ 
+intrange = 20R # interaction range
+offcenter = 0.5   #collect(0.0:0.05:1.0)
+int_params = (2R, .1) # σ and ϵ in the case of LJ 
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
@@ -66,22 +64,38 @@ end
 ## NAMING AND FILE MANAGEMENT
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # today's date
 println(datestamp)
+   
+## NAMING AND FILE MANAGEMENT
+datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # today's date
+println(datestamp)
 
+pathmain= joinpath(path, datestamp)
 pathmain= joinpath(path, datestamp)
 
 mainfolder= mkdir(pathmain)    # creates a folder named today's date
+mainfolder= mkdir(pathmain)    # creates a folder named today's date
 
+patht= joinpath(pathmain,"data\\")
 patht= joinpath(pathmain,"data\\")
 
 mainfolder1= mkdir(patht)
+mainfolder1= mkdir(patht)
 
+folders=  multipledir(patht, ICS) 
 folders=  multipledir(patht, ICS) 
 
 # Info printing on shell and file
 infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nRange: %.1f μm\nOffcenter: %s" box_shape Np density R T v ω a b packing_fraction δt measevery  Nt T_tot int_func int_params intrange offcenter*(2*forward-1)
+# Info printing on shell and file
+infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nRange: %.1f μm\nOffcenter: %s" box_shape Np density R T v ω a b packing_fraction δt measevery  Nt T_tot int_func int_params intrange offcenter*(2*forward-1)
 
 println(infos)
+println(infos)
 
+info_file_path = joinpath(mainfolder, "simulation_info.txt")
+open(info_file_path, "w") do infile
+    write(infile, infos)
+end
 info_file_path = joinpath(mainfolder, "simulation_info.txt")
 open(info_file_path, "w") do infile
     write(infile, infos)
@@ -107,10 +121,31 @@ info_dict = Dict(
     "intrange" => intrange,
     "offcenter" => offcenter,
 )
+info_dict = Dict(
+    "Box shape" => box_shape,
+    "Np" => Np,
+    "numdensity" => density,
+    "R" => R,
+    "T" => T,
+    "v" => v,
+    "ω" => ω,
+    "a" => a,
+    "b" => b,
+    "pf" => packing_fraction,
+    "dt" => δt,
+    "measevery" => measevery,
+    "Nt" => Nt,
+    "T_tot" => T_tot,
+    "int_func" => string(int_func),
+    "int_params" => int_params,
+    "intrange" => intrange,
+    "offcenter" => offcenter,
+)
 
 JLD2.save(joinpath(mainfolder, "siminfo_dict.jld2"), info_dict)
+JLD2.save(joinpath(mainfolder, "siminfo_dict.jld2"), info_dict)
 
-for i in 1:ICS
+for i in ICS
     pathf= joinpath(patht, "run$i\\")
 
     filename= "$datestamp"*"_run$i"
@@ -127,7 +162,11 @@ for i in 1:ICS
     start = now()
     @info "$(start) Started simulation #$i"
 
+
     ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, forward, offcenter, intrange, int_params...,)
+    if int_func == lennard_jones
+        offcenter_nosuperpose!(ABPE, δt, forward, offcenter, 2R+1e-3, int_func, int_params...)
+    end
     for nt in 0:Nt
         if nt % measevery == 0
             pnumber = collect(1:Np)
@@ -153,8 +192,7 @@ for i in 1:ICS
     end
     @info "$(now()) Simulation and file writing finished"
     if animation
-        animation_from_file(pathf,L,R,δt,measevery,animation_ds, show = true, record=false, final_format = "mkv", color_code_dir = true)
+        animation_from_file(pathf,L,R,δt,measevery,25, show = true, record=true, final_format = "mkv", color_code_dir = true)
     end
 end
-
 
