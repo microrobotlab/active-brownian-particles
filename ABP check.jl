@@ -1,19 +1,19 @@
 using CSV, DataFrames
 
-path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\"
+path="D:\\NiccoloP\\simulations\\spring"
 
-datestamp = "20241218-161428"
+datestamp = "20250113-112135"
 
 df_list = []
 for p in readdir(joinpath(path,datestamp,"data"), join = true)
     if isdir(p)
-        num = p[91:end]
+        num = p[findfirst("run", p)[end]+1:end]
         df = CSV.read(joinpath(p, datestamp*"_run$num.txt"), DataFrame)
         push!(df_list, df)
     end
 end
 
-L= 150.
+L= 100.
 R = 2.
 
 
