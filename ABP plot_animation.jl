@@ -1,4 +1,4 @@
-using GLMakie
+using GLMakie, CairoMakie
 using GeometryBasics: Point2f, Circle, Point2f0, Polygon
 using CSV, DataFrames, Dates, Logging
 include("geo_toolbox.jl")
@@ -111,4 +111,26 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
     end
     return nothing
 
+end
+
+function plot_one_timestep(df::DataFrame, R::Number, L::Number, timestep::Int)
+
+    Np = maximum(df[!,:N])
+    xpos = Array(df[!,:xpos])
+    ypos = Array(df[!,:ypos])
+    θ = Array(df[!,:orientation])
+
+    xpos = reshape(xpos, Np,:)
+    ypos = reshape(ypos, Np,:)
+    θ = reshape(θ, Np,:)
+    pirotation!(θ)
+    u,v = cos.(θ), sin.(θ)
+
+
+    fig = CairoMakie.Figure()
+    ax = CairoMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
+    mrk = CairoMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
+    sc = CairoMakie.scatter!(ax, xpos[:,timestep], ypos[:,timestep], marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
+    ar = CairoMakie.arrows!(ax, xpos[:,timestep], ypos[:,timestep], u[:,timestep], v[:,timestep], color = θ[:,timestep], colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
+    display(fig)
 end
