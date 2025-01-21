@@ -12,7 +12,7 @@ function stat_analysis1(a,b,R,pathf,δt,symmetry)
   
   fmain= pathf*".csv"
   df= CSV.read(fmain, DataFrame)
-  time= unique(df[!,:StepN])*δt  # not to repeat the time in data df[!,:StepN]*δt
+  @show time= unique(df[!,:StepN])*δt  # not to repeat the time in data df[!,:StepN]*δt
   df[!,:StepN] = categorical(df[!,:StepN],compress=true) # it sorts out time step data 
 
   ## Group dataframe by values in categorical column
@@ -111,6 +111,7 @@ function curvature_analysis(a,b,R,time,gdf,pathf,δt)
   f5= pathf*"_p.csv"
   f6= pathf*"_N.png"
   f7= pathf*"_Ndiff_eqs.png"
+  f8= pathf*"_Ndiff_curvature.png"
   n1,n2,n3,n4=[], [], [], []
 
   i= (time/δt)
@@ -184,11 +185,14 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
 
    t6= scatter(time,n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
 
+   t7= scatter(time,(n1.+n2).-(n3.+n4), ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{eq}}-\mathrm{N_{Pole}}") 
    p= plot(t1,t2,t3,t4, layout=(2,2))
 
    q= plot(t5,t6, layout=(2,1))
+   k=plot(t7,layout=(1,1))
    savefig(p,f6)
    savefig(q,f7)
+   savefig(k,f8)
    
     #creating DataFrame for number of particles at equators n1, and at poles n2
     data = DataFrame(t= time, NeqL = n1, NeqR = n2, NpoleU = n3, NpoleD = n4)

@@ -141,12 +141,11 @@ end
 
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
 # mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-# (average(mainfolder))   # passing path of the main folders which has all the runs
+# (average(mainfolder))   # passing path of the main folders which has all the run Sant'Anna\P07Coding\2024\11.November\20241128-183816\R=2.0 v=15.0 a=50.0 b=25.0 pf=0.2
 
-
- mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\2024\\11.November\\20241126-174736\\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\\run1\\"
+ mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\2024\\11.November\\20241126-174736\\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\\run2\\"
  
-   filename="20241126-174736 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1"
+   filename="20241126-174736 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run2"
  
    t = joinpath(mainfolder, filename)
    f1 = joinpath(mainfolder, filename * ".csv")
@@ -155,7 +154,7 @@ end
   # t=raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2024\10.October\ellipse\20241023-135540\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\run1\20241023-135540 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1_p.csv"
   #  f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
    df= CSV.read(f1,DataFrame) 
-  
+   inside_Np=stat_analysis1(a,b,R,t,δt,2)
    FFT_analysis(t,δt,resample) 
 
 #  @time inside_Np=stat_analysis1(a,b,R,t,δt,2) # 0 for pole, equator, 1 for only right left, 2 for entire
