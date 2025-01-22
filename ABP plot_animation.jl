@@ -2,6 +2,7 @@ using GLMakie, CairoMakie
 using GeometryBasics: Point2f, Circle, Point2f0, Polygon
 using CSV, DataFrames, Dates, Logging
 include("geo_toolbox.jl")
+GLMakie.activate!(inline=false)
 
 function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
     fname = pathf*ext
@@ -57,7 +58,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
         on(slider.value) do val
             simstep[] = round(Int, val)
         end
-        display(fig)
+        GLMakie.display(fig)
     end
     return nothing
 
@@ -107,7 +108,7 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
         on(slider.value) do val
             simstep[] = round(Int, val)
         end
-        display(fig)
+        GLMakie.display(fig)
     end
     return nothing
 
@@ -132,5 +133,5 @@ function plot_one_timestep(df::DataFrame, R::Number, L::Number, timestep::Int)
     mrk = CairoMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
     sc = CairoMakie.scatter!(ax, xpos[:,timestep], ypos[:,timestep], marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
     ar = CairoMakie.arrows!(ax, xpos[:,timestep], ypos[:,timestep], u[:,timestep], v[:,timestep], color = θ[:,timestep], colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
-    display(fig)
+    CairoMakie.display(fig)
 end
