@@ -38,9 +38,9 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
     sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
     if color_code_dir
-        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
+        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 500R/L, linewidth = 2.5)
     else
-        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 500R/L, linewidth = 2.5)
     end
 
     if record
@@ -88,9 +88,9 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
     mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
     sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
     if color_code_dir
-        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
+        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 500R/L, linewidth = 2.5)
     else
-        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 500R/L, linewidth = 2.5)
     end
 
     if record
@@ -136,7 +136,7 @@ function plot_one_timestep(df::DataFrame, R::Number, L::Number, timestep::Int; s
     end
     mrk = CairoMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
     sc = CairoMakie.scatter!(ax, xpos[:,timestep], ypos[:,timestep], marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
-    ar = CairoMakie.arrows!(ax, xpos[:,timestep], ypos[:,timestep], u[:,timestep], v[:,timestep], color = θ[:,timestep], colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
+    ar = CairoMakie.arrows!(ax, xpos[:,timestep], ypos[:,timestep], u[:,timestep], v[:,timestep], color = θ[:,timestep], colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 500R/L, linewidth = 2.5)
 
     CairoMakie.display(fig)
     if savepath !== nothing
