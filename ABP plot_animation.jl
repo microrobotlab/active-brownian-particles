@@ -5,6 +5,8 @@ include("geo_toolbox.jl")
 GLMakie.activate!(inline=false)
 
 function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
+    GLMakie.activate!(inline=false)
+
     fname = pathf*ext
     timestep *= measevery
     if output_framerate > 1/timestep
@@ -65,6 +67,8 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
 end
 
 function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int, timestep::Float64,Nt::Int,measevery::Int, downsampling::Int=1; show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
+    GLMakie.activate!(inline=false)
+
     pos = vcat(history[1]...)
     orient = vcat(history[2]...)
 
@@ -115,6 +119,7 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
 end
 
 function plot_one_timestep(df::DataFrame, R::Number, L::Number, timestep::Int; savepath = nothing, title= nothing)
+    CairoMakie.activate!(inline=true)
 
     Np = maximum(df[!,:N])
     xpos = Array(df[!,:xpos])
