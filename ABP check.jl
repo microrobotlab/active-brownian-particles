@@ -1,11 +1,14 @@
 using CSV, DataFrames
 
-path="D:\\NiccoloP\\simulations\\spring"
+path="D:\\nic_simulations\\lj_offcenter"
 
-datestamp = "20250117-092238"
+datestamp = "20250124-102030"
 
 df_list = []
+i = 0
 for p in readdir(joinpath(path,datestamp,"data"), join = true)
+    global i+=1
+    i>1 && break
     if isdir(p)
         num = p[findfirst("run", p)[end]+1:end]
         df = CSV.read(joinpath(p, datestamp*"_run$num.txt"), DataFrame)
@@ -13,7 +16,7 @@ for p in readdir(joinpath(path,datestamp,"data"), join = true)
     end
 end
 
-L= 100.
+L= 175.
 R = 2.
 
 
