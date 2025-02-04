@@ -10,7 +10,7 @@ for p in readdir(joinpath(path,datestamp,"data"), join = true)
     global i+=1
     i>1 && break
     if isdir(p)
-        num = p[findfirst("run", p)[end]+1:end]
+        num = p[91:end]
         df = CSV.read(joinpath(p, datestamp*"_run$num.txt"), DataFrame)
         push!(df_list, df)
     end

@@ -5,6 +5,8 @@ include("geo_toolbox.jl")
 GLMakie.activate!(inline=false)
 
 function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
+    GLMakie.activate!(inline=false)
+
     fname = pathf*ext
     timestep *= measevery
     if output_framerate > 1/timestep
@@ -22,26 +24,23 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     xpos = reshape(xpos, Np,:)[:,1:downsampling:end]
     ypos = reshape(ypos, Np,:)[:,1:downsampling:end]
     θ = reshape(θ, Np,:)[:,1:downsampling:end]
-    u,v = cos.(θ), sin.(θ)
     pirotation!(θ)
 
     simstep = Observable(1)
-
     xs = @lift xpos[:,$simstep]
     ys = @lift ypos[:,$simstep]
-    us = @lift u[:,$simstep]
-    vs = @lift v[:,$simstep]
     θs = @lift θ[:,$simstep]
 
-    fig = GLMakie.Figure()
+    fig = GLMakie.Figure(size = (1080,1080))
     ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
-    mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
-    sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
+    mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 1.))
+    mrkdir = Polygon(Point2f[(0.6,0), (-0.4,0.4), (-0.4, -0.4)])
     if color_code_dir
-        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
+        sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, alpha = 0.5, markerspace = :data, markersize = R)
     else
-        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+        sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = :slategrey, markerspace = :data, markersize = R)
     end
+    GLMakie.scatter!(ax, xs, ys, marker = mrkdir, rotation = θs,  color = :black, markerspace = :data, markersize = 3.)
 
     if record
         timestamps = 1:(size(xpos,2))
@@ -53,7 +52,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     end
 
     if show
-        slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1)
+        slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1, color_active =:grey12, color_inactive = :grey60, color_active_dimmed = :grey30)
 
         on(slider.value) do val
             simstep[] = round(Int, val)
@@ -65,6 +64,8 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
 end
 
 function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int, timestep::Float64,Nt::Int,measevery::Int, downsampling::Int=1; show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
+    GLMakie.activate!(inline=false)
+
     pos = vcat(history[1]...)
     orient = vcat(history[2]...)
 
@@ -73,25 +74,23 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
     xpos = reshape(pos[:,1], Np,:)[:,1:downsampling:end]
     ypos = reshape(pos[:,2], Np,:)[:,1:downsampling:end]
     θ = reshape(orient, Np,:)[:,1:downsampling:end]
-    u,v = cos.(θ), sin.(θ)
     pirotation!(θ)
 
     simstep = Observable(1)
     xs = @lift xpos[:,$simstep]
     ys = @lift ypos[:,$simstep]
-    us = @lift u[:,$simstep]
-    vs = @lift v[:,$simstep]
     θs = @lift θ[:,$simstep]
 
-    fig = GLMakie.Figure()
+    fig = GLMakie.Figure(size = (600,600))
     ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
-    mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
-    sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
+    mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 1))
+    mrkdir = Polygon(Point2f[(0.6,0), (-0.4,0.4), (-0.4, -0.4)])
     if color_code_dir
-        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
+        sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, alpha = 0.5, markerspace = :data, markersize = R)
     else
-        ar = GLMakie.arrows!(ax, xs, ys, us, vs, color = :black, lengthscale=R, arrowsize = 300R/L)
+        sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = :slategrey, markerspace = :data, markersize = R)
     end
+    GLMakie.scatter!(ax, xs, ys, marker = mrkdir, rotation = θs,  color = :black, markerspace = :data, markersize = 3.)
 
     if record
         timestamps = 1:(size(xpos,2))
@@ -115,6 +114,7 @@ function animation_from_history(history, pathf, L::Float64, R::Float64, Np::Int,
 end
 
 function plot_one_timestep(df::DataFrame, R::Number, L::Number, timestep::Int; savepath = nothing, title= nothing)
+    CairoMakie.activate!(inline=true)
 
     Np = maximum(df[!,:N])
     xpos = Array(df[!,:xpos])
@@ -125,18 +125,18 @@ function plot_one_timestep(df::DataFrame, R::Number, L::Number, timestep::Int; s
     ypos = reshape(ypos, Np,:)
     θ = reshape(θ, Np,:)
     pirotation!(θ)
-    u,v = cos.(θ), sin.(θ)
 
-
-    fig = CairoMakie.Figure()
+    fig = CairoMakie.Figure(size = (1080,1080))
     if title !== nothing
         ax = CairoMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1, title = title)
     else
         ax = CairoMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
     end
-    mrk = CairoMakie.decompose(Point2f,Circle(Point2f0(0), 2R))
-    sc = CairoMakie.scatter!(ax, xpos[:,timestep], ypos[:,timestep], marker = Polygon(mrk),markersize = 200/L, color=:slategrey)
-    ar = CairoMakie.arrows!(ax, xpos[:,timestep], ypos[:,timestep], u[:,timestep], v[:,timestep], color = θ[:,timestep], colormap = :cyclic_mygbm_30_95_c78_n256_s25, lengthscale=R, arrowsize = 300R/L)
+
+    mrk = CairoMakie.decompose(Point2f,Circle(Point2f0(0), 1))
+    sc = CairoMakie.scatter!(ax, xpos[:,timestep], ypos[:,timestep], marker = Polygon(mrk), color = θ[:,timestep], colormap = :cyclic_mygbm_30_95_c78_n256_s25, alpha = 0.5, markerspace = :data, markersize = R)
+    mrkdir = Polygon(Point2f[(0.6,0), (-0.4,0.4), (-0.4, -0.4)])
+    CairoMakie.scatter!(ax, xpos[:,timestep], ypos[:,timestep], marker = mrkdir, rotation = θ[:,timestep],  color = :black, markerspace = :data, markersize = 3.)
 
     CairoMakie.display(fig)
     if savepath !== nothing
