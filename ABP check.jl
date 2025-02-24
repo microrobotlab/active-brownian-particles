@@ -2,7 +2,7 @@ using CSV, DataFrames
 
 path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\"
 
-datestamp = "20250117-123605"
+datestamp = "20250130-111919"
 
 df_list = []
 for p in readdir(joinpath(path,datestamp,"data"), join = true)
@@ -13,7 +13,7 @@ for p in readdir(joinpath(path,datestamp,"data"), join = true)
     end
 end
 
-L= 100.
+L= 175.
 R = 2.
 
 
