@@ -2,7 +2,7 @@ using CSV, DataFrames, .Threads
 
 path="D:\\nic_simulations\\tests"
 
-datestamp = "20250211-110837"
+datestamp = "20250130-111919"
 
 df_list = []
 for p in readdir(joinpath(path,datestamp,"data"), join = true)
