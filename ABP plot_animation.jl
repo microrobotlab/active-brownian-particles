@@ -126,7 +126,7 @@ function plot_one_timestep(df::DataFrame, R::Number, L::Number, timestep::Int; s
     θ = reshape(θ, Np,:)
     pirotation!(θ)
 
-    fig = CairoMakie.Figure(size = (1080,1080))
+    fig = CairoMakie.Figure(size = (1080,1080), fontsize = 40,figure_padding = 25)
     if title !== nothing
         ax = CairoMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1, title = title)
     else
