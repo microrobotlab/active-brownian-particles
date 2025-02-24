@@ -42,7 +42,7 @@ for (i,pol) in enumerate(pol_list)
     χerrs[i] = samp_std(susc)
 end
 
-display(scatter(oc, pjack, yerr = perrs))
-display(scatter(oc, χ, yerr = χerrs))
+display(scatter(oc, pjack, yerr = perrs, xlabel = "α", ylabel = "Polarization", markersize = 3), "polar.png")
+display(scatter(oc, χ, yerr = χerrs, xlabel = "α", ylabel = "χ(P)"), "suscpolar.png")
 
 # plot(pol_list[2])

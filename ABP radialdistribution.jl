@@ -19,7 +19,7 @@ function radialdistributionfunction(x::Array{Float64}, y::Array{Float64}, R::Flo
     xdist = pwdist(x)
     ydist = pwdist(y)
 
-    threshold = L/2+R
+    threshold = L/2
     xind = abs.(xdist) .> threshold
     yind = abs.(ydist) .> threshold
     @. xdist[xind] = -sign(xdist[xind]) * (L - abs(xdist[xind]))

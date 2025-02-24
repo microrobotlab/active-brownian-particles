@@ -1,11 +1,14 @@
 using CSV, DataFrames
 
-path="C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations\\"
+path="D:\\nic_simulations\\lj_offcenter"
 
 datestamp = "20250130-111919"
 
 df_list = []
+i = 0
 for p in readdir(joinpath(path,datestamp,"data"), join = true)
+    global i+=1
+    i>1 && break
     if isdir(p)
         num = p[91:end]
         df = CSV.read(joinpath(p, datestamp*"_run$num.txt"), DataFrame)

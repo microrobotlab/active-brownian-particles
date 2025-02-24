@@ -13,7 +13,7 @@ include("ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations"
+path = "D:\\nic_simulations\\lj_angvel"
 
 ## PARAMETERS SET
 # Simulation parameters
@@ -22,6 +22,7 @@ Nt = Int(1e5)           # number of stepss
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
 measevery = Int(1e0)           # Downsampling in file
+animation = true
 animation = true
 radialdensity = false
 
@@ -111,19 +112,19 @@ JLD2.save(joinpath(mainfolder, "siminfo_dict.jld2"), info_dict)
 for i in 1:ICS
     pathf= joinpath(patht, "run$i\\")
 
-    filename= "$datestamp"*"_run$i"
-    pathf= pathf*filename
+        filename= "$datestamp"*"_run$i"
+        pathf= pathf*filename
 
-    datafname = pathf*".txt"
-    # polarfname = pathf*"_polarization.txt"
+        datafname = pathf*".txt"
+        # polarfname = pathf*"_polarization.txt"
 
-    # Simulation and file storage
-    open(datafname, "w") do infile
-        writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation"], ",")
-    end
+        # Simulation and file storage
+        open(datafname, "w") do infile
+            writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation"], ",")
+        end
 
-    start = now()
-    @info "$(start) Started simulation #$i"
+        start = now()
+        @info "$(start) Started simulation #$i"
 
 
     ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, forward, offcenter, intrange, int_params...,)
