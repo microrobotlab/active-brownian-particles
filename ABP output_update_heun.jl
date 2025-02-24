@@ -13,15 +13,15 @@ include("ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, IterTools, JLD2, Logging, Printf
 
-path = "D:\\nic_simulations\\lj_angvel"
+path = "D:\\nic_simulations\\tests"
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(2e5)           # number of stepss
+Nt = Int(2e4)           # number of steps
 δt = 5e-3       # s step time
-ICS=5                  # Number of intial conditons to be scanned 
+ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
-measevery = Int(1e0)           # Downsampling in file
+measevery = Int(1)           # Downsampling in file
 animation = true
 radialdensity = false
 
@@ -29,19 +29,19 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.0		           # μm particle radius
-L = 175.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 100.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*20 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-vel = [10.]          # μm/s particle s
-ω = Normal(0., 2.)       # s⁻¹ particle angular velocity
+v =           # μm/s particle s
+ω = [0.]      # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
 int_func = lennard_jones
-forward = true
+forward = false
 intrange = 20R # interaction range
-offcenter = 0.5   
+offcenter = 0.25   
 int_params = (2R, .1) # σ and ϵ in the case of LJ 
 
 ## PRELIMINARY CALCULATIONS
@@ -62,7 +62,7 @@ elseif box_shape == :ellipse
 end
    
 
-for v in vel
+for ω in ωs
     ## NAMING AND FILE MANAGEMENT
     datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # today's date
     println(datestamp)
@@ -163,7 +163,7 @@ for v in vel
             try
                 animation_from_file(pathf,L,R,δt,measevery,25, show = false, record=true, final_format = "mp4", color_code_dir = true)
             catch
-                print("No vid")
+                println("No vid")
             end
         end
     end

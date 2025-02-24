@@ -1,17 +1,16 @@
-using CSV, DataFrames
+using CSV, DataFrames, .Threads
 
-path="D:\\nic_simulations\\lj_offcenter"
+path="D:\\nic_simulations\\tests"
 
-datestamp = "20250124-102030"
+datestamp = "20250211-110837"
 
 df_list = []
-i = 0
 for p in readdir(joinpath(path,datestamp,"data"), join = true)
-    global i+=1
-    i>1 && break
     if isdir(p)
-        num = p[91:end]
-        df = CSV.read(joinpath(p, datestamp*"_run$num.txt"), DataFrame)
+        println(p)
+        numloc = findfirst("run", p)[end] + 1
+        num = p[numloc:end]
+        df = CSV.read(joinpath(p, datestamp*"_run$(num).txt"), DataFrame)
         push!(df_list, df)
     end
 end
