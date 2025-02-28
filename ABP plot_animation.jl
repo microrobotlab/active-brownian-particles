@@ -128,9 +128,9 @@ function plot_one_timestep(df::DataFrame, R::Number, L::Number, timestep::Int; s
 
     fig = CairoMakie.Figure(size = (1080,1080), fontsize = 40,figure_padding = 25)
     if title !== nothing
-        ax = CairoMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1, title = title)
+        ax = CairoMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1, title = title, xgridvisible = true, ygridvisible = true, yticklabelsvisible = false, xticklabelsvisible = false, yticksvisible = false, xticksvisible = false)
     else
-        ax = CairoMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
+        ax = CairoMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1, xgridvisible = true, ygridvisible = true, yticklabelsvisible = false, xticklabelsvisible = false, yticksvisible = false, xticksvisible = false)
     end
 
     mrk = CairoMakie.decompose(Point2f,Circle(Point2f0(0), 1))
