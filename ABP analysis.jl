@@ -111,6 +111,7 @@ function curvature_analysis(a,b,R,time,gdf,pathf,δt)
   f5= pathf*"_p.csv"
   f6= pathf*"_N.png"
   f7= pathf*"_Ndiff_eqs.png"
+  f8= pathf*"_curvature_phenomenon.png"
   n1,n2,n3,n4=[], [], [], []
 
   i= (time/δt)
@@ -168,6 +169,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
     # ploting in terms of particles number
     yl=30
     xl=100
+    y2=500
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))
   #  plot!(ylabel=L"\mathrm{N_{eqs}}",yguidefont=font(11), ytickfont=font(11))
    
@@ -182,11 +184,18 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
 
    t5=scatter(time,n1.-n2, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq(L)}}-\mathrm{N_{Eq(R)}}") 
 
-   t6= scatter(time,n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
+   t6= scatter(time,n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.02,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
 
+   t7= scatter(time,n1.+n2, ylimit=(0,y2),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq}}")
+
+   t8= scatter(time,n3.+n4, ylimit=(0,y2),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Pole}}")
    p= plot(t1,t2,t3,t4, layout=(2,2))
 
    q= plot(t5,t6, layout=(2,1))
+
+   j= plot(t7,t8, layout=(2,1))
+
+   savefig(j,f8)
    savefig(p,f6)
    savefig(q,f7)
    

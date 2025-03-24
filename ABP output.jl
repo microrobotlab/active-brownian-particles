@@ -11,7 +11,7 @@ include("ABP multifolder.jl")
 # include("ABP average.jl")
 include("generation.jl")
 include("ABP freq analysis.jl")
-
+include("ABP gif.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
 gr()
@@ -22,10 +22,10 @@ gr()
 
 L = 100.0 	# μm box length
 R = 2.0	# μm particle radius
-v = 15.0 	# μm/s particle velocity
+v = 5.0 	# μm/s particle velocity
 a=L/2
 b=L/4
-ICS=5
+ICS=1
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
@@ -34,7 +34,7 @@ packing_fraction = 0.2
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
-Nt = 10000000# Nt is the number of steps 
+Nt = 20000000# Nt is the number of steps 
 resample=100
 Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the actual simulation time step
 δt = 1.0e-3 #L/(v*Nt) # δt is the time step
@@ -42,7 +42,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\11.November\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\2025\02.Feb\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -144,10 +144,10 @@ end
 # (average(mainfolder))   # passing path of the main folders which has all the runs
 
 
-#   mainfolder= raw"D:\j.sharma\P07\workstationMRL\11.November20241106-230143\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\run1\\"
+#  mainfolder= raw"D:\j.sharma\P07\workstationMRL\2025\02.Feb\20250211-220832\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\run1\\"
  
-#    filename="20241106-230143 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1"
-#    t= mainfolder*filename
+#  filename="20250211-220832 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1"
+#  t= mainfolder*filename
   
 #    f1000= joinpath(mainfolder,filename*".csv") 
 
@@ -155,7 +155,7 @@ end
 #    df= CSV.read(f1000,DataFrame) 
 #    FFT_analysis(t,δt)
 
-#  @time inside_Np=stat_analysis1(a,b,R,t,δt,2) # 0 for pole, equator, 1 for only right left, 2 for entire
+#  inside_Np=stat_analysis1(a,b,R,t,δt,2) # 0 for pole, equator, 1 for only right left, 2 for entire
 
-#  makegif(mainfolder,t)
+  # makegif(mainfolder,t)
 
