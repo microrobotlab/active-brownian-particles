@@ -1,12 +1,13 @@
-using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics, FFTW
+using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics, FFTW, Peaks
 
-function FFT_analysis(mainfolder,dt)
+function FFT_analysis(mainfolder,dt,resample)
     
 f1= mainfolder*"_p.csv"
 
 f= mainfolder*"\\number of particles.png"
 # f1= mainfolder*"\\FFT_difference_equators_fs1000.png"
 f2= mainfolder*"\\FFT_difference.png"
+f3=mainfolder*"_FFT.csv"
 df= CSV.read(f1,DataFrame)
 
 start_frame= 1
@@ -20,7 +21,7 @@ Waqt = time_step .* dt
 ########################################## FFT Analysis start #############################################################àà
 
 # please choose the value of i, 1 for poles and 2 for equators
-i=2
+i=3
 if i==1
     ydata = Npole1.-Npole2
     f1= mainfolder*"_FFt_diff_poles.png"
@@ -34,34 +35,45 @@ elseif i==3
 end
 
 ydata_corr= ydata[start_frame:end_frame].-mean(ydata[start_frame:end_frame])
-fs=Int(1/dt) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
-freq= fftshift(fft(ydata_corr))
-freqs = fftshift(fftfreq(length(ydata_corr), fs))
-peaks, peak_values = findmax(real.(freq)) 
+@show fs=Int(1/(dt*resample)) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
+#freq= fftshift(fft(ydata_corr))
+freq=(fft(ydata_corr))
+@show freqs = (fftfreq(length(ydata_corr), fs))
+real_freq = (abs.(freq))
+indices, heights = findmaxima(real_freq)
+h_ranks = sortperm(heights, rev=true)
+top_indices = indices[h_ranks[1:4]]
+top_frequencies = freqs[top_indices]
+#=
+peaks, peak_values = findmax(abs.(freq)) 
 # Find all peaks in the real part of the frequency data
-real_freq = (real.(freq))
+real_freq = (abs.(freq))
 all_peaks = findall(i -> (i > 1 && i < length(real_freq) && real_freq[i] > real_freq[i-1] && real_freq[i] > real_freq[i+1]), 1:length(real_freq))
 
 # Sort peaks by their heights and select the top three
 sorted_peaks = sort(all_peaks, by = x -> real_freq[x], rev = true)
 top_peaks = sorted_peaks[1:min(4, length(sorted_peaks))]  # get up to the top 3 peaks
- top_frequencies = freqs[top_peaks]
- top_values = real_freq[top_peaks]
+top_frequencies = freqs[top_peaks]
+top_values = real_freq[top_peaks]
+=#
 
 # Plot the frequency data with peaks highlighted
-k=plot(freqs, real_freq, seriestype=:stem, xlim=(0, 0.1), ylim=(0.02, 20000), xlabel="Frequency (Hz)", ylabel="Power", legend=false)
-
+k=plot(freqs, real_freq, seriestype=:stem, xlim=(0, 0.01), ylim=(0.02, 55000), xlabel="Frequency (Hz)", ylabel="Power", legend=false)
+# save the data in a csv file
+freq_data= DataFrame(f=freqs, real= real_freq)
+CSV.write(f3,freq_data)
+#=
 # Add the top peaks to the plot with annotations
 scatter!(top_frequencies, top_values, color=:red, label="Peaks", markersize=3)
 for (i, peak) in enumerate(top_frequencies)
     annotate!(peak, i,text("$(round(peak, digits=3))", :center, 8))
 end
-
+=#
 # Show or save the plot
-title!("Peaks in Frequency= $(round(top_frequencies[1]*1000, digits=3)) $(round(top_frequencies[2]*1000, digits=3)) $(round(top_frequencies[3]*1000, digits=3))")
+title!("Peaks in Freq(mHZ)= $(round(top_frequencies[1]*1000, digits=3)) $(round(top_frequencies[2]*1000, digits=3)) $(round(top_frequencies[3]*1000, digits=3))")
 display(k)
 savefig(k, f1)
-Int(round(peaks))
+#Int(round(peaks))
 # Plot with peaks highlighted
 # k = plot!(freqs, real.(freq), xlimit=(0, 0.5), ylimit=(0.02, 10000), seriestype=:stem, xlabel="Frequency(Hz)", ylabel="Power", legend=false)
 #scatter!(freqs[peak_values], peaks, color=:red, label="Peaks")

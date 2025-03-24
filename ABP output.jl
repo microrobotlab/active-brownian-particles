@@ -141,13 +141,12 @@ end
 
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
 # mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
-# (average(mainfolder))   # passing path of the main folders which has all the runs
+# (average(mainfolder))   # passing path of the main folders which has all the run Sant'Anna\P07Coding\2024\11.November\20241128-183816\R=2.0 v=15.0 a=50.0 b=25.0 pf=0.2
 
-
-#  mainfolder= raw"D:\j.sharma\P07\workstationMRL\2025\02.Feb\20250211-220832\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\run1\\"
+ mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\2024\\11.November\\20241126-174736\\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\\run2\\"
  
-#  filename="20250211-220832 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1"
-#  t= mainfolder*filename
+#    filename="20241106-230143 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1"
+#    t= mainfolder*filename
   
 #    f1000= joinpath(mainfolder,filename*".csv") 
 
