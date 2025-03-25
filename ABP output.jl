@@ -83,7 +83,7 @@ plot!([-L/2], seriestype="vline")
 =#
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
-graph_wall = multiparticleE_wall(Np,L,R,v,Nt,δt) # has values of x and y posiiton in each frame in graph_wall[1]
+graph_wall = multiparticleE_wall(Np,L,a,b,R,v,Nt,δt) # has values of x and y posiiton in each frame in graph_wall[1]
 #  for i in 1:Nt_store
 #     k=plot!(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ")
 #  end  #square
@@ -154,7 +154,7 @@ end
    df= CSV.read(f1000, DataFrame) 
 #    FFT_analysis(t,δt)
 
-inside_Np=stat_analysis1(a,b,R,t,δt,2) # 0 for pole, equator, 1 for only right left, 2 for entire
+inside_Np=stat_analysis1(a,b,R,t,δt,0) # 0 for pole, equator, 1 for only right left, 2 for entire
 
-  gif(mainfolder1,t)
+  makegif(mainfolder1,t)
 

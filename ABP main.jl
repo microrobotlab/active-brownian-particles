@@ -7,6 +7,8 @@ abstract type ABPsEnsemble end
 struct ABPE2 <: ABPsEnsemble
     Np::Int64                      # number of particles®®
     L::Float64                      # size of observation space (μm)
+    a::Float64                    # semi-major axis
+    b::Float64                    # semi-minor axis
 	R::Float64  # Radius (μm)                                   --> Vector{Float64}(undef,Np)
 	v::Float64 	# velocity (μm/s)                               --> Vector{Float64}(undef,Np)
 	DT::Float64 # translational diffusion coefficient (μm^2/s)  --> Vector{Float64}(undef,Np)
@@ -16,30 +18,10 @@ struct ABPE2 <: ABPsEnsemble
 	θ::Vector{Float64}    # orientation (rad)
 end
 
-#------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
 
-## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-#=function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
-    # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
-    # Intial condition will be choosen as per the geometry under study
-    DT, DR = diffusion_coeff(1e-6R)
-
-    # ONLY 2D!
-    k=0.5
-    xyθ = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
-   
-
-    Np= size(xyθ,1)    # number of particles inside the sqaure
-    #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
-    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
-
-    return abpe, (dists, superpose, uptriang)
-end
-=#
 #------------------------------------------------------------For ellipse ---------------------------------------------------------------------------------------------------------
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, a::Float64, b::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
@@ -66,7 +48,7 @@ function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.
 
     #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    abpe = ABPE2( Np, L, a, b, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
 
     return abpe, (dists, superpose, uptriang)
 end
@@ -84,69 +66,6 @@ function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-2)
     DR = 6*DT/(8*R^2)
     return DT, DR
 end;
-#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Functions to simulate multiple spherical particles
-function multiparticleE(Np::Integer, L::Float64, R::Float64, v::Float64, Nt::Int64=2, δt::Float64=1e-3)
-    (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
- 
-    ABPE = Vector{ABPE2}(undef,1) # Nt is number of time steps
-    ABPE[1], matrices = initABPE( Np, L, R, v ) # including initial hardsphere correction
-    current_value = deepcopy(ABPE[1])  # This will be used for updates at each step
- 
-   for i in 2:Nt
-    current_value = update_wall(current_value,matrices,δt)
-        if mod(i,10) == 0
-           push!(ABPE,current_value)
-            
-        end
-end
-    #simulate!(ABPE, matrices, Nt, δt)
-
-    return position.(ABPE), orientation.(ABPE)
-end
-
-function simulate!(ABPE, matrices, Nt, δt)
-    # PΘ = [ (position(abpe), orientation(abpe)) ]
-    # pθ = PΘ[1]
-    
-    for nt in 1:Nt
-        ABPE[nt+1] = update(ABPE[nt],matrices,δt) #updating information at every step
-        println("Step $nt")
-    end
-    return nothing
-end
-
-position(abpe::ABPE2) = [ abpe.x abpe.y ]
-orientation(abpe::ABPE2) = abpe.θ
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# Functions to update particles for the next step
-function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64) where {ABPE <: ABPsEnsemble}
-    pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt)
-
-    #periodic_BC_array!(pθ[1],abpe.L, abpe.R)
-    #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
-    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
-    # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
-
-    return new_abpe
-end
-
-
-function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
-    
-    if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] #.+ δt*δt*  attractive_interactions!(position(abpe),2.0)
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
-    
-
-    else
-        println("No step method available")
-    end
-    
-    return (δp, δθ)
-end
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions for the hard sphere corrections
@@ -200,29 +119,15 @@ function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # calle
     hardsphere!(xy, dists, superpose, uptriang, R; tol=tol)
     return xy, dists, superpose, uptriang
 end
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
-	# Boundary conditions: horizontal edge
-	idx = abs.(xy[:,1]) .> L/2 + R #I create vector idx in which I have 1 where the absolute value of the x coordinate of the particles is outside the observation area
-	if any(idx)
-		xy[idx,1] .-= sign.(xy[idx,1]).*L   #where I have uni in idx I make the particle reappear on the opposite side of x with respect to 0
-	end
-	# Boundary conditions: vertical edge
-	idy = abs.(xy[:,2]) .> L/2 + R
-	if any(idy)
-		xy[idy,2] .-= sign.(xy[idy,2]).*L
-	end
-	return nothing
-end
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #  Functions for updating reflective boundary AND WALL UPDATE
 
-function multiparticleE_wall(Np::Integer, L::Float64, R::Float64, v::Float64, Nt::Int64=2, δt::Float64=1.0e-03)
+function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R::Float64, v::Float64, Nt::Int64, δt::Float64=1.0e-03)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
     println("time steps $δt")
     ABPE = Vector{ABPE2}(undef,1) # Nt is number of time steps
-    ABPE[1], matrices = initABPE( Np, L, R, v ) # including initial hardsphere correction
+    ABPE[1], matrices = initABPE( Np, L, a,b, R, v ) # including initial hardsphere correction
     current_value = deepcopy(ABPE[1])  # This will be used for updates at each step
  
    for i in 2:Nt
@@ -241,10 +146,7 @@ end
 end
 
 function simulate_wall!(ABPE, matrices, Nt, δt)
-    # PΘ = [ (position(abpe), orientation(abpe)) ]
-    # pθ = PΘ[1]
-    
-    for nt in 1:Nt
+  for nt in 1:Nt
        ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
         #println("Step $nt")
       
@@ -257,17 +159,163 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
   
     pθ = ( position(abpe), orientation(abpe) ) .+ memory_step
 
-    #wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
-    #elliptical_wall_condition!(pθ[1],abpe.L, abpe.R, memory_step[1])
-    elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, memory_step[1])
+    elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, abpe.a, abpe.b, memory_step[1])
 
-  hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
+    # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
+    new_abpe = ABPE2( abpe.Np, abpe.L,abpe.a, abpe.b, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
+
+    return new_abpe
+end
+function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Float64,2},L::Float64, R, a,b,step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
+    # here the condition is calculated w.r.t to the normal at the intersection point of the radial distance with the wall
+    # this is second method used 
+    # orientation of particle will also change   
+        #a= L/2
+        #b= L/4
+
+        a1= a-R
+        b1= b-R
+         
+        #e = sqrt(1-(b/a)^2)
+      r = (xy[:,1]).*(xy[:,1]) + (xy[:,2]).*(xy[:,2])
+  
+      rₚ = sqrt.(r)                # particle r co ordinate
+  
+      rθ= atan.(xy[:,2], xy[:,1])   # angle which the particle make with the origin 
+
+      rₒ = ((a*b)./(sqrt.(((a*sin.(rθ)).^2) .+ (b*cos.(rθ)).^2)))
+
+      rₑ = rₒ .- R
+   
+      #rₑ = b/sqrt.(1 .-((e*cos.(rθ)).^2))
+      id = (rₚ .> (rₑ))
+    
+      x = [[p[1],p[2]] for p in eachrow(xy)]
+      
+      function grad(x::Array{Float64},a::Float64,b::Float64)
+        
+       f(x) = (x[1]^2)*b^2 + (x[2]^2)*a^2 - (a*b)^2
+       df=ForwardDiff.gradient(f, [x[1],x[2]])
+       return df
+       end
+    normal = grad.(x,a1,b1)     # gradient calculated from each particle position onto the ellipse boundary 
+     
+    hat_normal = normal./norm.(normal)  # unit normal vector
+
+    
+    correction_x = (rₚ .- rₑ) .*[(cos.(θ)) for θ in rθ]
+
+    correction_y = (rₚ .- rₑ) .*[(sin.(θ)) for θ in rθ]
+    
+    c= [correction_x correction_y]
+
+    correction = [[p[1],p[2]] for p in eachrow(c)]
+  
+    projection = dot.(correction,hat_normal)
+
+
+    cᵥ = 2*(projection.+0*R).* hat_normal #vector of vector
+    # to access this vector I am breaking it in x and y in the following lines
+
+    cᵥx =  [p[1] for p in cᵥ]
+
+    cᵥy =  [p[2] for p in cᵥ]
+############################# calculations for orientation vector###############################
+###########################3 conversion of vector into matrix was job of this part###########################
+        xy[id,1] .-= cᵥx[id]
+        xy[id,2] .-= cᵥy[id]
+
+      return nothing
+  end
+############################### FOLLOWING CODE IS NOT IN USE ############################################
+
+  #------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
+
+## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
+#=function initABPE(Np::Int64, L::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+    # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
+    # Intial condition will be choosen as per the geometry under study
+    DT, DR = diffusion_coeff(1e-6R)
+
+    # ONLY 2D!
+    k=0.5
+    xyθ = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
+   
+
+    Np= size(xyθ,1)    # number of particles inside the sqaure
+    #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
+    xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
+    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+
+    return abpe, (dists, superpose, uptriang)
+end
+=#
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Functions to simulate multiple spherical particles
+#
+    #simulate!(ABPE, matrices, Nt, δt)
+
+    return position.(ABPE), orientation.(ABPE)
+#end
+#=
+function simulate!(ABPE, matrices, Nt, δt)
+    # PΘ = [ (position(abpe), orientation(abpe)) ]
+    # pθ = PΘ[1]
+    
+    for nt in 1:Nt
+        ABPE[nt+1] = update(ABPE[nt],matrices,δt) #updating information at every step
+        println("Step $nt")
+    end
+    return nothing
+end
+
+position(abpe::ABPE2) = [ abpe.x abpe.y ]
+orientation(abpe::ABPE2) = abpe.θ
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Functions to update particles for the next step
+function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64) where {ABPE <: ABPsEnsemble}
+    pθ = ( position(abpe), orientation(abpe) ) .+ step(abpe,δt)
+
+    #periodic_BC_array!(pθ[1],abpe.L, abpe.R)
+    #circular_wall_condition!(pθ[1],L::Float64, R, step_mem::Array{Float64,2})
+    hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
     return new_abpe
 end
 
+
+function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
+    
+    if size(position(abpe),2) == 2
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] #.+ δt*δt*  attractive_interactions!(position(abpe),2.0)
+        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
+    
+
+    else
+        println("No step method available")
+    end
+    
+    return (δp, δθ)
+end
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
+	# Boundary conditions: horizontal edge
+	idx = abs.(xy[:,1]) .> L/2 + R #I create vector idx in which I have 1 where the absolute value of the x coordinate of the particles is outside the observation area
+	if any(idx)
+		xy[idx,1] .-= sign.(xy[idx,1]).*L   #where I have uni in idx I make the particle reappear on the opposite side of x with respect to 0
+	end
+	# Boundary conditions: vertical edge
+	idy = abs.(xy[:,2]) .> L/2 + R
+	if any(idy)
+		xy[idy,2] .-= sign.(xy[idy,2]).*L
+	end
+	return nothing
+end
 function wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for square reflective boundary
   
 	# Boundary conditions: horizontal edge
@@ -283,7 +331,7 @@ function wall_condition!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Flo
     #println("I am in square wall")
 	return nothing
 end
-
+=#
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # This function will compute the attractive interaction among the particles
 # Attractive potential is LJ with cutoff at radius of particle
@@ -395,64 +443,3 @@ function circular_wall_condition1g!(xy::Array{Float64,2},L::Float64, R, step_mem
       return nothing
   end
 
-function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
-    # here the condition is calculated w.r.t to the normal at the intersection point of the radial distance with the wall
-    # this is second method used 
-    # orientation of particle will also change   
-        a= L/2
-        b= L/4
-
-        a1= a-R
-        b1= b-R
-         
-        #e = sqrt(1-(b/a)^2)
-      r = (xy[:,1]).*(xy[:,1]) + (xy[:,2]).*(xy[:,2])
-  
-      rₚ = sqrt.(r)                # particle r co ordinate
-  
-      rθ= atan.(xy[:,2], xy[:,1])   # angle which the particle make with the origin 
-
-      rₒ = ((a*b)./(sqrt.(((a*sin.(rθ)).^2) .+ (b*cos.(rθ)).^2)))
-
-      rₑ = rₒ .- R
-   
-      #rₑ = b/sqrt.(1 .-((e*cos.(rθ)).^2))
-      id = (rₚ .> (rₑ))
-    
-      x = [[p[1],p[2]] for p in eachrow(xy)]
-      
-      function grad(x::Array{Float64},a::Float64,b::Float64)
-        
-       f(x) = (x[1]^2)*b^2 + (x[2]^2)*a^2 - (a*b)^2
-       df=ForwardDiff.gradient(f, [x[1],x[2]])
-       return df
-       end
-    normal = grad.(x,a1,b1)     # gradient calculated from each particle position onto the ellipse boundary 
-     
-    hat_normal = normal./norm.(normal)  # unit normal vector
-
-    
-    correction_x = (rₚ .- rₑ) .*[(cos.(θ)) for θ in rθ]
-
-    correction_y = (rₚ .- rₑ) .*[(sin.(θ)) for θ in rθ]
-    
-    c= [correction_x correction_y]
-
-    correction = [[p[1],p[2]] for p in eachrow(c)]
-  
-    projection = dot.(correction,hat_normal)
-
-
-    cᵥ = 2*(projection.+0*R).* hat_normal #vector of vector
-    # to access this vector I am breaking it in x and y in the following lines
-
-    cᵥx =  [p[1] for p in cᵥ]
-
-    cᵥy =  [p[2] for p in cᵥ]
-############################# calculations for orientation vector###############################
-###########################3 conversion of vector into matrix was job of this part###########################
-        xy[id,1] .-= cᵥx[id]
-        xy[id,2] .-= cᵥy[id]
-
-      return nothing
-  end
