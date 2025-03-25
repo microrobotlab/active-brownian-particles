@@ -25,25 +25,8 @@ function initABPE(Np::Int64, L::Float64, a::Float64, b::Float64, R::Float64, v::
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
-
-    # # ONLY 2D!
-    # k=0.5
-    # xyθ1 = (rand(Np,3).-k).*repeat([L L 2π],Np) # 3 dim matrix with x, y and θ 
-    # r = (xyθ1[:,1]).*(xyθ1[:,1]) + (xyθ1[:,2]).*(xyθ1[:,2])
-  
-    # rₚ = sqrt.(r)   
-    # α =atan.(xyθ1[:,2], xyθ1[:,1]) 
-    # a= L/2
-    #     b= L/4
-    # #rₑ = (a*b)./(sqrt.(((a*sin.(xyθ1[:,3])).^2) .+ (b*cos.((xyθ1[:,3]))).^2))  # r value for boundary
-    # rₑ = (a-R)*(b-R)./(sqrt.((((a-R)*sin.(α)).^2) .+ ((b-R)*cos.((α))).^2))  # r value for boundary
-    # #rₑ = b/sqrt.(1 .-((e*cos.(rθ)).^2))
-    # id = (rₚ .< (rₑ))
-    # xyθ = [xyθ1[id,1] xyθ1[id,2] xyθ1[id,3]]
-
-    # Np1= size(xyθ,1)  
-   xy = iterative_gen(Np, a, b, R)[1]  # number of particles inside the boundary while Np is total number of particles
-   xyθ = [xy (2π.*(rand(Np).-0.5))] # 3 dim matrix with x, y and θ in -pi to pi range
+    xy = iterative_gen(Np, a, b, R)[1]  # number of particles inside the boundary while Np is total number of particles
+    xyθ = [xy (2π.*(rand(Np).-0.5))] # 3 dim matrix with x, y and θ in -pi to pi range
 
 
     #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
@@ -140,7 +123,7 @@ function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R:
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
     println("time steps $δt")
     ABPE = Vector{ABPE2}(undef,1) # Nt is number of time steps
-    ABPE[1], matrices = initABPE( Np, L, a,b, R, v ) # including initial hardsphere correction
+    ABPE[1], matrices = initABPE( Np, L, a, b, R, v ) # including initial hardsphere correction
     current_value = deepcopy(ABPE[1])  # This will be used for updates at each step
  
    for i in 2:Nt
@@ -149,7 +132,7 @@ function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R:
            push!(ABPE,current_value)
             
         end
-end
+   end
     # ABPE = Vector{ABPE2}(undef,Nt+1)
     # ABPE[1], matrices = initABPE( Np, L, R, v ) # including initial hardsphere correction
     
@@ -158,21 +141,21 @@ end
     return position.(ABPE), orientation.(ABPE)
 end
 
-function simulate_wall!(ABPE, matrices, Nt, δt)
-  for nt in 1:Nt
-       ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
+#function simulate_wall!(ABPE, matrices, Nt, δt)
+  #for nt in 1:Nt
+   #    ABPE[nt+1] = update_wall(ABPE[nt],matrices,δt)
         #println("Step $nt")
       
-    end
-    return nothing
-end
+  #  end
+ #   return nothing
+#end
 
 function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64) where {ABPE <: ABPsEnsemble}
     memory_step = step(abpe,δt)
   
     pθ = ( position(abpe), orientation(abpe) ) .+ memory_step
 
-    elliptical_wall_condition!(pθ[2],pθ[1],abpe.L, abpe.R, abpe.a, abpe.b, memory_step[1])
+    elliptical_wall_condition!(pθ[1], abpe.R, abpe.a, abpe.b, memory_step[1])
 
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
@@ -180,7 +163,7 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
 
     return new_abpe
 end
-function elliptical_wall_condition!(orientation::Array{Float64,1},xy::Array{Float64,2},L::Float64, R, a,b,step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
+function elliptical_wall_condition!(xy::Array{Float64,2}, R, a,b,step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
     # here the condition is calculated w.r.t to the normal at the intersection point of the radial distance with the wall
     # this is second method used 
     # orientation of particle will also change   
@@ -269,7 +252,7 @@ end
 #
     #simulate!(ABPE, matrices, Nt, δt)
 
-    return position.(ABPE), orientation.(ABPE)
+   # return position.(ABPE), orientation.(ABPE)
 #end
 #=
 function simulate!(ABPE, matrices, Nt, δt)
@@ -396,7 +379,7 @@ end
 	#println("I am in circular wall")
 	return nothing
 end
-=#
+
 function circular_wall_condition1g!(xy::Array{Float64,2},L::Float64, R, step_mem::Array{Float64,2}) # this condition is for cicular reflective boundary
     # here the condition is calculated w.r.t to the normal at the intersection point of the radial distance with the wall
     # this is second method used 
@@ -443,4 +426,4 @@ function circular_wall_condition1g!(xy::Array{Float64,2},L::Float64, R, step_mem
     
       return nothing
   end
-
+=#
