@@ -112,7 +112,7 @@ function curvature_analysis(a,b,R,time,gdf,pathf,δt)
   f6= pathf*"_N.png"
   f7= pathf*"_Ndiff_eqs.png"
   f8= pathf*"_curvature_phenomenon.png"
-  f8= pathf*"_Ndiff_curvature.png"
+
   n1,n2,n3,n4=[], [], [], []
 
   i= (time/δt)
@@ -187,11 +187,13 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
 
    t6= scatter(time,n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.02,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
 
-   t7= scatter(time,n1.+n2, ylimit=(0,y2),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq}}")
+   t7= scatter(time,n1.+n2-n3.-n4, ylimit=(0,y2),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq}- N_{Pole}}")
 
    p= plot(t1,t2,t3,t4, layout=(2,2))
 
    q= plot(t5,t6, layout=(2,1))
+
+    k= plot(t7)
    savefig(p,f6)
    savefig(q,f7)
    savefig(k,f8)
