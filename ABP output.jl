@@ -10,7 +10,7 @@ include("ABP SD.jl")
 include("ABP multifolder.jl")
 # include("ABP average.jl")
 include("generation.jl")
-include("ABP freq analysis.jl")
+#include("ABP freq analysis.jl")
 include("ABP gif.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates
@@ -21,28 +21,28 @@ gr()
 # We plot the set of particles considering the correction of hard spheres
 
 L = 100.0 	# μm box length
-R = 2.0	# μm particle radius
+R = 1.5	# μm particle radius
 v = 5.0 	# μm/s particle velocity
 a=L/2
-b=L/4
+b=L/8
 ICS=1
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.2
+packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
 Nt = 20000000# Nt is the number of steps 
-resample=100
+resample=1000
 Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the actual simulation time step
 δt = 1.0e-3 #L/(v*Nt) # δt is the time step
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\2025\02.Feb\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\2025\03.March\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -143,18 +143,18 @@ end
 # mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 # (average(mainfolder))   # passing path of the main folders which has all the run Sant'Anna\P07Coding\2024\11.November\20241128-183816\R=2.0 v=15.0 a=50.0 b=25.0 pf=0.2
 
- mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\2024\\11.November\\20241126-174736\\R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2\\run2\\"
+ mainfolder1= " D:\\j.sharma\\P07\\workstationMRL\\2025\\03.March\\20250324-152734\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
  
-#    filename="20241106-230143 R=2.0 v=5.0 a=50.0 b=25.0 pf=0.2 run1"
-#    t= mainfolder*filename
+   filename="20250324-152734 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1\\"
+  t= mainfolder1*filename
   
-#    f1000= joinpath(mainfolder,filename*".csv") 
+  f1000= joinpath(mainfolder1,filename*".csv") 
 
-#   #  f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
-#    df= CSV.read(f1000,DataFrame) 
+#    f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
+   df= CSV.read(f1000,DataFrame) 
 #    FFT_analysis(t,δt)
 
 #  inside_Np=stat_analysis1(a,b,R,t,δt,2) # 0 for pole, equator, 1 for only right left, 2 for entire
 
-  # makegif(mainfolder,t)
+  gif(mainfolder1,t)
 
