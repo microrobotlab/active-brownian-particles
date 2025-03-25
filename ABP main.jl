@@ -119,7 +119,20 @@ function hardsphere(xy::Array{Float64,2}, R::Float64; tol::Float64=1e-3) # calle
     hardsphere!(xy, dists, superpose, uptriang, R; tol=tol)
     return xy, dists, superpose, uptriang
 end
+#-----------------------------------------------------------------------------------------------------------------------------------------
+function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
+    
+    if size(position(abpe),2) == 2
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] #.+ δt*δt*  attractive_interactions!(position(abpe),2.0)
+        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
+    
 
+    else
+        println("No step method available")
+    end
+    
+    return (δp, δθ)
+end
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #  Functions for updating reflective boundary AND WALL UPDATE
 
@@ -288,19 +301,7 @@ function update(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatri
 end
 
 
-function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
-    
-    if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] #.+ δt*δt*  attractive_interactions!(position(abpe),2.0)
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
-    
 
-    else
-        println("No step method available")
-    end
-    
-    return (δp, δθ)
-end
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side

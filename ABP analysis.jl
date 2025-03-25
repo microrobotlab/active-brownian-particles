@@ -108,6 +108,7 @@ end
 
 function curvature_analysis(a,b,R,time,gdf,pathf,δt)
  
+  println("I am in ABP curvature analysis")
   f5= pathf*"_p.csv"
   f6= pathf*"_N.png"
   f7= pathf*"_Ndiff_eqs.png"
@@ -187,7 +188,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
 
    t6= scatter(time,n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.02,legend=false,ylabel=L"\mathrm{N_{Pole(U)}}-\mathrm{N_{Pole(D)}}") 
 
-   t7= scatter(time,n1.+n2-n3.-n4, ylimit=(0,y2),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq}- N_{Pole}}")
+   t7= scatter(time,n1.+n2-n3.-n4, ylimit=(-yl,yl),mode="markers",markersize=0.5,legend=false,ylabel=L"\mathrm{N_{Eq}- N_{Pole}}")
 
    p= plot(t1,t2,t3,t4, layout=(2,2))
 
@@ -203,7 +204,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
      CSV.write(f5, data)
      close(efg)
    
-    println("I am out of ABP analysis")
+    println("I am out of ABP curvature analysis")
  return nothing
 end
 
