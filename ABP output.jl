@@ -22,10 +22,10 @@ gr()
 
 L = 100.0 	# μm box length
 R = 1.5	# μm particle radius
-v = 5.0 	# μm/s particle velocity
+v = 10.0 	# μm/s particle velocity
 a=L/2
 b=L/8
-ICS=1
+ICS=10
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
@@ -42,7 +42,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\2025\03.March\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\2025\04.April\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -83,7 +83,9 @@ plot!([-L/2], seriestype="vline")
 =#
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
-graph_wall = multiparticleE_wall(Np,L,a,b,R,v,Nt,δt) # has values of x and y posiiton in each frame in graph_wall[1]
+graph_wall = multiparticleE_wall(Np,L,a,b,R,v,Nt,δt)
+@show tt= length(graph_wall[1][1][:,1]) # has values of x and y posiiton in each frame in graph_wall[1]
+
 #  for i in 1:Nt_store
 #     k=plot!(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ")
 #  end  #square
@@ -91,7 +93,7 @@ graph_wall = multiparticleE_wall(Np,L,a,b,R,v,Nt,δt) # has values of x and y po
 println("multiparticleE_wall compiled\n")
 #---------------------------------------------------------------------------------------------------------------------
 # file store  
-file_store_csv(graph_wall,Nt_store,pathf)
+file_store_csv(graph_wall,Nt_store,pathf,resample)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
 #  inside_Np=stat_analysis1(a,b,R,pathf,δt,2)
@@ -143,18 +145,18 @@ end
 # mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 # (average(mainfolder))   # passing path of the main folders which has all the run Sant'Anna\P07Coding\2024\11.November\20241128-183816\R=2.0 v=15.0 a=50.0 b=25.0 pf=0.2
 
-   mainfolder1= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\2025\\03.March\\20250324-161314\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
+  #=  mainfolder1= "D:\\j.sharma\\P07\\workstationMRL\\2025\\03.March\\20250325-165047\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
  
-   filename="20250324-161314 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1" # dont put \\ after the filename
-  t= mainfolder1 * filename
+   filename="20250325-165047 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1" # dont put \\ after the filename
+   t= mainfolder1 * filename =#
   
-  f1000= joinpath(mainfolder1,filename * ".csv") 
+#   f1000= joinpath(mainfolder1,filename * ".csv") 
 
-#    f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
-   df= CSV.read(f1000, DataFrame) 
-#    FFT_analysis(t,δt)
+# #    f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
+#    df= CSV.read(f1000, DataFrame) 
+# #    FFT_analysis(t,δt)
 
-inside_Np=stat_analysis1(a,b,R,t,δt,0) # 0 for pole, equator, 1 for only right left, 2 for entire
+# inside_Np=stat_analysis1(a,b,R,t,δt,0) # 0 for pole, equator, 1 for only right left, 2 for entire
 
-  makegif(mainfolder1,t)
+   #makegif(mainfolder1,t)
 

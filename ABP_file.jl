@@ -11,7 +11,7 @@ using CSV, DataFrames, DelimitedFiles, Markdown
 #     Stores the content of graphw_wall in a .csv file
 # """
 
-function file_store_csv(graph_wall,Nt_store,pathf,resample::Int64 = 100)
+function file_store_csv(graph_wall,Nt_store,pathf,resample)
     f1= pathf*".csv"               # destination file name
 
 pnumber=[]
@@ -19,7 +19,7 @@ timestep=[]
 x=[]
 y=[]
 θ=[]
-for i = 1:Nt_store+1
+for i = 1:Nt_store
     for j = 1:length(graph_wall[1][i][:,1])
         push!(pnumber,j)
         push!(timestep, i*resample)
