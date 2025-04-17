@@ -6,6 +6,8 @@
 include("ABP main.jl")
 include("ABP_file.jl")
 include("ABP analysis.jl")
+include("ABP analysis perimeter.jl")
+include("ABP_perimeter_angle_find.jl")
 include("ABP SD.jl")
 include("ABP multifolder.jl")
 # include("ABP average.jl")
@@ -13,7 +15,7 @@ include("generation.jl")
 #include("ABP freq analysis.jl")
 include("ABP gif.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
-using Dates
+using Date, QuadGK
 gr()
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -145,18 +147,18 @@ end
 # mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 # (average(mainfolder))   # passing path of the main folders which has all the run Sant'Anna\P07Coding\2024\11.November\20241128-183816\R=2.0 v=15.0 a=50.0 b=25.0 pf=0.2
 
-  #=  mainfolder1= "D:\\j.sharma\\P07\\workstationMRL\\2025\\03.March\\20250325-165047\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
+  mainfolder1= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
  
-   filename="20250325-165047 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1" # dont put \\ after the filename
-   t= mainfolder1 * filename =#
+   filename="20250415-120846 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1" # dont put \\ after the filename
+   t= mainfolder1 * filename 
   
-#   f1000= joinpath(mainfolder1,filename * ".csv") 
+ f1000= joinpath(mainfolder1,filename * ".csv") 
 
 # #    f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
-#    df= CSV.read(f1000, DataFrame) 
+df= CSV.read(f1000, DataFrame) 
 # #    FFT_analysis(t,δt)
 
-# inside_Np=stat_analysis1(a,b,R,t,δt,0) # 0 for pole, equator, 1 for only right left, 2 for entire
+ inside_Np=stat_analysis_perimeter(a,b,R,t,δt,0) # 0 for pole, equator, 1 for only right left, 2 for entire
 
-   #makegif(mainfolder1,t)
+   makegif(mainfolder1,t)
 
