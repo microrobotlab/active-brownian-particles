@@ -109,7 +109,7 @@ end
 function curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
  
   println("I am in ABP curvature analysis")
-  f5= pathf*"_p.csv"
+  f5= pathf*"_parameter_p.csv"
   f6= pathf*"_N.png"
   f7= pathf*"_Ndiff_eqs.png"
   f8= pathf*"_curvature_phenomenon.png"
@@ -123,7 +123,7 @@ function curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
 # pf_factor = R*R
 # Aeq= a*b*(atan(a*tan(eθ)/b))  # equator area
 # Ap= a*b*(atan(b/(tan(eθ)*a)))   # pole area
-
+ll=0
 for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually time steps but in group counting it is 1, 2, 3---1000 , hence, time                                                                                                                                                                                                                     
 
    global Npole1=0
@@ -137,10 +137,16 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
 
           x, y = gdf[i][!,:xpos][j], gdf[i][!,:ypos][j]
         # Check if particle is near the ellipse boundary
-        r = sqrt((x^2 / a^2) + (y^2 / b^2))  # Normalized radial distance
+        r = sqrt((x^2 / (a)^2) + (y^2 / (b)^2))  # Normalized radial distance
         #r = sqrt((x^2) + (y^2))  # Normalized radial distance
-        #@show r
-        if 0 < abs(r - 1) < 0.5R # for particles near the ellipse boundary
+        #@show abs(r-1)
+      
+        if r <= 0.1
+      
+          ll +=1
+          println("inside ellippse ll = ", ll)
+        end
+        if 0 < abs(r - 1) < R # for particles near the ellipse boundary, this value is around 0.05, so always less than R
     
         θ = atan.(y, x) 
 

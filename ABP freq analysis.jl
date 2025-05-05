@@ -1,8 +1,8 @@
 using CSV, FileIO, DataFrames, Plots, LaTeXStrings, Statistics, FFTW, Peaks
 
-function FFT_analysis(mainfolder,dt,resample)
+function FFT_analysis(mainfolder,dt,resample,task)
     
-f1= mainfolder*"_p.csv"
+f1= mainfolder*"_parameter_p.csv"
 
 f= mainfolder*"\\number of particles.png"
 # f1= mainfolder*"\\FFT_difference_equators_fs1000.png"
@@ -10,8 +10,8 @@ f2= mainfolder*"\\FFT_difference.png"
 f3=mainfolder*"_FFT.csv"
 df= CSV.read(f1,DataFrame)
 
-start_frame= 1
-end_frame= 100000
+start_frame= 1000
+end_frame= 5000
 time_step= df[:,:t]
 Neq1= df[:,:NeqL]
 Neq2= df[:,:NeqR]
@@ -21,7 +21,7 @@ Waqt = time_step .* dt
 ########################################## FFT Analysis start #############################################################àà
 
 # please choose the value of i, 1 for poles and 2 for equators
-i=3
+i=task
 if i==1
     ydata = Npole1.-Npole2
     f1= mainfolder*"_FFt_diff_poles.png"
@@ -38,7 +38,7 @@ ydata_corr= ydata[start_frame:end_frame].-mean(ydata[start_frame:end_frame])
 @show fs=Int(1/(dt*resample)) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
 #freq= fftshift(fft(ydata_corr))
 freq=(fft(ydata_corr))
-@show freqs = (fftfreq(length(ydata_corr), fs))
+freqs = (fftfreq(length(ydata_corr), fs))
 real_freq = (abs.(freq))
 indices, heights = findmaxima(real_freq)
 h_ranks = sortperm(heights, rev=true)
@@ -58,7 +58,7 @@ top_values = real_freq[top_peaks]
 =#
 
 # Plot the frequency data with peaks highlighted
-k=plot(freqs, real_freq, seriestype=:stem, xlim=(0, 0.01), ylim=(0.02, 55000), xlabel="Frequency (Hz)", ylabel="Power", legend=false)
+k=plot(freqs*1000, real_freq, seriestype=:stem, xlim=(0, 1.4), ylim=(0.02, 55000), xlabel="Frequency (mHz)", ylabel="Power", legend=false)
 # save the data in a csv file
 freq_data= DataFrame(f=freqs, real= real_freq)
 CSV.write(f3,freq_data)

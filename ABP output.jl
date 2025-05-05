@@ -1,7 +1,6 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
-@show Threads.nthreads()
 
 include("ABP main.jl")
 include("ABP_file.jl")
@@ -12,10 +11,11 @@ include("ABP SD.jl")
 include("ABP multifolder.jl")
 # include("ABP average.jl")
 include("generation.jl")
-#include("ABP freq analysis.jl")
+include("ABP freq analysis.jl")
 include("ABP gif.jl")
+include("ABP multianalysis.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
-using Date, QuadGK
+using Dates, QuadGK
 gr()
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -146,6 +146,11 @@ end
 # AVERAGE OF THE MULTIPLE OUTPUT FILES DATA
 # mainfolder="C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07 Coding\\2023\\08.Aug\\ellipse\\20230824-205011\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.1\\"
 # (average(mainfolder))   # passing path of the main folders which has all the run Sant'Anna\P07Coding\2024\11.November\20241128-183816\R=2.0 v=15.0 a=50.0 b=25.0 pf=0.2
+#------------------------------------------------------------------------------------------------------------------------------------------------------
+# Analysis of multiple output files data
+mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
+multianalysis(mainfolder)
+######################################################################################################
 
   mainfolder1= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
  
@@ -156,9 +161,9 @@ end
 
 # #    f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"
 df= CSV.read(f1000, DataFrame) 
-# #    FFT_analysis(t,δt)
+ FFT_analysis(t,δt,resample) # FFT analysis of the data
 
  inside_Np=stat_analysis_perimeter(a,b,R,t,δt,0) # 0 for pole, equator, 1 for only right left, 2 for entire
 
-   makegif(mainfolder1,t)
+#makegif(mainfolder1,t)
 
