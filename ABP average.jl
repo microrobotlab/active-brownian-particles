@@ -10,9 +10,9 @@ function average(mainfolder)
     all_data = DataFrame()
     t1= plot()
     t2= plot()
-    t3=plot()
-    t4=plot()
-    t5=plot()
+    t3= plot()
+    t4= plot()
+    t5= plot()
     f= mainfolder*"conference Leiden.png" #average of FFT of all individual runs
     f1= mainfolder*"conference Leiden FFT V 20.0.png" #average of FFT of all individual FFTS
     #f2= mainfolder*"test avg V 20.0_data.csv"
