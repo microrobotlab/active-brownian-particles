@@ -150,12 +150,12 @@ end
 #------------------------------------------------------------------------------------------------------------------------------------------------------
 # Analysis of multiple output files data
 mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
-multianalysis(mainfolder)
+multianalysis(mainfolder,10) # passing path of the main folders which has all the run folders
 ######################################################################################################
 
-  mainfolder1= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
+  mainfolder1= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250407-153348\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
  
-   filename="20250415-120846 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1" # dont put \\ after the filename
+   filename="20250407-153348 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1" # dont put \\ after the filename 
    t= mainfolder1 * filename 
   
  f1000= joinpath(mainfolder1,filename * ".csv") 

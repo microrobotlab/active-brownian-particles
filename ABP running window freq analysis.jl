@@ -6,9 +6,7 @@ function FFT_analysis_window(mainfolder,dt,resample,task)
 f1= mainfolder*"_parameter_p.csv"
 
 f= mainfolder*"\\number of particles.png"
-# f1= mainfolder*"\\FFT_difference_equators_fs1000.png"
-f2= mainfolder*"\\FFT_difference.png"
-f3=mainfolder*"_FFT.csv"
+
 df= CSV.read(f1,DataFrame)
 
 start_frame= 1000
@@ -39,13 +37,13 @@ end
 
 time_series = ydata[start_frame:end_frame] .-mean(ydata[start_frame:end_frame])
 
-N = 20000
+# = 20000
 fs=Int(1/(dt*resample)) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
-@assert length(time_series) == N
-println("Time series length: $N samples")
+#assert length(time_series) == N
+
 
 # Parameters for Welch's method
-nperseg = 4096  #you can increase this value to get more frequency resolution
+nperseg = 8192  # Number of data points in each segment. You can increase this value to get more frequency resolution
 noverlap = nperseg ÷ 2
 
 # Compute PSD

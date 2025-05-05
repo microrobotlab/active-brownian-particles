@@ -141,11 +141,11 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
         #r = sqrt((x^2) + (y^2))  # Normalized radial distance
         #@show abs(r-1)
       
-        if r <= 0.1
+        # if r <= 0.1
       
-          ll +=1
-          println("inside ellippse ll = ", ll)
-        end
+        #   ll +=1
+        #   println("inside ellippse ll = ", ll)
+        # end
         if 0 < abs(r - 1) < R # for particles near the ellipse boundary, this value is around 0.05, so always less than R
     
         θ = atan.(y, x) 
