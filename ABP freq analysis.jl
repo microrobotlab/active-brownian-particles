@@ -11,7 +11,7 @@ f3=mainfolder*"_FFT.csv"
 df= CSV.read(f1,DataFrame)
 
 start_frame= 1000
-end_frame= 5000
+end_frame= 20000
 time_step= df[:,:t]
 Neq1= df[:,:NeqL]
 Neq2= df[:,:NeqR]
@@ -24,13 +24,13 @@ Waqt = time_step .* dt
 i=task
 if i==1
     ydata = Npole1.-Npole2
-    f1= mainfolder*"_FFt_diff_poles.png"
+    f1= mainfolder*"_perimeter_FFt_diff_poles.png"
 elseif i==2
     ydata = Neq1.-Neq2
-    f1= mainfolder*"_FFT_diff_equators.png"
+    f1= mainfolder*"_perimeter_FFT_diff_equators.png"
 elseif i==3
     ydata = (Neq1.+Neq2).-(Npole1.+Npole2)
-    f1= mainfolder*"_FFT_diff_curvature.png"
+    f1= mainfolder*"_perimeter_FFT_diff_curvature.png"
    # f= mainfolder*"\\number of particles.png"
 end
 
@@ -58,7 +58,7 @@ top_values = real_freq[top_peaks]
 =#
 
 # Plot the frequency data with peaks highlighted
-k=plot(freqs*1000, real_freq, seriestype=:stem, xlim=(0, 1.4), ylim=(0.02, 55000), xlabel="Frequency (mHz)", ylabel="Power", legend=false)
+k=plot(freqs*1000, real_freq, seriestype=:stem, xlim=(0, 2.0), ylim=(0.02, 55000), xlabel="Frequency (mHz)", ylabel="Power", legend=false)
 # save the data in a csv file
 freq_data= DataFrame(f=freqs, real= real_freq)
 CSV.write(f3,freq_data)

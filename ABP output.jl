@@ -14,6 +14,7 @@ include("generation.jl")
 include("ABP freq analysis.jl")
 include("ABP gif.jl")
 include("ABP multianalysis.jl")
+include("ABP running window freq analysis.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates, QuadGK
 gr()
