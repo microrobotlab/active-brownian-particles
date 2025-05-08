@@ -13,16 +13,15 @@ include("ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = "D:\\nic_simulations\\tests"
+path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations"
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e5)           # number of stepss
+Nt = Int(2e3)           # number of stepss
 δt = 5e-3     # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
 measevery = Int(1e0)           # Downsampling in file
-animation = true
 animation = true
 radialdensity = false
 
@@ -30,20 +29,20 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.		           # μm particle radius
-L = 100.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*20 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 175.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = Exponential(12/log(50))	 # μm/s particle s
-ω = Normal(0.,0.01)      # s⁻¹ particle angular velocity
+v = 20.	 # μm/s particle s
+ω = 0.      # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
 int_func = lennard_jones
-forward = false
+forward = true
 intrange = 40. # interaction range
-offcenter = 0.   #collect(0.0:0.05:1.0)
-int_params = (2R, .07) # σ and ϵ in the case of LJ
+offcenter = 0.5   #collect(0.0:0.05:1.0)
+int_params = (2R, .1) # σ and ϵ in the case of LJ
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
@@ -156,7 +155,7 @@ for i in 1:ICS
     end
     @info "$(now()) Simulation and file writing finished"
     if animation
-        animation_from_file(pathf,L,R,δt,measevery,25, show = true, record=true, final_format = "mp4", color_code_dir = true)
+        animation_from_file(pathf,L,R,δt,measevery,25, show = true, record=true, final_format = "gif", color_code_dir = true)
     end
 end
 

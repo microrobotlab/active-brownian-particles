@@ -31,8 +31,8 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     ys = @lift ypos[:,$simstep]
     θs = @lift θ[:,$simstep]
 
-    fig = GLMakie.Figure(size = (1080,1080))
-    ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1)
+    fig = GLMakie.Figure(size = (480,480))
+    ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1, xgridvisible = true, ygridvisible = true, yticklabelsvisible = false, xticklabelsvisible = false, yticksvisible = false, xticksvisible = false)
     mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 1.))
     mrkdir = Polygon(Point2f[(0.6,0), (-0.4,0.4), (-0.4, -0.4)])
     if color_code_dir
