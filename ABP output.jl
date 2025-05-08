@@ -149,8 +149,13 @@ end
 # (average(mainfolder))   # passing path of the main folders which has all the run Sant'Anna\P07Coding\2024\11.November\20241128-183816\R=2.0 v=15.0 a=50.0 b=25.0 pf=0.2
 #------------------------------------------------------------------------------------------------------------------------------------------------------
 # Analysis of multiple output files data
-#mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
-#multianalysis(mainfolder,10) # passing path of the main folders which has all the run folders
+mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250430-174406\\R=1.5 v=10.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
+# multianalysis(mainfolder,10) # passing path of the main folders which has all the run folders
+
+parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\" # destination folder path
+folder_names= parent_folder*"folder_names.txt" # file containing the names of the folders to be analyzed
+multianalysis(folder_names, parent_folder)
+
 ######################################################################################################
 
   mainfolder1= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
@@ -167,4 +172,3 @@ end
  #inside_Np=stat_analysis_perimeter(a,b,R,t,δt,0) # 0 for pole, equator, 1 for only right left, 2 for entire
 
   # makegif(mainfolder1,t)
-
