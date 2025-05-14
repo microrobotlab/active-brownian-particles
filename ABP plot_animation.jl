@@ -1,6 +1,6 @@
 using GLMakie, CairoMakie
 using GeometryBasics: Point2f, Circle, Point2f0, Polygon
-using CSV, DataFrames, Dates, Logging
+using CSV, DataFrames, Dates, Logging, Statistics
 include("geo_toolbox.jl")
 GLMakie.activate!(inline=false)
 
@@ -25,18 +25,20 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     ypos = reshape(ypos, Np,:)[:,1:downsampling:end]
     θ = reshape(θ, Np,:)[:,1:downsampling:end]
     pirotation!(θ)
+    θnorm = θ./2π
 
     simstep = Observable(1)
     xs = @lift xpos[:,$simstep]
     ys = @lift ypos[:,$simstep]
     θs = @lift θ[:,$simstep]
+    θnorms = @lift θnorm[:,$simstep]
 
     fig = GLMakie.Figure(size = (480,480))
     ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1, xgridvisible = true, ygridvisible = true, yticklabelsvisible = false, xticklabelsvisible = false, yticksvisible = false, xticksvisible = false)
     mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 1.))
     mrkdir = Polygon(Point2f[(0.6,0), (-0.4,0.4), (-0.4, -0.4)])
     if color_code_dir
-        sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = θs, colormap = :cyclic_mygbm_30_95_c78_n256_s25, alpha = 0.5, markerspace = :data, markersize = R)
+        sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = θnorms, colormap = :phase, alpha = 0.5, markerspace = :data, markersize = R)
     else
         sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = :slategrey, markerspace = :data, markersize = R)
     end
