@@ -17,7 +17,7 @@ path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulation
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(2e3)           # number of stepss
+Nt = Int(2e3)           # number of steps
 δt = 5e-3     # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
