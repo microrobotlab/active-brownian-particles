@@ -120,7 +120,7 @@ end
 """
 Calculate the 2-norm of a vector.
 """
-d2(xy::Array{Float64,2}) = sqrt.(sum(xy.^2, dims=2))
+d2(xy::Array{Float64,2}) = sqrt.(sum(abs2, xy, dims=2))
 
 """
     ellipse_sectors(a::Float64,b::Float64,r::Float64,shell::Bool)
