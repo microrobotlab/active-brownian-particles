@@ -276,12 +276,12 @@ end
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
 	# Boundary conditions: horizontal edge
-	idx = abs.(xy[:,1]) .> L/2 + R #I create vector idx in which I have 1 where the absolute value of the x coordinate of the particles is outside the observation area
+	idx = abs.(xy[:,1]) .> L/2 #I create vector idx in which I have 1 where the absolute value of the x coordinate of the particles is outside the observation area
 	if any(idx)
 		xy[idx,1] .-= sign.(xy[idx,1]).*L   #where I have uni in idx I make the particle reappear on the opposite side of x with respect to 0
 	end
 	# Boundary conditions: vertical edge
-	idy = abs.(xy[:,2]) .> L/2 + R
+	idy = abs.(xy[:,2]) .> L/2
 	if any(idy)
 		xy[idy,2] .-= sign.(xy[idy,2]).*L
 	end
