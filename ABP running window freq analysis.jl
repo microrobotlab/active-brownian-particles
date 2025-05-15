@@ -3,20 +3,20 @@ using CSV, FileIO, DataFrames, Plots,DSP,Polynomials
 
 function FFT_analysis_window(mainfolder,run_folder,dt,resample,task)
     
-# f1= mainfolder*"_parameter_p.csv"
-f1= mainfolder*"data.csv"
+ f1= mainfolder*"_parameter_p.csv"
+#f1= mainfolder*"data.csv"
 f= run_folder*"\\FFT_analysis.png"
 
 df= CSV.read(f1,DataFrame)
 
-start_frame= 1
-end_frame= 4300
-# time_step= df[:,:t]
-# Neq1= df[:,:NeqL]
-# Neq2= df[:,:NeqR]
-# Npole1= df[:,:NpoleU]
-# Npole2= df[:,:NpoleD]
-ydata= df[:,:pdiff]
+start_frame= 1000
+end_frame= 20000
+time_step= df[:,:t]
+Neq1= df[:,:NeqL]
+Neq2= df[:,:NeqR]
+Npole1= df[:,:NpoleU]
+Npole2= df[:,:NpoleD]
+#ydata= df[:,:pdiff]
 
 ########################################## FFT Analysis start #############################################################àà
 
@@ -44,12 +44,12 @@ end
 time_series = time_series_centered[start_frame:end_frame] .-mean(ydata[start_frame:end_frame])
 
 # = 20000
-# fs=Int(1/(dt*resample)) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
+fs=Int(1/(dt*resample)) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
 #assert length(time_series) == N
 
-fs=12
+# fs=12
 # Parameters for Welch's method
-nperseg = 1024 # Number of data points in each segment. You can increase this value to get more frequency resolution
+nperseg = 8192# Number of data points in each segment. You can increase this value to get more frequency resolution
 noverlap = nperseg ÷ 2
 
 # Compute PSD
@@ -73,9 +73,9 @@ idx = findall(f -> 0.01 <= f <= 40.01, freqs_mHz)# sort of high pass filter
 pt_linear= plot(freqs_mHz[idx], psd[idx], xlabel="Frequency (mHz)", ylabel="Power", label="PSD", title="Power Spectral Density")
 vline!([peak_freq_mHz], label="Peak at $peak_freq_mHz mHz", linestyle=:dash)
 savefig(pt_linear,joinpath(run_folder, "FFT_analysis.png"))
-# pt_log= plot(freqs_mHz[idx], psd[idx], xscale=:log10,yscale=:log10,xlabel="log(Frequency)(mHz)", ylabel="Power", label="PSD", title="Power Spectral Density")
-# vline!([peak_freq_mHz], label="Peak at $peak_freq_mHz mHz", linestyle=:dash)
-# savefig(pt_log,joinpath(run_folder, "FFT_analysis_log.png"))
+pt_log= plot(freqs_mHz[idx], psd[idx], xscale=:log10,yscale=:log10,xlabel="log(Frequency)(mHz)", ylabel="Power", label="PSD", title="Power Spectral Density")
+vline!([peak_freq_mHz], label="Peak at $peak_freq_mHz mHz", linestyle=:dash)
+savefig(pt_log,joinpath(run_folder, "FFT_analysis_log.png"))
 return peak_freq_mHz, peak_period, freqs_mHz, psd
 
 end

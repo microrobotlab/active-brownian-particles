@@ -42,7 +42,7 @@ results = Tuple{Int,String,Float64}[]  # (Run, Main_Folder, Peak_Frequency_mHz)
 # Define mainfolder_name at the start of the loop
 mainfolder_name = basename(mainfolder)          # e.g., 20250415-561314
         # Access the single sub-subfolder
-        sub_subfolder = joinpath(mainfolder, "R=1.5 v=10.0 a=50.0 b=12.5 pf=0.1")
+        sub_subfolder = joinpath(mainfolder, "R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1")
         sub_subfolder_name = basename(sub_subfolder)  # R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1
         println("Processing sub-subfolder: $sub_subfolder_name")
         if !isdir(sub_subfolder)
@@ -73,11 +73,11 @@ mainfolder_name = basename(mainfolder)          # e.g., 20250415-561314
 
             # Construct filename using main folder name and constant parameters
             mainfolder_name = basename(mainfolder)  # e.g., 20250415-561314
-            filename = "$mainfolder_name R=$R v=10.0 a=$a b=$b pf=0.1 run$i"
+            filename = "$mainfolder_name R=$R v=5.0 a=$a b=$b pf=0.1 run$i"
             t = joinpath(run_folder, filename)
 
             # Perform statistical analysis
-            #inside_Np = stat_analysis_perimeter(a, b, R, t, δt, 2)
+            inside_Np = stat_analysis_perimeter(a, b, R, t, δt, 2)
 
             # FFT analysis
             peak_freq_mHz, peak_period, freqs_mHz, psd = FFT_analysis_window(t, run_folder, δt, resample, 3)

@@ -152,7 +152,7 @@ end
 mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250430-174406\\R=1.5 v=10.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
 # multianalysis(mainfolder,10) # passing path of the main folders which has all the run folders
 
-parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\" # destination folder path
+parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\05.May\\" # destination folder path
 folder_names= parent_folder*"folder_names.txt" # file containing the names of the folders to be analyzed
 multianalysis(folder_names, parent_folder)
 
