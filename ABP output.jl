@@ -28,7 +28,7 @@ R = 1.5	# μm particle radius
 v = 5.0 	# μm/s particle velocity
 a=L/2
 b=L/8
-ICS=10
+ICS=30
    # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
@@ -37,7 +37,7 @@ packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
-Nt = 20000000# Nt is the number of steps 
+Nt = 40000000# Nt is the number of steps 
 resample=1000
 Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the actual simulation time step
 δt = 1.0e-3 #L/(v*Nt) # δt is the time step
@@ -45,7 +45,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\2025\05.May\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\2025\05.May\\40000sdata\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
