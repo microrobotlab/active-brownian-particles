@@ -33,7 +33,7 @@ ICS=30
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.1
+packing_fraction = 0.2
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
@@ -149,7 +149,7 @@ end
 # (average(mainfolder))   # passing path of the main folders which has all the run Sant'Anna\P07Coding\2024\11.November\20241128-183816\R=2.0 v=15.0 a=50.0 b=25.0 pf=0.2
 #------------------------------------------------------------------------------------------------------------------------------------------------------
 # Analysis of multiple output files data
-mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250430-174406\\R=1.5 v=10.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
+#mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250430-174406\\R=1.5 v=10.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
 # multianalysis(mainfolder,10) # passing path of the main folders which has all the run folders
 
 parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\05.May\\" # destination folder path

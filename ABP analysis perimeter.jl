@@ -110,9 +110,9 @@ function curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
  
   println("I am in ABP curvature analysis")
   f5= pathf*"_parameter_p.csv"
-  f6= pathf*"_N.png"
-  f7= pathf*"_Ndiff_eqs.png"
-  f8= pathf*"_curvature_phenomenon.png"
+  f6= pathf*"_perimeter_N.png"
+  f7= pathf*"_perimeter_Ndiff_eqs.png"
+  f8= pathf*"_perimeter_curvature_phenomenon.png"
 
   n1,n2,n3,n4=[], [], [], []
 
@@ -146,7 +146,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
         #   ll +=1
         #   println("inside ellippse ll = ", ll)
         # end
-        if 0 < abs(r - 1) < R # for particles near the ellipse boundary, this value is around 0.05, so always less than R
+        if 0 < abs(r - 1) < 2R # for particles near the ellipse boundary, this value is around 0.05, so always less than R
     
         θ = atan.(y, x) 
 
@@ -185,7 +185,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
 
         #########################################################################################
     # ploting in terms of particles number
-    yl=40
+    yl=60
     xl=100
     y2=500
   #  xlabel!("Time (s)", xguidefont=font(11), xtickfont=font(11))

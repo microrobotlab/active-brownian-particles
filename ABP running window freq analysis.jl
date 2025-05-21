@@ -24,13 +24,13 @@ Npole2= df[:,:NpoleD]
 i=task
 if i==1
     ydata = Npole1.-Npole2
-    f1= mainfolder*"_perimeter_FFt_diff_poles.png"
+    f1= run_folder*"_perimeter_FFt_diff_poles.png"
 elseif i==2
     ydata = Neq1.-Neq2
-    f1= mainfolder*"_perimeter_FFT_diff_equators.png"
+    f1= run_folder*"_perimeter_FFT_diff_equators.png"
 elseif i==3
     ydata = (Neq1.+Neq2).-(Npole1.+Npole2)
-    f1= mainfolder*"_perimeter_FFT_diff_curvature.png"
+    f1= run_folder*"_perimeter_FFT_diff_curvature.png"
    # f= mainfolder*"\\number of particles.png"
 end
 
