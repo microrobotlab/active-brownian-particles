@@ -117,7 +117,7 @@ function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
 
     pθ_i = (position(abpe), orientation(abpe)) .+ (δp_i, δθ_i)
 
-    periodic_BC_array!(pθ_i[1], abpe.L, abpe.R)
+    periodic_BC_array!(pθ_i[1], abpe.L, abpe.Np)
 
     #final step
     if (!isapprox(offcenter,0.0))
@@ -135,7 +135,7 @@ function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
 
     pθ = (position(abpe), orientation(abpe)) .+ (δp_f, δθ_f)
 
-    periodic_BC_array!(pθ[1],abpe.L, abpe.R)
+    periodic_BC_array!(pθ[1],abpe.L, abpe.Np)
     hardsphere_periodic!(pθ[1], matrices[1], matrices[2],abpe.R, abpe.L)
 
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
@@ -206,7 +206,7 @@ function hardsphere_periodic!(xy::Array{Float64,2}, periodicdists::Array{Float64
         if superpositions > 0
             # println("correcting...")
             hardsphere_correction_periodic!(xy,Δxy,periodicdists,superpose,R,tol=1e-3)
-            periodic_BC_array!(xy,L,R)
+            periodic_BC_array!(xy,L,size(xy,1))
         end
         counter += 1
         # @show(counter)
@@ -274,18 +274,19 @@ function hardsphere2_periodic!(xy::Vector{Tuple{Float64,Float64}}, R::Float64; t
     return nothing
 end
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function periodic_BC_array!(xy::Array{Float64,2},L::Float64, R)   #when a particle crosses an edge it reappears on the opposite side
-	# Boundary conditions: horizontal edge
-	idx = abs.(xy[:,1]) .> L/2 #I create vector idx in which I have 1 where the absolute value of the x coordinate of the particles is outside the observation area
-	if any(idx)
-		xy[idx,1] .-= sign.(xy[idx,1]).*L   #where I have uni in idx I make the particle reappear on the opposite side of x with respect to 0
-	end
-	# Boundary conditions: vertical edge
-	idy = abs.(xy[:,2]) .> L/2
-	if any(idy)
-		xy[idy,2] .-= sign.(xy[idy,2]).*L
-	end
-	return nothing
+function periodic_BC_array!(xy::AbstractArray{Float64,2}, L::Real, Np::Int)
+    @inbounds for i in 1:Np
+        x, y = xy[i, 1], xy[i, 2]
+
+        if abs(x) > L/2
+            xy[i, 1] = x - sign(x) * L
+        end
+
+        if abs(y) > L/2
+            xy[i, 2] = y - sign(y) * L
+        end
+    end
+    return nothing
 end
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -319,7 +320,7 @@ function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Fl
     @threads for i in axes(xy,1)
         # Compute distances and apply periodic boundary conditions
         xy_shifted = xy .- [xy[i,1] xy[i,2]]
-        periodic_BC_array!(xy_shifted, L, R)
+        periodic_BC_array!(xy_shifted, L, Np)
 
         # Filter to get particles within interaction range and not at the origin
         inside = all(reshape(abs.(xy_shifted) .<= threshold, Np, 2), dims=2)[:,1]
