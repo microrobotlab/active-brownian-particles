@@ -13,12 +13,12 @@ include("ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = "C:\\Users\\nikko\\OneDrive\\Documents\\Uni\\magistrale\\tesi\\simulations"
+path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "coding", "simulations")
 
 ## PARAMETERS SET
 # Simulation parameters
 Nt = Int(2e3)           # number of steps
-δt = 5e-3     # s step time
+δt = 1e-3     # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
 measevery = Int(1e0)           # Downsampling in file
@@ -155,7 +155,7 @@ for i in 1:ICS
     end
     @info "$(now()) Simulation and file writing finished"
     if animation
-        animation_from_file(pathf,L,R,δt,measevery,25, show = true, record=true, final_format = "gif", color_code_dir = true)
+        animation_from_file(pathf,L,R,δt,measevery,25, show = true, record=true, final_format = "mkv", color_code_dir = true)
     end
 end
 
