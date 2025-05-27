@@ -323,7 +323,7 @@ function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Fl
         periodic_BC_array!(xy_shifted, L, Np)
 
         # Filter to get particles within interaction range and not at the origin
-        inside = all(reshape(abs.(xy_shifted) .<= threshold, Np, 2), dims=2)[:,1]
+        inside = vec(d2(xy_shifted) .<= l)
         xy_inside = xy_shifted[inside, :]
 
         # Remove central particle [0, 0] from interaction set
