@@ -17,7 +17,7 @@ path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(2e3)           # number of steps
+Nt = Int(2e4)           # number of steps
 δt = 1e-3     # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
