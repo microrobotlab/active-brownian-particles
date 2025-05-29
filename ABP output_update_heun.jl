@@ -29,19 +29,19 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.		           # μm particle radius
-L = 175.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 100.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 20.	 # μm/s particle s
-ω = 0.      # s⁻¹ particle angular velocity
+ω = 0.5      # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
-int_func = lennard_jones
+int_func = coulomb
 intrange = 40. # interaction range
-offcenter = -0.5   #collect(0.0:0.05:1.0)
-int_params = (2R, .1) # σ and ϵ in the case of LJ
+offcenter = -1.   #collect(0.0:0.05:1.0)
+int_params = (10.) # σ and ϵ in the case of LJ
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
@@ -125,9 +125,9 @@ for i in 1:ICS
         @info "$(start) Started simulation #$i"
 
 
-    ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, forward, offcenter, intrange, int_params...,)
+    ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, offcenter, intrange, int_params...,)
     if int_func == lennard_jones
-        offcenter_nosuperpose!(ABPE, δt, forward, offcenter, 2R+1e-3, int_func, int_params...)
+        offcenter_nosuperpose!(ABPE, δt, offcenter, 2R+1e-3, int_func, int_params...)
     end
     for nt in 0:Nt
         if nt % measevery == 0
@@ -146,7 +146,7 @@ for i in 1:ICS
             #     write(polfile, "$(mean_polarization(ABPE.θ))\n")
             # end
         end
-        ABPE =update_heun(ABPE,matrices,δt, forward, offcenter, intrange, int_func, int_params...)
+        ABPE =update_heun(ABPE,matrices,δt, offcenter, intrange, int_func, int_params...)
         if nt % (Nt÷100) == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
