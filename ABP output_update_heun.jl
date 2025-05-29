@@ -39,9 +39,8 @@ T = 300. # K temperature
 
 # Interaction parameters
 int_func = lennard_jones
-forward = true
 intrange = 40. # interaction range
-offcenter = 0.5   #collect(0.0:0.05:1.0)
+offcenter = -0.5   #collect(0.0:0.05:1.0)
 int_params = (2R, .1) # σ and ϵ in the case of LJ
 
 ## PRELIMINARY CALCULATIONS
@@ -76,7 +75,7 @@ mainfolder1= mkdir(patht)
 folders=  multipledir(patht, ICS) 
 
 # Info printing on shell and file
-infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nRange: %.1f μm\nOffcenter: %s" box_shape Np density R T v ω a b packing_fraction δt measevery  Nt T_tot int_func int_params intrange offcenter*(2*forward-1)
+infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nRange: %.1f μm\nOffcenter: %s" box_shape Np density R T v ω a b packing_fraction δt measevery  Nt T_tot int_func int_params intrange offcenter
 
 println(infos)
 
