@@ -4,7 +4,7 @@ using CSV, DataFrames, Dates, Logging, Statistics
 include("geo_toolbox.jl")
 GLMakie.activate!(inline=false)
 
-function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false)
+function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false, color_code_qty::Bool=false, qty::Symbol)
     GLMakie.activate!(inline=false)
 
     fname = pathf*ext
@@ -20,6 +20,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     xpos = Array(df[!,:xpos])
     ypos = Array(df[!,:ypos])
     θ = Array(df[!,:orientation])
+
 
     xpos = reshape(xpos, Np,:)[:,1:downsampling:end]
     ypos = reshape(ypos, Np,:)[:,1:downsampling:end]
@@ -39,6 +40,11 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     mrkdir = Polygon(Point2f[(0.6,0), (-0.4,0.4), (-0.4, -0.4)])
     if color_code_dir
         sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = θnorms, colormap = :phase, alpha = 0.5, markerspace = :data, markersize = R)
+    elseif color_code_qty
+        quantity = df[!,qty]
+        quantity = reshape(quantity, Np,:)[:,1:downsampling:end]
+        qtys = @lift quantity[:,$simstep]
+        sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = qtys, colormap = :bluesreds, alpha = 0.5, markerspace = :data, markersize = R)
     else
         sc = GLMakie.scatter!(ax, xs, ys, marker = Polygon(mrk), color = :slategrey, markerspace = :data, markersize = R)
     end
