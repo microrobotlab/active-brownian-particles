@@ -13,35 +13,35 @@ include("ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "coding", "simulations")
+path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "coding", "simulations", "angvel_demixing")
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(2e4)           # number of steps
+Nt = Int(1e5)           # number of steps
 δt = 1e-3     # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
 measevery = Int(1e0)           # Downsampling in file
-animation = true
+animation = false
 radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.		           # μm particle radius
-L = 100.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*20 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 150.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 20.	 # μm/s particle s
-ω = 0.5      # s⁻¹ particle angular velocity
+ω = [-1.,1.]      # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
 int_func = lennard_jones
-intrange = 40. # interaction range
-offcenter = -1.   #collect(0.0:0.05:1.0)
-int_params = (2R,.01) # σ and ϵ in the case of LJ
+intrange = 0. # interaction range
+offcenter = 0.  #collect(0.0:0.05:1.0)
+int_params = (2R,0.) # σ and ϵ in the case of LJ
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
@@ -118,7 +118,7 @@ for i in 1:ICS
 
         # Simulation and file storage
         open(datafname, "w") do infile
-            writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation"], ",")
+            writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation" "omega"], ",")
         end
 
         start = now()
@@ -140,6 +140,7 @@ for i in 1:ICS
                 xpos= ABPE.x,
                 ypos= ABPE.y,
                 orientation=ABPE.θ,
+                omega=ABPE.ω,
             )  
             CSV.write(datafname, data, append = true)
             # open(polarfname, "a") do polfile
