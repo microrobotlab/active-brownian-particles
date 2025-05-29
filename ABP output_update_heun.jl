@@ -30,7 +30,7 @@ BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 2.		           # μm particle radius
 L = 100.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
+packing_fraction = (pi*R^2/L^2)*20 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 20.	 # μm/s particle s
@@ -38,10 +38,10 @@ v = 20.	 # μm/s particle s
 T = 300. # K temperature
 
 # Interaction parameters
-int_func = coulomb
+int_func = lennard_jones
 intrange = 40. # interaction range
 offcenter = -1.   #collect(0.0:0.05:1.0)
-int_params = (10.) # σ and ϵ in the case of LJ
+int_params = (2R,.01) # σ and ϵ in the case of LJ
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
