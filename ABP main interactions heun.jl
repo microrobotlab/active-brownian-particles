@@ -1,6 +1,8 @@
 using .Threads
 using CalculusWithJulia, Dates, Distributions, ForwardDiff, Random, Statistics
 include("geo_toolbox.jl")
+include("force_functions.jl")
+
 
 # Define an "ABPsEnsemble" Type
 abstract type ABPsEnsemble end
@@ -97,16 +99,13 @@ function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
     δθ_f = Array{Float64,1}(undef,abpe.Np)
     γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units kg/s
     γᵣ = (8e-12γₜ / 6) * abpe.R^2                #Output in international system units
-
-    wca_sigma = 2abpe.R
-    wca_range = wca_sigma*2^(1/6)
+    forward ? oc_length = abpe.R*offcenter : oc_length = -abpe.R*offcenter
+    
     #intermediate step
     if (!isapprox(offcenter,0.0))
-        f_i, t_i = force_torque(position(abpe), orientation(abpe), abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
-        # f_i .+= interactions_range(position(abpe), abpe.R, abpe.L, wca_range, abpe.Np, weeks_chandler_andersen, wca_sigma, 1.)
+        f_i, t_i = force_torque(position(abpe), orientation(abpe), abpe.L, oc_length, range, int_func, int_params...)
     else
         f_i = interactions_range(position(abpe), abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
-        # f_i .+= interactions_range(position(abpe), abpe.R, abpe.L, wca_range, abpe.Np, weeks_chandler_andersen, wca_sigma, 1.)
         t_i = zeros(abpe.Np)
     end 
 
@@ -121,11 +120,9 @@ function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
 
     #final step
     if (!isapprox(offcenter,0.0))
-        f_f, t_f = force_torque(pθ_i..., abpe.R, abpe.L, forward, offcenter, range, int_func, int_params...)
-        # f_f .+= interactions_range(pθ_i[1], abpe.R, abpe.L, wca_range, abpe.Np, weeks_chandler_andersen, wca_sigma, 1.)
+        f_f, t_f = force_torque(pθ_i..., abpe.L, oc_length, range, int_func, int_params...)
     else
         f_f = interactions_range(pθ_i[1], abpe.R, abpe.L, range, abpe.Np, int_func, int_params...)
-        # f_f .+= interactions_range(pθ_i[1], abpe.R, abpe.L, wca_range, abpe.Np, weeks_chandler_andersen, wca_sigma, 1.)
         t_f = zeros(abpe.Np)
     end 
 
@@ -141,13 +138,6 @@ function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
     new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
     return new_abpe
-end
-
-function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, R::Float64, L::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
-    xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
-    forces = interactions_range(xy_chgcen, R, L, range, size(xy,1), int_func, int_params...)
-    torques = offcenter * R .* (forces[:,2] .* cos.(θ) .- forces[:,1] .* sin.(θ))
-    return forces, torques
 end
 
 function offcenter_nosuperpose!(abpe::ABPE2, δt::Float64, forward::Bool, offcenter::Float64, range::Float64, int_func::Function, int_params...)
@@ -291,120 +281,41 @@ end
 
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Function to calculate force vectors
-function interactions(xy::Array{Float64,2}, R::Float64)
-    ϵ=.1
-    σ= 2R
-
-    dists = pairwise(Euclidean(),xy,dims=1)
-    
-    strength_param = 1e0
-    force = strength_param.*lennard_jones.(dists, σ, ϵ)
-    replace!(force, NaN => 0.)
-
-    dirs = radial_directions(xy)
-    F_x = force.*dirs[1]
-    F_y = force.*dirs[2]
-    ΣFx = sum(F_x, dims = 1)
-    ΣFy = sum(F_y, dims = 1)
-    ΣF = vcat.(ΣFx, ΣFy)    
-    return  reduce(vcat, transpose(ΣF))
-end
 
 function interactions_range(xy::Array{Float64, 2}, R::Float64, L::Float64, l::Float64, Np::Int, int_func::Function, int_params...)
     # Preallocate the result array for efficiency
-    ΣFtot = Array{Float64}(undef, Np, 2)
-
-    # Threshold for selecting particles within interaction range
-    threshold = l
+    ΣFtot = zeros(Float64, Np, 2)
     
     @threads for i in axes(xy,1)
         # Compute distances and apply periodic boundary conditions
         xy_shifted = xy .- [xy[i,1] xy[i,2]]
         periodic_BC_array!(xy_shifted, L, Np)
+        xy_nonzero = @view xy_shifted[1:end .!=i, :]
 
-        # Filter to get particles within interaction range and not at the origin
-        inside = vec(d2(xy_shifted) .<= l)
-        xy_inside = xy_shifted[inside, :]
-
-        # Remove central particle [0, 0] from interaction set
-        xy_inside = xy_inside[xy_inside[:,1] .!= 0 .|| xy_inside[:,2] .!= 0, :]
-
-        dirs = Array{Float64}(undef, size(xy_inside))
-
-        if isempty(xy_inside)
-            ΣFtot[i, :] .= 0.0
-            continue
-        end
+        dists = d2(xy_nonzero)
+        inside = vec(dists .<= l)
+        # If no particles are inside the interaction range, force remains zero
+        !any(inside) && continue
+        xy_inside = @view xy_nonzero[inside, :]
+        dirs = zeros(Float64, sum(inside), 2)
 
         # Compute distances and interaction forces
-        dists = d2(xy_inside)
-        dists_nonzero = dists[dists .!= 0]
+        dists_nonzero = @view dists[inside]
         forces = int_func.(dists_nonzero, int_params...)
         
         # Compute normalized direction vectors
         dirs .= xy_inside ./ dists_nonzero
 
         # Sum forces for each direction and assign to ΣFtot
-        ΣFtot[i, :] .= .-sum(forces .* dirs, dims=1)'
+        ΣFtot[i, :] = -sum(forces .* dirs, dims=1)'
     end
-
     return ΣFtot
 end
 
-
-lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))/(x^(13)))- (σ^(6)/(x^(7))))
-shifted_lennard_jones(x, σ, ϵ, shift) = 24*ϵ*(((2*σ^(12))/((x-shift)^(13)))- (σ^(6)/((x-shift)^(7))))
-
-
-function weeks_chandler_andersen(x, σ::Float64, ϵ::Float64)
-    rmin = σ*2^(1/6)
-    if x > rmin
-        return 0
-    else
-        return 24*ϵ*(((2*σ^(12))/(x^(13)))- (σ^(6)/(x^(7))))
-    end
+#Function used to compute torques in aligning interactions
+function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, L::Real, oc::Float64, range::Real, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
+    xy_chgcen = xy .+ oc* [cos.(θ) sin.(θ)]
+    forces = interactions_range(xy_chgcen, L, range, size(xy,1), int_func, int_params...)
+    torques = oc*(forces[:,2] .* cos.(θ) .- forces[:,1] .* sin.(θ))
+    return forces, torques
 end
-
-function purely_attractive_lennard_jones(x, σ::Float64, ϵ::Float64)
-    rmin = σ*2^(1/6) + σ/2
-    if x > rmin
-        return 24*ϵ*(((2*σ^(12))/((x + σ/2)^(13)))- (σ^(6)/((x + σ/2)^(7))))
-    else
-        return 0
-    end
-end
-
-function rlj_boundary(x::Float64, σ::Float64, ϵ::Float64)
-    rmin = σ*2^(1/6) + σ/2
-    if x > rmin
-        return 0
-
-    elseif x < σ
-        return 390144*ϵ/σ
-    else
-        return 24*ϵ*(((2*σ^(12))/((x-σ/2)^(13)))- (σ^(6)/((x-σ/2)^(7)))) 
-    end
-end
-
-function rlj_boundary(x::Float64, σ::Float64, ϵ::Float64)
-    rmin = σ*2^(1/6) + σ/2
-    if x > rmin
-        return 0
-
-    elseif x < σ
-        return 390144*ϵ/σ
-    else
-        return 24*ϵ*(((2*σ^(12))/((x-σ/2)^(13)))- (σ^(6)/((x-σ/2)^(7)))) 
-    end
-end
-
-function contact_lj(x, σ::Float64, ϵ::Float64)
-    shift = 2^(1/6)-1
-    return 24*ϵ*(((2*σ^(12))/((x+shift)^(13)))- (σ^(6)/((x+shift)^(7))))
-end
-
-coulomb(x,k) = k / x^2
-
-excluded_volume(x::Float64,R::Float64, ϵ::Float64) = 12ϵ*((2R)^12)x^(-13)
-
-spring(x,k, x0) = -k*(x-x0)
