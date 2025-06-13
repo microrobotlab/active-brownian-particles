@@ -13,35 +13,35 @@ include("ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "coding", "simulations", "angvel_demixing")
+path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "coding", "simulations", "tests")
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e5)           # number of steps
+Nt = Int(5e5)           # number of steps
 δt = 1e-3     # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
-measevery = Int(1e0)           # Downsampling in file
+measevery = Int(1e1)           # Downsampling in file
 animation = false
 radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
-R = 2.		           # μm particle radius
+R = 1.5		           # μm particle radius
 L = 150.0 	           # μm box length
 packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 20.	 # μm/s particle s
-ω = [-1.,1.]      # s⁻¹ particle angular velocity
+ω = [-1., 1.]      # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
 int_func = lennard_jones
-intrange = 0. # interaction range
-offcenter = 0.  #collect(0.0:0.05:1.0)
-int_params = (2R,0.) # σ and ϵ in the case of LJ
+intrange = 6R # interaction range
+offcenter = 0.5  #collect(0.0:0.05:1.0)
+int_params = (2R,0.1) # σ and ϵ in the case of LJ
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1e-6R,T).*[1e12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
@@ -68,7 +68,7 @@ pathmain= joinpath(path, datestamp)
 
 mainfolder= mkdir(pathmain)    # creates a folder named today's date
 
-patht= joinpath(pathmain,"data\\")
+patht= joinpath(pathmain,"data")
 
 mainfolder1= mkdir(patht)
 
@@ -108,13 +108,13 @@ info_dict = Dict(
 JLD2.save(joinpath(mainfolder, "siminfo_dict.jld2"), info_dict)
 
 for i in 1:ICS
-    pathf= joinpath(patht, "run$i\\")
+    pathf= joinpath(patht, "run$i")
 
         filename= "$datestamp"*"_run$i"
-        pathf= pathf*filename
+        filepath = joinpath(pathf, filename)
 
-        datafname = pathf*".txt"
-        # polarfname = pathf*"_polarization.txt"
+        datafname = filepath*".txt"
+        # polarfname = filepath*"_polarization.txt"
 
         # Simulation and file storage
         open(datafname, "w") do infile
@@ -155,7 +155,7 @@ for i in 1:ICS
     end
     @info "$(now()) Simulation and file writing finished"
     if animation
-        animation_from_file(pathf,L,R,δt,measevery,25, show = true, record=true, final_format = "mkv", color_code_dir = true)
+        animation_from_file(filepath,L,R,δt,measevery,25, show = true, record=true, final_format = "mkv", color_code_dir = true)
     end
 end
 
