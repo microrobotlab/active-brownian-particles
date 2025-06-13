@@ -2,9 +2,8 @@ using GLMakie, CairoMakie
 using GeometryBasics: Point2f, Circle, Point2f0, Polygon
 using CSV, DataFrames, Dates, Logging, Statistics
 include("geo_toolbox.jl")
-GLMakie.activate!(inline=false)
 
-function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false, color_code_qty::Bool=false, qty::Symbol)
+function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false, color_code_qty::Bool=false, qty::Symbol=:nothing, resolution::Int=1080)
     GLMakie.activate!(inline=false)
 
     fname = pathf*ext
@@ -34,7 +33,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     θs = @lift θ[:,$simstep]
     θnorms = @lift θnorm[:,$simstep]
 
-    fig = GLMakie.Figure(size = (1080,1080), figure_padding = 0)
+    fig = GLMakie.Figure(size = (resolution, resolution), figure_padding = 0, px_per_unit = 1)
     ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1, xgridvisible = true, ygridvisible = true, yticklabelsvisible = false, xticklabelsvisible = false, yticksvisible = false, xticksvisible = false)
     mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 1.))
     mrkdir = Polygon(Point2f[(0.6,0), (-0.4,0.4), (-0.4, -0.4)])
@@ -50,15 +49,6 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     end
     GLMakie.scatter!(ax, xs, ys, marker = mrkdir, rotation = θs,  color = :black, markerspace = :data, markersize = 3.)
 
-    if record
-        timestamps = 1:(size(xpos,2))
-        GLMakie.record(fig, pathf*".$final_format", timestamps;
-        framerate = output_framerate) do t
-            simstep[] = t
-        end
-        @info "$(now()) Animation saved to $pathf.$final_format"
-    end
-
     if show
         slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1, color_active =:grey12, color_inactive = :grey60, color_active_dimmed = :grey30)
 
@@ -66,6 +56,16 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
             simstep[] = round(Int, val)
         end
         GLMakie.display(fig)
+    end
+
+    if record
+        GLMakie.delete!(slider)
+        timestamps = 1:(size(xpos,2))
+        GLMakie.record(fig, pathf*".$final_format", timestamps;
+        framerate = output_framerate) do t
+            simstep[] = t
+        end
+        @info "$(now()) Animation saved to $pathf.$final_format"
     end
     return nothing
 
