@@ -152,17 +152,19 @@ end
 #mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250430-174406\\R=1.5 v=10.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
 # multianalysis(mainfolder,10) # passing path of the main folders which has all the run folders
 
-parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\05.May\\" # destination folder path
+parent_folder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2025\05.May\\" # destination folder path
 folder_names= parent_folder*"folder_names.txt" # file containing the names of the folders to be analyzed
 multianalysis(folder_names, parent_folder)
 
 ######################################################################################################
 
-  mainfolder1= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
+  mainfolder1=raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2025\05.May\\"
  
-   filename="20250415-120846 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1" # dont put \\ after the filename
+   filename="20250409-101443 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1" # dont put \\ after the filename
    t= mainfolder1 * filename 
-  
+  FFT_analysis_window(t,mainfolder1,δt,resample,3) # using welch method for FFT analysis of the data in the main folder
+
+  #FFT_analysis(t,mainfolder1,δt,resample,3) # simple FFT analysis of the data in the main folder
  #f1000= joinpath(mainfolder1,filename * ".csv") 
 
 # #    f1= "D:\\j.sharma\\P07\\workstationMRL\\20241104-121620\\R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2\\run1\\20241104-121620 R=2.0 v=10.0 a=50.0 b=25.0 pf=0.2 run1_p.csv\\"

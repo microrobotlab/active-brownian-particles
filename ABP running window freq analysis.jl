@@ -38,10 +38,10 @@ end
     p = fit(t_vec, ydata, 1)  # Linear fit
     trend = p.(t_vec)
     time_series_detrended = ydata .- trend
-    time_series_centered = time_series_detrended .- mean(time_series_detrended)
+    #time_series_centered = time_series_detrended .- mean(time_series_detrended)
+  time_series_centered= ydata
 
-
-time_series = time_series_centered[start_frame:end_frame] .-mean(ydata[start_frame:end_frame])
+time_series = time_series_centered[start_frame:end_frame] .-mean(time_series_centered[start_frame:end_frame])
 
 # = 20000
 fs=Int(1/(dt*resample)) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
@@ -49,7 +49,7 @@ fs=Int(1/(dt*resample)) #sampling rate = sampling frequency = 1/dt if at every t
 
 # fs=12
 # Parameters for Welch's method
-nperseg = 8192# Number of data points in each segment. You can increase this value to get more frequency resolution
+nperseg = 10000# Number of data points in each segment. You can increase this value to get more frequency resolution
 noverlap = nperseg ÷ 2
 
 # Compute PSD
@@ -61,15 +61,15 @@ p = welch_pgram(time_series, nperseg, noverlap; fs=fs)
 freqs_mHz = freqs * 1000
 
 # Ignore the zero frequency because it corresponds to the not changing number of particles 
-freqs_mHz_no_zero = freqs_mHz[2:end]
-psd_no_zero = psd[2:end]
+freqs_mHz_no_zero = freqs_mHz[1:end]
+psd_no_zero = psd[1:end]
 
 # Find the peak frequency excluding zero frequency
 peak_idx_no_zero = argmax(psd_no_zero)
 peak_freq_mHz = freqs_mHz_no_zero[peak_idx_no_zero]
 peak_period = 1 / (peak_freq_mHz / 1000)
 # Plot the PSD (optional)
-idx = findall(f -> 0.01 <= f <= 40.01, freqs_mHz)# sort of high pass filter
+idx = findall(f -> 0.0 <= f <= 40.01, freqs_mHz)# sort of high pass filter
 pt_linear= plot(freqs_mHz[idx], psd[idx], xlabel="Frequency (mHz)", ylabel="Power", label="PSD", title="Power Spectral Density")
 vline!([peak_freq_mHz], label="Peak at $peak_freq_mHz mHz", linestyle=:dash)
 savefig(pt_linear,joinpath(run_folder, "FFT_analysis.png"))
