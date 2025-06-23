@@ -28,16 +28,15 @@ R = 1.5	# μm particle radius
 v = 5.0 	# μm/s particle velocity
 a=L/2
 b=L/8
-ICS=30
-   # number of intial conditons to be scanned 
+ICS=50  # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.1
+packing_fraction = 0.2
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
-Nt = 40000000# Nt is the number of steps 
+Nt = 20000000# Nt is the number of steps 
 resample=1000
 Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the actual simulation time step
 δt = 1.0e-3 #L/(v*Nt) # δt is the time step
@@ -45,7 +44,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\2025\05.May\\40000sdata\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\2025\06.June\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -149,19 +148,19 @@ end
 # (average(mainfolder))   # passing path of the main folders which has all the run Sant'Anna\P07Coding\2024\11.November\20241128-183816\R=2.0 v=15.0 a=50.0 b=25.0 pf=0.2
 #------------------------------------------------------------------------------------------------------------------------------------------------------
 # Analysis of multiple output files data
-mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250430-174406\\R=1.5 v=10.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
+#mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250430-174406\\R=1.5 v=10.0 a=50.0 b=12.5 pf=0.1\\" # destination folder path
 # multianalysis(mainfolder,10) # passing path of the main folders which has all the run folders
 
-parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\" # destination folder path
+#= parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\" # destination folder path
 folder_names= parent_folder*"folder_names.txt" # file containing the names of the folders to be analyzed
 multianalysis(folder_names, parent_folder)
-
+ =#
 ######################################################################################################
 
-  mainfolder1= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
+#=   mainfolder1= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2025\\04.April\\20250415-120846\\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\\run1\\"
  
    filename="20250415-120846 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1" # dont put \\ after the filename
-   t= mainfolder1 * filename 
+   t= mainfolder1 * filename  =#
   
  #f1000= joinpath(mainfolder1,filename * ".csv") 
 
