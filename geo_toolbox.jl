@@ -1,4 +1,7 @@
-using Distances, LinearAlgebra, Markdown
+using Distances
+using GeometryBasics
+using LinearAlgebra
+using Markdown
 
 """
     pwdist(x::Vector{Float64}[, y::Vector{Float64}])
@@ -177,7 +180,6 @@ end
 Compute the area of the intersection between a circle of radius r and a square of side L
 ```
 """
-
 function intersection_area_sq(r::Float64, L::Float64)
     l = L/2
 
@@ -204,4 +206,135 @@ function get_angles(xyθ::Array{Float64,2})
 	return (xyθ[:,3].%2π).-angs_c2c
 	#now you can combine an angle and its opposite through cat in 3d or in some other way depending on what you need
 	#in [i,j] you have the angle that the i-th particle's direction forms with the direction between j and i
+end
+
+#Functions for Voronoi tessellation
+
+"""
+    xy_to_points(xy::Array{Float64,2})
+
+Transforms a 2D array of coordinates into an array of Point2 objects.
+
+# Examples
+```julia-repl
+julia> xy = [0.4 1.2; π ℯ]
+2×2 Matrix{Float64}:
+ 0.4      1.2
+ 3.14159  2.71828
+
+julia> xy_to_points(xy)
+2-element Vector{Point{2, Float64}}:
+ [0.4, 1.2]
+ [3.141592653589793, 2.718281828459045]
+```
+"""
+function xy_to_points(xy::Array{Float64,2})
+    return [Point2(row) for row in eachrow(xy)]
+end
+
+"""
+    round_point(p::Point{2,Float64}, tol=1e-8)
+
+Transforms a 2D array of coordinates into an array of Point2 objects.
+
+# Examples
+```julia-repl
+julia> xy = [0.4 1.2; π ℯ]
+2×2 Matrix{Float64}:
+ 0.4      1.2
+ 3.14159  2.71828
+
+julia> xyp = xy_to_points(xy)
+2-element Vector{Point{2, Float64}}:
+ [0.4, 1.2]
+ [3.141592653589793, 2.718281828459045]
+
+julia> round_point.(xyp)
+2-element Vector{Point{2, Float64}}:
+ [0.4, 1.2]
+ [3.14159265, 2.71828183]
+```
+"""
+function round_point(p::Point{2,Float64}, tol=1e-8)
+    return round.(p, digits=ceil(Int, -log10(tol)))
+end
+
+"""
+    get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}; tol=1e-8)
+
+Returns a set of tuples representing the adjacency of Voronoi cells with particles at their centers.
+
+# Examples
+```julia-repl
+julia> xy = [0.4 1.2; π ℯ]
+2×2 Matrix{Float64}:
+ 0.4      1.2
+ 3.14159  2.71828
+
+julia> xyp = xy_to_points(xy)
+2-element Vector{Point{2, Float64}}:
+ [0.4, 1.2]
+ [3.141592653589793, 2.718281828459045]
+
+julia> round_point.(xyp)
+2-element Vector{Point{2, Float64}}:
+ [0.4, 1.2]
+ [3.14159265, 2.71828183]
+```
+"""
+function get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}; tol=1e-8)
+    # Step 1: Normalize and index all unique points
+    point_to_index = Dict{Point{2,Float64}, Int}()
+    index_counter = 1
+
+    cen_length = Int(length(cells) // 9) # Np
+
+    normalized_cells = Vector{Vector{Int}}(undef, length(cells))
+
+    for (i, cell) in enumerate(cells)
+        normalized_cell = Int[]
+        for p in cell
+            rp = Point(round_point(p, tol))
+            if !haskey(point_to_index, rp)
+                point_to_index[rp] = index_counter
+                index_counter += 1
+            end
+            push!(normalized_cell, point_to_index[rp])
+        end
+        normalized_cells[i] = normalized_cell
+    end
+
+    # Step 2: Build edge -> cell map
+    edge_map = Dict{Set{Int}, Vector{Int}}()
+
+    for (cell_id, verts) in enumerate(normalized_cells)
+        n = length(verts)
+        for i in 1:n
+            v1 = verts[i]
+            v2 = verts[mod1(i+1, n)]  # wrap around
+            edge = Set([v1, v2])
+            edge_map[edge] = get(edge_map, edge, Int[])
+            push!(edge_map[edge], cell_id)
+        end
+    end
+
+    # Remove edges between two points if both points are outside of the simulation box
+    # This is done by checking if both points are greater than the center length
+
+    for (key, points) in collect(edge_map)
+        if all(points .> cen_length)
+            delete!(edge_map, key)
+        end
+    end
+
+    # Step 3: Extract adjacency
+    adjacency = Set{Tuple{Int, Int}}()
+    for ids in values(edge_map)
+        if length(ids) == 2
+            i, j = sort(ids)
+            push!(adjacency, (i, j))
+        end
+    end
+
+    return normalized_cells, edge_map, adjacency
 end
