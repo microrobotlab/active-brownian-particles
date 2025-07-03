@@ -11,6 +11,7 @@ T = infodict["T"] # Temperature (K)
 R = infodict["R"] # Particles' radius (μm)
 v = infodict["v"] # Particles' velocity (μm/s or distribution)
 σ = 2R
+ϵ = infodict["int_params"][2]
 
 if isa(v, Real)
     vm = v
@@ -22,3 +23,4 @@ diffusion_coeff(1e-6R,T,1e-3)
 
 τ = 1/diffusion_coeff(1e-6R,T,1e-3)[2] # Persistence time 1/Dᵣ (s)
 Pe = vm*τ/σ # Following definition in 10.1103/PhysRevLett.130.148202
+# F2N_ratio = 0 # Would like to have a reference here
