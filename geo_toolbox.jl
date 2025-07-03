@@ -282,12 +282,10 @@ julia> round_point.(xyp)
  [3.14159265, 2.71828183]
 ```
 """
-function get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}; tol=1e-8)
+function get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}, Np::Int; tol=1e-8)
     # Step 1: Normalize and index all unique points
     point_to_index = Dict{Point{2,Float64}, Int}()
     index_counter = 1
-
-    cen_length = Int(length(cells) // 9) # Np
 
     normalized_cells = Vector{Vector{Int}}(undef, length(cells))
 
@@ -322,7 +320,7 @@ function get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}; tol=
     # This is done by checking if both points are greater than the center length
 
     for (key, points) in collect(edge_map)
-        if all(points .> cen_length)
+        if all(points .> Np)
             delete!(edge_map, key)
         end
     end
@@ -336,5 +334,5 @@ function get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}; tol=
         end
     end
 
-    return normalized_cells, edge_map, adjacency
+    return adjacency
 end
