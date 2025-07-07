@@ -233,6 +233,38 @@ function xy_to_points(xy::Array{Float64,2})
 end
 
 """
+    points_to_xy(points::Vector{Point{2, Float64}})
+
+Transforms a vector of 2D points into an 2D vector of coordinates.
+
+# Examples
+```julia-repl
+julia> xy = [0.4 1.2; π ℯ]
+2×2 Matrix{Float64}:
+ 0.4      1.2
+ 3.14159  2.71828
+
+julia> xy_points = xy_to_points(xy)
+2-element Vector{Point{2, Float64}}:
+ [0.4, 1.2]
+ [3.141592653589793, 2.718281828459045]
+
+julia> points_to_xy(xy_points)
+2×2 Matrix{Float64}:
+ 0.4      1.2
+ 3.14159  2.71828
+```
+"""
+function points_to_xy(points::Vector{Point{2, Float64}})
+    xy = zeros(Float64, length(points), 2)
+    for (i, p) in enumerate(points)
+        xy[i, 1] = p[1]
+        xy[i, 2] = p[2]
+    end
+    return xy
+end
+
+"""
     round_point(p::Point{2,Float64}, tol=1e-8)
 
 Transforms a 2D array of coordinates into an array of Point2 objects.
@@ -263,24 +295,6 @@ end
     get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}; tol=1e-8)
 
 Returns a set of tuples representing the adjacency of Voronoi cells with particles at their centers.
-
-# Examples
-```julia-repl
-julia> xy = [0.4 1.2; π ℯ]
-2×2 Matrix{Float64}:
- 0.4      1.2
- 3.14159  2.71828
-
-julia> xyp = xy_to_points(xy)
-2-element Vector{Point{2, Float64}}:
- [0.4, 1.2]
- [3.141592653589793, 2.718281828459045]
-
-julia> round_point.(xyp)
-2-element Vector{Point{2, Float64}}:
- [0.4, 1.2]
- [3.14159265, 2.71828183]
-```
 """
 function get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}, Np::Int; tol=1e-8)
     # Step 1: Normalize and index all unique points
@@ -335,4 +349,25 @@ function get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}, Np::
     end
 
     return adjacency
+end
+
+"""
+    find_boundary_points(cells::Vector{Vector{Point{2,Float64}}})
+
+Finds the boundary points of Voronoi cells that are outside the simulation box and returns their periodic projections.
+"""
+function find_boundary_points(cells)
+    xy_periodic_projection = Array{Float64, 2}(undef, 0, 2)
+    proj_inds = Array{Int, 1}(undef, 0)
+    for (i, cell) in enumerate(points_to_xy.(cells))
+        if any(abs.(cell[:,1]) .== L/2)
+            xy_periodic_projection = vcat(xy_periodic_projection, [xy[i,1] - sign(xy[i,1])*L xy[i,2]])
+            push!(proj_inds, i)
+            end
+        if any(abs.(cell[:,2]) .== L/2)
+            xy_periodic_projection = vcat(xy_periodic_projection, [xy[i,1] xy[i,2] - sign(xy[i,2])*L])
+            push!(proj_inds, i)
+        end
+    end
+    return xy_periodic_projection, proj_inds
 end
