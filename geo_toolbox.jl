@@ -356,7 +356,7 @@ end
 
 Finds the boundary points of Voronoi cells that are outside the simulation box and returns their periodic projections.
 """
-function find_boundary_points(cells)
+function find_boundary_points(xy::Array{Float64, 2}, cells)
     xy_periodic_projection = Array{Float64, 2}(undef, 0, 2)
     proj_inds = Array{Int, 1}(undef, 0)
     for (i, cell) in enumerate(points_to_xy.(cells))
