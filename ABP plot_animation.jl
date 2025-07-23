@@ -27,7 +27,7 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     pirotation!(θ)
     θnorm = θ./2π
 
-    simstep = Observable(1)re
+    simstep = Observable(1)
     xs = @lift xpos[:,$simstep]
     ys = @lift ypos[:,$simstep]
     θs = @lift θ[:,$simstep]
