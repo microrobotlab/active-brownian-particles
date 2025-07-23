@@ -17,7 +17,7 @@ path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(5e5)           # number of steps
+Nt = Int(1e5)           # number of steps
 δt = 1e-3     # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
@@ -29,8 +29,8 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 1.5		           # μm particle radius
-L = 150.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 35.0 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*50 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 20.	 # μm/s particle s
@@ -114,6 +114,7 @@ for i in 1:ICS
         filepath = joinpath(pathf, filename)
 
         datafname = filepath*".txt"
+        matfname = filepath*"_matrices.txt"
         # polarfname = filepath*"_polarization.txt"
 
         # Simulation and file storage
@@ -143,11 +144,12 @@ for i in 1:ICS
                 omega=ABPE.ω,
             )  
             CSV.write(datafname, data, append = true)
+            CSV.write(matfname, DataFrame(Time = time[1], Matrices = matrices), append = true)
             # open(polarfname, "a") do polfile
             #     write(polfile, "$(mean_polarization(ABPE.θ))\n")
             # end
         end
-        ABPE =update_heun(ABPE,matrices,δt, offcenter, intrange, int_func, int_params...)
+        ABPE =update_heun(ABPE,matrices,δt, offcenter, intrange, int_func , int_params...)
         if nt % (Nt÷100) == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")

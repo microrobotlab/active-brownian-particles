@@ -3,6 +3,13 @@
 lennard_jones(x, σ, ϵ) = 24*ϵ*(((2*σ^(12))/(x^(13)))- (σ^(6)/(x^(7))))
 shifted_lennard_jones(x, σ, ϵ, shift) = 24*ϵ*(((2*σ^(12))/((x-shift)^(13)))- (σ^(6)/((x-shift)^(7))))
 
+function lj_nondiv(x, σ, ϵ)
+    if x > σ
+        return lennard_jones(x, σ, ϵ)
+    else
+        return lennard_jones(σ, σ, ϵ)
+    end    
+end
 
 function weeks_chandler_andersen(x, σ::Float64, ϵ::Float64)
     rmin = σ*2^(1/6)
