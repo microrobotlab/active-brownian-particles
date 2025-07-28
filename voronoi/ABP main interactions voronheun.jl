@@ -1,7 +1,7 @@
 using .Threads
 using CalculusWithJulia, Dates, Distributions, ForwardDiff, GeometryBasics, Random, Statistics, VoronoiCells
-include("..\\geo_toolbox.jl")
-include("..\\force_functions.jl")
+include(joinpath("..", "geo_toolbox.jl"))
+include(joinpath("..", "force_functions.jl"))
 
 
 # Define an "ABPsEnsemble" Type
