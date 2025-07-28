@@ -123,7 +123,7 @@ for i in 1:ICS
         @info "$(start) Started simulation #$i"
 
 
-    ABPE = initABPE( Np, L, R, T, v, ω, int_func, offcenter, int_params...,)
+    ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, offcenter, int_params...,)
     # if int_func in (lennard_jones, lj_nondiv)
     #     offcenter_nosuperpose!(ABPE, δt, offcenter, 2R+1e-3, int_func, int_params...)
     # end
@@ -145,7 +145,7 @@ for i in 1:ICS
             #     write(polfile, "$(mean_polarization(ABPE.θ))\n")
             # end
         end
-        ABPE =update_heun(ABPE,δt, offcenter, int_func, int_params...)
+        ABPE =update_heun(ABPE, matrices, δt, offcenter, int_func, int_params...)
         if nt % (Nt÷100) == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
