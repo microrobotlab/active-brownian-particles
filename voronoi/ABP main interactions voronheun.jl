@@ -1,0 +1,275 @@
+using .Threads
+using CalculusWithJulia, Dates, Distributions, ForwardDiff, GeometryBasics, Random, Statistics, VoronoiCells
+include("..\\active-brownian-particles\\geo_toolbox.jl")
+include("..\\active-brownian-particles\\force_functions.jl")
+
+
+# Define an "ABPsEnsemble" Type
+abstract type ABPsEnsemble end
+
+# Define a specific type for 2D ABPsEnsembles (CURRENTLY ASSUMING ALL PARTICLES ARE EQUAL)
+struct ABPE2 <: ABPsEnsemble
+    Np::Int64                      # number of particles®®
+    L::Float64                      # size of observation space (μm)
+	R::Float64  # Radius (μm)                                   --> Vector{Float64}(undef,Np)
+    T::Float64 #temperature (K)
+	v::Vector{Float64}  	# velocity (μm/s)                   --> Vector{Float64}(undef,Np)
+    ω::Vector{Float64} #Angular velocity (rad/s)                --> Vector{Float64}(undef,Np)            
+	DT::Float64 # translational diffusion coefficient (μm^2/s)  --> Vector{Float64}(undef,Np)
+	DR::Float64 # rotational diffusion coefficient (rad^2/s)    --> Vector{Float64}(undef,Np)
+	x::Vector{Float64}    # x position (μm)
+	y::Vector{Float64}    # y position (μm)
+	θ::Vector{Float64}    # orientation (rad)
+end
+
+#------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
+
+## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
+function initABPE(Np::Int64, L::Float64, R::Float64, T::Float64, vd::Union{Float64,Array{Float64,1},Distribution}, ωd::Union{Float64,Array{Float64,1},Distribution}, int_func::Function, offcenter::Float64, int_params...; η::Float64=1e-3)
+    # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
+    # Intial condition will be choosen as per the geometry under study
+    (vd isa Float64) ? vd = [vd] : Nt
+    (ωd isa Float64) ? ωd = [ωd] : Nt
+    DT, DR = diffusion_coeff(1e-6R, T)
+    xyθ = (rand(Np,3).-0.5).*repeat([L L 2π],Np)
+    xyθ[:,1:2] = hs_voronoi(xyθ[:,1:2], L, Np, R) #xyθ[:,1:2] gives x and y positions of intitial particles
+    v = rand(vd, Np)
+    ω = rand(ωd,Np)
+    abpe = ABPE2( Np, L, R, T, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    return abpe
+end
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+##Calculate diffusion coefficient and friction coefficient
+function diffusion_coeff(R::Float64, T::Float64=300.0, η::Float64=1e-3)
+    # Boltzmann constant [J/K]
+    kB = 1.38e-23
+    # friction coefficient [Ns/m]
+    γ = 6*pi*R*η
+    # translational diffusion coefficient [m^2/s]
+    DT = kB*T/γ
+    # rotational diffusion coefficient [rad^2/s]
+    DR = 6*DT/(8*R^2)
+    return DT, DR, γ
+end
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+position(abpe::ABPE2) = [ abpe.x abpe.y ]
+orientation(abpe::ABPE2) = abpe.θ
+force(abpe::ABPE2) = [abpe.fx abpe.fy]
+torque(abpe::ABPE2) = abpe.torque
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Functions to update particles for the next step
+
+function update_heun(abpe::ABPE, δt::Float64, offcenter::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
+
+    δp_i = Array{Float64,2}(undef,abpe.Np,2)
+    δθ_i = Array{Float64,1}(undef,abpe.Np)
+    δp_f = Array{Float64,2}(undef,abpe.Np,2)
+    δθ_f = Array{Float64,1}(undef,abpe.Np)
+    γₜ = diffusion_coeff(1e-6*abpe.R, abpe.T)[3] #Output in international system units kg/s
+    γᵣ = (8e-12γₜ / 6) * abpe.R^2                #Output in international system units
+    oc_length = offcenter*abpe.R
+    
+    #intermediate step
+    if (!isapprox(offcenter,0.0))
+        f_i, t_i = force_torque_voronoi(position(abpe), orientation(abpe), abpe.L, oc_length, int_func, int_params...)
+    else
+        f_i = interaction_voronoi(position(abpe), abpe.L, abpe.Np, int_func, int_params...)
+        t_i = zeros(abpe.Np)
+    end 
+
+    det_part_i = (abpe.v.*[cos.(abpe.θ) sin.(abpe.θ)] .+ 1e-6f_i/γₜ, abpe.ω .+ 1e-18t_i/γᵣ)
+    noise_part =  (sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2), sqrt(2*abpe.DR*δt)*randn(abpe.Np))
+    δp_i .= noise_part[1] .+ δt.*det_part_i[1]
+    δθ_i .= noise_part[2] .+ δt.*det_part_i[2]
+
+    pθ_i = (position(abpe), orientation(abpe)) .+ (δp_i, δθ_i)
+
+    periodic_BC_array!(pθ_i[1], abpe.L, abpe.Np)
+
+    #final step
+    if (!isapprox(offcenter,0.0))
+        f_f, t_f = force_torque_voronoi(pθ_i..., abpe.L, oc_length, int_func, int_params...)
+    else
+        f_f = interaction_voronoi(pθ_i[1], abpe.L, abpe.Np, int_func, int_params...)
+        t_f = zeros(abpe.Np)
+    end 
+
+    det_part_f = (abpe.v.*[cos.(pθ_i[2]) sin.(pθ_i[2])] .+ 1e-6f_f/γₜ, abpe.ω .+ 1e-18t_f/γᵣ)
+    δp_f .= noise_part[1] .+ δt.*(det_part_f[1] .+ det_part_i[1])/2
+    δθ_f .= noise_part[2] .+ δt.*(det_part_f[2] + det_part_i[2])/2
+
+    pθ = (position(abpe), orientation(abpe)) .+ (δp_f, δθ_f)
+
+    periodic_BC_array!(pθ[1],abpe.L, abpe.Np)
+    # println(maximum(abs.(pθ[1])))
+    hs_voronoi!(pθ[1], abpe.L, abpe.Np, abpe.R)
+    periodic_BC_array!(pθ[1],abpe.L, abpe.Np) # Apply a second time for good measure
+
+    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.T, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
+
+    return new_abpe
+end
+
+function offcenter_nosuperpose!(abpe::ABPE2, δt::Float64, offcenter::Float64, range::Float64, int_func::Function, int_params...)
+    xy = position(abpe)
+    θ = orientation(abpe)
+    R = abpe.R
+    L = abpe.L
+    γₜ = diffusion_coeff(1e-6*R, T)[3] #Output in international system units kg/s
+    γᵣ = (8e-12γₜ / 6) * R^2                #Output in international system units
+    oc = offcenter*R
+
+    xy_chgcen = xy .+ oc* [cos.(θ) sin.(θ)]
+
+    ocdists = pairwise(Euclidean(), xy_chgcen, xy_chgcen, dims=1)
+    superpositions = sum(0.0 .< ocdists .< 2R)/2
+    j = 0
+    while superpositions > 0
+        # sup_per_particle = sum(ocdists .< 2R, dims=1)
+        # println(sup_per_particle)
+        # break
+        # if j<=100
+        #     t = force_torque_voronoi(xy_chgcen, θ, R, L, forward, offcenter, range, int_func, int_params...)[2]
+        #     δθ = (δt)*1e-18t/γᵣ
+        #     abpe.θ .+= δθ
+        #     xy_chgcen = xy .+ (2*forward-1) .* [cos.(θ) sin.(θ)] .* R*offcenter
+        #     superpositions = sum(0.0 .< pairwise(Euclidean(), xy_chgcen, xy_chgcen, dims=1) .< 2R)/2
+        #     j +=1
+        #     else
+        ocdists = pairwise(Euclidean(), xy_chgcen, xy_chgcen, dims=1)
+        sup_per_particle = sum(0.0 .< ocdists .< 2R, dims=1)
+        id = vec(sup_per_particle .> 0)
+        abpe.θ[id] .+= rand(length(abpe.θ[id.>0])).*2π
+        xy_chgcen = xy .+ oc* [cos.(θ) sin.(θ)]
+        superpositions = sum(0.0 .< pairwise(Euclidean(), xy_chgcen, xy_chgcen, dims=1) .< 2R)/2
+        j +=1
+        # end
+    end
+    println(j)
+    return nothing
+end
+#---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Functions for the hard sphere corrections
+
+function hs_displacement(adjacency::Set{Tuple{Int64, Int64}}, xy::Array{Float64, 2}, Np::Int, R::Real; tol::Float64= 1e-8)
+    displacement = zeros(Float64, Np, 2)
+    for a in adjacency
+        # Since tuples are ordered and the set is composed starting from points inside the simulation box, we are sure that a[1] <= Np
+        dxy = xy[a[1],:] - xy[a[2],:]
+        dist = sqrt(sum(abs2, dxy))
+        if dist < 2R
+            dir = dxy / dist
+            displacement[a[1],:] += 0.5(1+tol)*(2R - dist) * dir
+            if a[2] <= Np
+                displacement[a[2],:] -= 0.5(1+tol)*(2R - dist) * dir
+            end
+        end
+    end
+    return displacement
+end
+
+function hs_voronoi!(xy::Array{Float64, 2}, L::Real, Np::Int, R::Real)
+    for _ in 1:100
+        #Step 1: Get the tessellation
+        rect = Rectangle(Point2(-L/2, -L/2), Point2(L/2, L/2))
+
+        tess = voronoicells(xy_to_points(xy), rect)
+
+        # Step 2: Get the periodic projection of the tessellation
+
+        xy_periodic_projection, proj_inds = find_boundary_points(xy, tess.Cells)
+        xy_periodic_projection = vcat(xy, xy_periodic_projection)
+
+        # Get the rectangle of the periodic projection
+        minpoint = Point2(minimum(xy_periodic_projection[:,1]), minimum(xy_periodic_projection[:,2]))
+        maxpoint = Point2(maximum(xy_periodic_projection[:,1]), maximum(xy_periodic_projection[:,2]))
+        rect_periodic = Rectangle(minpoint, maxpoint)
+        tess_periodic = voronoicells(xy_to_points(xy_periodic_projection), rect_periodic)
+
+        # Step 3: Get the adjacency from the periodic tessellation
+        adjacency = get_adjacency_from_points(tess_periodic.Cells, Np)
+
+        #Step 4: Displace the particles according to the adjacency
+        dis = hs_displacement(adjacency, xy_periodic_projection, Np, R)
+        dis == zeros(Float64, Np, 2) && break
+        xy.+= dis
+        periodic_BC_array!(xy, L, Np)
+    end
+end
+
+function hs_voronoi(xy::Array{Float64, 2}, L::Real, Np::Int, R::Real) #Called in initABPE
+    # This function is a wrapper for hs_voronoi! to return the modified xy array
+    hs_voronoi!(xy, L, Np, R)
+    return xy
+end
+
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function periodic_BC_array!(xy::AbstractArray{Float64,2}, L::Real, Np::Int)
+    for i in 1:Np
+        x, y = xy[i, 1], xy[i, 2]
+
+        if abs(x) > L/2
+            xy[i, 1] = x - sign(x) * L
+        end
+
+        if abs(y) > L/2
+            xy[i, 2] = y - sign(y) * L
+        end
+    end
+    return nothing
+end
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#Functions to calculate force vectors with voronoi rationale.
+function get_force_from_adjacency(adjacency::Set{Tuple{Int64, Int64}}, xy::Array{Float64, 2}, Np::Int, int_func::Function, int_params...)
+    ΣFtot = zeros(Float64, Np, 2)
+    for a in adjacency
+        # Since tuples are ordered and the set is composed starting from points inside the simulation box, we are sure that a[1] <= Np
+        dxy = xy[a[1],:] - xy[a[2],:]
+        dist = sqrt(sum(abs2, dxy))
+        dir = dxy / dist
+        force = int_func(dist, int_params...)
+        ΣFtot[a[1],:] .+= force * dir
+        # add the opposite force to the second point if it is within the simulation box
+        if a[2]<=Np
+            ΣFtot[a[2],:] .-= force * dir
+        end
+    end
+    return ΣFtot
+end
+
+function interaction_voronoi(xy::Array{Float64, 2}, θ::Array{Float64,1}, oc::Float64, L::Real, Np::Int, int_func::Function, int_params...)
+    #Step 1: Get the tessellation
+
+    rect = Rectangle(Point2(-L/2, -L/2), Point2(L/2, L/2))
+
+    tess = voronoicells(xy_to_points(xy), rect)
+
+    # Step 2: Get the periodic projection of the tessellation
+
+    xy_periodic_projection, proj_inds = find_boundary_points(xy, tess.Cells)
+    θ_pp = vcat(θ, θ[proj_inds])
+    xy_periodic_projection = vcat(xy, xy_periodic_projection)
+
+    # Get the rectangle of the periodic projection
+    minpoint = Point2(minimum(xy_periodic_projection[:,1]), minimum(xy_periodic_projection[:,2]))
+    maxpoint = Point2(maximum(xy_periodic_projection[:,1]), maximum(xy_periodic_projection[:,2]))
+    rect_periodic = Rectangle(minpoint, maxpoint)
+    tess_periodic = voronoicells(xy_to_points(xy_periodic_projection), rect_periodic)
+
+    # Step 3: Get the adjacency from the periodic tessellation
+    adjacency = get_adjacency_from_points(tess_periodic.Cells, Np)
+    
+    #Step 4: Compute the forces
+    xy_pp_oc = xy_periodic_projection .+ oc* [cos.(θ_pp) sin.(θ_pp)]
+    return get_force_from_adjacency(adjacency, xy_pp_oc, Np, int_func, int_params...)
+end
+
+#Function used to compute torques in aligning interactions
+function force_torque_voronoi(xy::Array{Float64,2}, θ::Array{Float64,1}, L::Real, oc::Float64, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
+    forces = interaction_voronoi(xy, θ, oc, L, size(xy,1), int_func, int_params...)
+    torques = oc*(forces[:,2] .* cos.(θ) .- forces[:,1] .* sin.(θ))
+    return forces, torques
+end
