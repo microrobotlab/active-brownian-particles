@@ -21,7 +21,7 @@ Nt = Int(1e3)           # number of steps
 δt = 1e-2     # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
-measevery = Int(1e1)           # Downsampling in file
+measevery = Int(1e0)           # Downsampling in file
 animation = true
 radialdensity = false
 
@@ -29,18 +29,18 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 1.5		           # μm particle radius
-L = 200. 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*1000 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 200/sqrt(2) 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 20.	 # μm/s particle s
-ω = 0.      # s⁻¹ particle angular velocity
+ω = [-2., -0.5]      # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
 int_func = lj_nondiv
-intrange = 10R # interaction range
-offcenter = 0.5  #collect(0.0:0.05:1.0)
+intrange = 20R # interaction range
+offcenter = 0.7  #collect(0.0:0.05:1.0)
 int_params = (2R,0.1) # σ and ϵ in the case of LJ
 
 ## PRELIMINARY CALCULATIONS
