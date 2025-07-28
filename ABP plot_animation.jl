@@ -49,23 +49,22 @@ function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Fl
     end
     GLMakie.scatter!(ax, xs, ys, marker = mrkdir, rotation = θs,  color = :black, markerspace = :data, markersize = 3.)
 
-    if show
-        slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1, color_active =:grey12, color_inactive = :grey60, color_active_dimmed = :grey30)
-
-        on(slider.value) do val
-            simstep[] = round(Int, val)
-        end
-        GLMakie.display(fig)
-    end
-
     if record
-        GLMakie.delete!(slider)
         timestamps = 1:(size(xpos,2))
         GLMakie.record(fig, pathf*".$final_format", timestamps;
         framerate = output_framerate) do t
             simstep[] = t
         end
         @info "$(now()) Animation saved to $pathf.$final_format"
+    end
+    if show
+
+        slider = GLMakie.Slider(fig[2, 1], range=1:size(xpos, 2), startvalue=1, color_active =:grey12, color_inactive = :grey60, color_active_dimmed = :grey30)
+
+        on(slider.value) do val
+            simstep[] = round(Int, val)
+        end
+        GLMakie.display(fig)
     end
     return nothing
 
