@@ -1,7 +1,7 @@
 using .Threads
 using CalculusWithJulia, Dates, Distributions, ForwardDiff, GeometryBasics, Random, Statistics, VoronoiCells
-include("..\\active-brownian-particles\\geo_toolbox.jl")
-include("..\\active-brownian-particles\\force_functions.jl")
+include("..\\geo_toolbox.jl")
+include("..\\force_functions.jl")
 
 
 # Define an "ABPsEnsemble" Type
