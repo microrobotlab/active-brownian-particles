@@ -17,29 +17,29 @@ path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e5)           # number of steps
-δt = 1e-3     # s step time
+Nt = Int(1e3)           # number of steps
+δt = 1e-2     # s step time
 ICS=1                  # Number of intial conditons to be scanned 
 animation_ds = 1     # Downsampling in animation
 measevery = Int(1e1)           # Downsampling in file
-animation = false
+animation = true
 radialdensity = false
 
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 1.5		           # μm particle radius
-L = 35.0 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*50 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 200. 	           # μm box length
+packing_fraction = (pi*R^2/L^2)*1000 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 20.	 # μm/s particle s
-ω = [-1., 1.]      # s⁻¹ particle angular velocity
+ω = 0.      # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
-int_func = lennard_jones
-intrange = 6R # interaction range
+int_func = lj_nondiv
+intrange = 10R # interaction range
 offcenter = 0.5  #collect(0.0:0.05:1.0)
 int_params = (2R,0.1) # σ and ϵ in the case of LJ
 
@@ -114,7 +114,7 @@ for i in 1:ICS
         filepath = joinpath(pathf, filename)
 
         datafname = filepath*".txt"
-        matfname = filepath*"_matrices.txt"
+        # matfname = filepath*"_matrices.txt"
         # polarfname = filepath*"_polarization.txt"
 
         # Simulation and file storage
@@ -144,7 +144,7 @@ for i in 1:ICS
                 omega=ABPE.ω,
             )  
             CSV.write(datafname, data, append = true)
-            CSV.write(matfname, DataFrame(Time = time[1], Matrices = matrices), append = true)
+            # CSV.write(matfname, DataFrame(Time = time[1], Matrices = matrices), append = true)
             # open(polarfname, "a") do polfile
             #     write(polfile, "$(mean_polarization(ABPE.θ))\n")
             # end
