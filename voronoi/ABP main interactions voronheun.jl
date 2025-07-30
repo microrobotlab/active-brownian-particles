@@ -25,7 +25,7 @@ end
 #------------------------------------------------------------For square ---------------------------------------------------------------------------------------------------------
 
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, R::Float64, T::Float64, vd::Union{Float64,Array{Float64,1},Distribution}, ωd::Union{Float64,Array{Float64,1},Distribution}, int_func::Function, offcenter::Float64, int_params...; η::Float64=1e-3)
+function initABPE(Np::Int64, L::Real, R::Real, T::Real, vd::Union{Real,Array{Float64,1},Distribution}, ωd::Union{Real,Array{Float64,1},Distribution}, int_func::Function, offcenter::Float64, int_params...; η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     (vd isa Float64) ? vd = [vd] : Nt
