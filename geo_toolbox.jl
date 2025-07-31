@@ -228,7 +228,7 @@ julia> xy_to_points(xy)
  [3.141592653589793, 2.718281828459045]
 ```
 """
-function xy_to_points(xy::Array{Real,2})
+function xy_to_points(xy::AbstractMatrix{<:AbstractFloat})
     return [Point2(row) for row in eachrow(xy)]
 end
 
