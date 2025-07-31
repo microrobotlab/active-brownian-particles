@@ -228,7 +228,7 @@ julia> xy_to_points(xy)
  [3.141592653589793, 2.718281828459045]
 ```
 """
-function xy_to_points(xy::AbstractMatrix{<:AbstractFloat})
+function xy_to_points(xy::Array{Float64,2})
     return [Point2(row) for row in eachrow(xy)]
 end
 
@@ -255,7 +255,7 @@ julia> points_to_xy(xy_points)
  3.14159  2.71828
 ```
 """
-function points_to_xy(points::Vector{Point{2, Real}})
+function points_to_xy(points::Vector{Point{2, Float64}})
     xy = zeros(Float64, length(points), 2)
     for (i, p) in enumerate(points)
         xy[i, 1] = p[1]
@@ -287,7 +287,7 @@ julia> round_point.(xyp)
  [3.14159265, 2.71828183]
 ```
 """
-function round_point(p::Point{2,Real}, tol=1e-8)
+function round_point(p::Point{2,Float64}, tol=1e-8)
     return round.(p, digits=ceil(Int, -log10(tol)))
 end
 
@@ -296,9 +296,9 @@ end
 
 Returns a set of tuples representing the adjacency of Voronoi cells with particles at their centers.
 """
-function get_adjacency_from_points(cells::Vector{Vector{Point{2,Real}}}, Np::Int; tol=1e-8)
+function get_adjacency_from_points(cells::Vector{Vector{Point{2,Float64}}}, Np::Int; tol=1e-8)
     # Step 1: Normalize and index all unique points
-    point_to_index = Dict{Point{2,Real}, Int}()
+    point_to_index = Dict{Point{2,Float64}, Int}()
     index_counter = 1
 
     normalized_cells = Vector{Vector{Int}}(undef, length(cells))
@@ -356,8 +356,8 @@ end
 
 Finds the boundary points of Voronoi cells that are outside the simulation box and returns their periodic projections.
 """
-function find_boundary_points(xy::Array{Real, 2}, cells)
-    xy_periodic_projection = Array{Real, 2}(undef, 0, 2)
+function find_boundary_points(xy::Array{Float64, 2}, cells)
+    xy_periodic_projection = Array{Float64, 2}(undef, 0, 2)
     proj_inds = Array{Int, 1}(undef, 0)
     for (i, cell) in enumerate(points_to_xy.(cells))
         if any(abs.(cell[:,1]) .== L/2)
