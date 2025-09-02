@@ -17,11 +17,11 @@ path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(5e3)           # number of steps
+Nt = Int(1e4)           # number of steps
 δt = 1e-2     # s step time
-ICS=1                  # Number of intial conditons to be scanned 
+ICS=1                  # Number of intial conditons to be scanned
 animation_ds = 1     # Downsampling in animation
-measevery = Int(1e1)           # Downsampling in file
+measevery = Int(1e0)           # Downsampling in file
 animation = false
 radialdensity = false
 
@@ -29,12 +29,12 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 1.5		           # μm particle radius
-L = 200.0/sqrt(2) 	           # μm box length
-packing_fraction = (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 75.	           # μm box length
+packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 20.	 # μm/s particle s
-ω = [-2., -0.5]     # s⁻¹ particle angular velocity
+ω = 0.    # s⁻¹ particle angular velocity
 T = 300. # K temperature
 
 # Interaction parameters
@@ -108,19 +108,19 @@ JLD2.save(joinpath(mainfolder, "siminfo_dict.jld2"), info_dict)
 for i in 1:ICS
     pathf= joinpath(patht, "run$i")
 
-        filename= "$datestamp"*"_run$i"
-        filepath = joinpath(pathf, filename)
+    filename= "$datestamp"*"_run$i"
+    filepath = joinpath(pathf, filename)
 
-        datafname = filepath*".txt"
-        # polarfname = filepath*"_polarization.txt"
+    datafname = filepath*".txt"
+    # polarfname = filepath*"_polarization.txt"
 
-        # Simulation and file storage
-        open(datafname, "w") do infile
-            writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation" "omega"], ",")
-        end
+    # Simulation and file storage
+    open(datafname, "w") do infile
+        writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation" "omega"], ",")
+    end
 
-        start = now()
-        @info "$(start) Started simulation #$i"
+    start = now()
+    @info "$(start) Started simulation #$i"
 
 
     ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, offcenter, int_params...,)
