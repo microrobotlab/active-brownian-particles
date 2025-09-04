@@ -3,7 +3,7 @@ using GeometryBasics: Point2f, Circle, Point2f0, Polygon
 using CSV, DataFrames, Dates, Logging, Statistics
 include("geo_toolbox.jl")
 
-function animation_from_file(pathf::String, L::Float64, R::Float64, timestep::Float64, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false, color_code_qty::Bool=false, qty::Symbol=:nothing, resolution::Int=1080)
+function animation_from_file(pathf::String, L::Real, R::Real, timestep::Real, measevery::Int, output_framerate::Int=25; ext::String=".txt", show::Bool=true, record::Bool=false, final_format::String="gif", color_code_dir::Bool=false, color_code_qty::Bool=false, qty::Symbol=:nothing, resolution::Int=1080)
     GLMakie.activate!(inline=false)
 
     fname = pathf*ext
