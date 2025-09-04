@@ -33,7 +33,7 @@ function animation_from_file(pathf::String, L::Real, R::Real, timestep::Real, me
     θs = @lift θ[:,$simstep]
     θnorms = @lift θnorm[:,$simstep]
 
-    fig = GLMakie.Figure(size = (resolution, resolution), figure_padding = 0, px_per_unit = 1)
+    fig = GLMakie.Figure(size = (resolution, resolution), figure_padding = (5,5,5,5), px_per_unit = 1)
     ax = GLMakie.Axis(fig[1,1], limits = (-L/2, L/2, -L/2, L/2), aspect = 1, xgridvisible = true, ygridvisible = true, yticklabelsvisible = false, xticklabelsvisible = false, yticksvisible = false, xticksvisible = false)
     mrk = GLMakie.decompose(Point2f,Circle(Point2f0(0), 1.))
     mrkdir = Polygon(Point2f[(0.6,0), (-0.4,0.4), (-0.4, -0.4)])
