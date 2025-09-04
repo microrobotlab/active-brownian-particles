@@ -13,7 +13,7 @@ include("../ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "coding", "simulations", "tests")
+path = joinpath("..","simulations","tests")
 
 ## PARAMETERS SET
 # Simulation parameters
