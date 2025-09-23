@@ -1,7 +1,7 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
-include("ABP main interactions heun 32bit.jl")
+include("ABP main interactions voronheun 32bit.jl")
 # include("ABP main.jl")
 include("../ABP_file.jl")
 include("../ABP radialdistribution.jl")
@@ -13,13 +13,13 @@ include("../ABP orderparameters.jl")
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = joinpath("..","simulations","range_lj")
+path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "coding", "simulations", "tests")
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e5)           # number of steps
+Nt = Int(1e4)           # number of steps
 δt = 1f-2     # s step time
-ICS=5                  # Number of intial conditons to be scanned
+ICS=1                  # Number of intial conditons to be scanned
 animation_ds = 1     # Downsampling in animation
 
 measevery = Int(4)           # Downsampling in file0
@@ -29,21 +29,24 @@ radialdensity = false
 # Physical parameters
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
-desired_Np = 500
 R = 1.5f0		           # μm particle radius
-packing_fraction = 0.1 # (pi*R^2/L^2)*500 # Largest pf for spherical beads π/4 = 0.7853981633974483
-L = Float32(R*sqrt(desired_Np*π/packing_fraction))	           # μm box length
+L = 150.f0	           # μm box length
+packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = 1.f1	 # μm/s particle s
+v = Distributions.truncated(Distributions.Normal(1e1,1e1), lower = 0)	 # μm/s particle s
 ω = 0.f0      # s⁻¹ particle angular velocity
 T = 3.f2 # K temperature
 
-# Interaction parameters
 int_func = lj_nondiv
 intrange = 20R # interaction range
-offcenter = 0.f0  #collect(0.0:0.05:1.0)
-int_params = (2R,1.e-1) # σ and ϵ in the case of LJ
+offcenter = 7.f-1  #collect(0.0:0.05:1.0)
+int_params = (2R,1.f-1) # σ and ϵ in the case of LJ
+
+# Interaction parameters
+int_func = lj_nondiv
+offcenter = 7.f-1  #collect(0.0:0.05:1.0)
+int_params = (2R*1.,1.e-1) # σ and ϵ in the case of LJ
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1f-6R,T).*[1f12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
@@ -121,7 +124,7 @@ for i in 1:ICS
         writedlm(infile, ["N" "Time" "xpos" "ypos" "orientation" "omega"], ",")
     end
     start = now()
-    @info "$(start) Started simulation $i"
+    @info "$(start) Started simulation"
     ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, offcenter, int_params...,)
     if int_func in (lennard_jones, lj_nondiv)
         offcenter_nosuperpose!(ABPE, δt, offcenter, int_func, int_params...)
@@ -144,12 +147,12 @@ for i in 1:ICS
             #     write(polfile, "$(mean_polarization(ABPE.θ))\n")
             # end
         end
-        ABPE =update_heun(ABPE, matrices, δt, offcenter, intrange, int_func, int_params...)
+        ABPE =update_heun(ABPE, matrices, δt, offcenter, int_func, int_params...)
         if nt % (Nt÷100) == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
         end
     end
-    @info "$(now()) Simulation $i and file writing finished"
+    @info "$(now()) Simulation and file writing finished"
 end
 
