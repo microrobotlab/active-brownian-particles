@@ -33,8 +33,8 @@ function initABPE(Np::Int64, L::Real, R::Real, T::Real, vd::Union{Real,Array{Flo
     DT, DR = diffusion_coeff(1f-6R, T)
     xyθ = (rand(Float32,(Np,3)).-5.f-1).*repeat([L L Float32(2π)],Np)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere_periodic(xyθ[:,1:2], R, L) #xyθ[:,1:2] gives x and y positions of intitial particles
-    v = rand(vd, Np)
-    ω = rand(ωd,Np)
+    v = Float32.(rand(vd, Np))
+    ω = Float32.(rand(ωd, Np))
     abpe = ABPE2( Np, L, R, T, v, ω, 1f12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
     return abpe, (dists, superpose, uptriang)
 end
