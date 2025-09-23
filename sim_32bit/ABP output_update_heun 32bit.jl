@@ -21,7 +21,8 @@ Nt = Int(1e4)           # number of steps
 δt = 1f-2     # s step time
 ICS=1                  # Number of intial conditons to be scanned
 animation_ds = 1     # Downsampling in animation
-measevery = Int(1e0)           # Downsampling in file
+
+measevery = Int(4)           # Downsampling in file0
 animation = false
 radialdensity = false
 
@@ -29,11 +30,11 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 1.5f0		           # μm particle radius
-L = 75.f0	           # μm box length
-packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 150.f0	           # μm box length
+packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = 2.f1	 # μm/s particle s
+v = Distributions.truncated(Distributions.Normal(1e1,1e1), lower = 0)	 # μm/s particle s
 ω = 0.f0      # s⁻¹ particle angular velocity
 T = 3.f2 # K temperature
 
