@@ -1,6 +1,6 @@
 using .Threads
 using CalculusWithJulia, Dates, Distributions, ForwardDiff, GeometryBasics, Random, Statistics, VoronoiCells
-include(joinpath("geo_toolbox_32bit.jl"))
+include(joinpath("..","sim_32bit","geo_toolbox_32bit.jl"))
 include(joinpath("..", "force_functions.jl"))
 
 
@@ -63,7 +63,7 @@ torque(abpe::ABPE2) = abpe.torque
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to update particles for the next step
 
-function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64, offcenter::Float64, range::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
+function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float32}, BitMatrix, BitMatrix}, δt::Float32, offcenter::Float32, range::Float32, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
 
     δp_i = Array{Float32,2}(undef,abpe.Np,2)
     δθ_i = Array{Float32,1}(undef,abpe.Np)

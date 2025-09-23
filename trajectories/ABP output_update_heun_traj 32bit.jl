@@ -1,7 +1,7 @@
 # PURPOSE: Output of ABP main 
 # all codes in repository are complied in this function
 #VARIABLES: Destination folder path and filename
-include("ABP main interactions voronheun 32bit.jl")
+include("ABP main interactions heun traj 32bit.jl")
 # include("ABP main.jl")
 include("../ABP_file.jl")
 include("../ABP radialdistribution.jl")
@@ -17,12 +17,12 @@ path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "
 
 ## PARAMETERS SET
 # Simulation parameters
-Nt = Int(1e4)           # number of steps
+Nt = Int(1e4)          # number of steps
 δt = 1f-2     # s step time
 ICS=1                  # Number of intial conditons to be scanned
 animation_ds = 1     # Downsampling in animation
 
-measevery = Int(4)           # Downsampling in file0
+measevery = Int(4)           # Downsampling in file
 animation = false
 radialdensity = false
 
@@ -30,23 +30,19 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 1.5f0		           # μm particle radius
-L = 150.f0	           # μm box length
-packing_fraction = (pi*R^2/L^2)*250 # Largest pf for spherical beads π/4 = 0.7853981633974483
-
+L = 3.f1	           # μm box length
+xyθ_init = [ [L/4 L/4 0.f0]; [3L/4 3L/4 Float32(π)] ]  # Initial positions and orientations of the particles, if empty random positions will be generated
+Np = size(xyθ_init,1)  # Number of particles, if xyθ_init is empty this will be set later
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
-v = Distributions.truncated(Distributions.Normal(1e1,1e1), lower = 0)	 # μm/s particle s
+v = 1.f1	 # μm/s particle s
 ω = 0.f0      # s⁻¹ particle angular velocity
 T = 3.f2 # K temperature
 
-int_func = lj_nondiv
-intrange = 20R # interaction range
-offcenter = 7.f-1  #collect(0.0:0.05:1.0)
-int_params = (2R,1.f-1) # σ and ϵ in the case of LJ
-
 # Interaction parameters
 int_func = lj_nondiv
-offcenter = 7.f-1  #collect(0.0:0.05:1.0)
+offcenter = 5.f-1  #collect(0.0:0.05:1.0)
 int_params = (2R*1.,1.e-1) # σ and ϵ in the case of LJ
+intrange = 20R
 
 ## PRELIMINARY CALCULATIONS
 DT, DR, γ = diffusion_coeff(1f-6R,T).*[1f12, 1, 1] # Translational and Rotational diffusion coefficients, drag coefficient
@@ -54,14 +50,12 @@ T_tot = δt*Nt
 actual_steps = (Nt÷measevery)+1
 
 if box_shape == :square
-    Np = round(Int,packing_fraction*L^2/(pi*R^2))
     density = Np/L^2
     a,b = L,L
 elseif box_shape == :ellipse
     a=L/2 # Larger semiaxis
     b=L/4 # Smaller semiaxis
     area_el = π*a*b
-    Np = round(Int,packing_fraction*area_el/(pi*R^2))
     density = Np/area_el
 end
 
@@ -80,7 +74,7 @@ mainfolder1= mkdir(patht)
 folders=  multipledir(patht, ICS) 
 
 # Info printing on shell and file
-infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\npf=%s\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nOffcenter: %s" box_shape Np density R T v ω a b packing_fraction δt measevery Nt T_tot int_func int_params offcenter
+infos = @sprintf "Box shape: %s\nNumber of particles = %i\nNumber density = %s μm⁻²\nR=%.1f μm \nT = %.1f (K)\nv=%s (μm/s) \nω=%s (rad/s)\nCharacteristic lengths: (a=%.1f b=%.1f) μm\nIntegration step: dt=%.0e s \nSimulation downsampling: %i\nNumber of steps: Nt=%.1e\nTotal simulated time T_tot = %.2e s\n\nInteraction function: %s with parameters: %s\nOffcenter: %s" box_shape Np density R T v ω a b δt measevery Nt T_tot int_func int_params offcenter
 
 println(infos)
 
@@ -99,7 +93,6 @@ info_dict = Dict(
     "ω" => ω,
     "a" => a,
     "b" => b,
-    "pf" => packing_fraction,
     "dt" => δt,
     "measevery" => measevery,
     "Nt" => Nt,
@@ -125,7 +118,7 @@ for i in 1:ICS
     end
     start = now()
     @info "$(start) Started simulation"
-    ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, offcenter, int_params...,)
+    ABPE, matrices = initABPE( Np, L, R, T, v, ω, int_func, offcenter, int_params..., xyθ = xyθ_init)
     if int_func in (lennard_jones, lj_nondiv)
         offcenter_nosuperpose!(ABPE, δt, offcenter, int_func, int_params...)
     end
@@ -147,7 +140,7 @@ for i in 1:ICS
             #     write(polfile, "$(mean_polarization(ABPE.θ))\n")
             # end
         end
-        ABPE =update_heun(ABPE, matrices, δt, offcenter, int_func, int_params...)
+        ABPE =update_heun(ABPE, matrices, δt, offcenter, intrange, int_func, int_params...)
         if nt % (Nt÷100) == 0
             elapsed = Dates.canonicalize(Dates.round((now()-start), Dates.Second))
             print("$((100*nt÷Nt))%... Step $nt, total elapsed time $(elapsed)\r")
