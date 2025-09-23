@@ -13,7 +13,7 @@ include(joinpath("..","ABP orderparameters.jl"))
 # include("ABP average.jl")
 using  CSV, DataFrames, Dates, Distributions, JLD2, Logging, Printf, Random
 
-path = joinpath("C:\\Users", "nikko", "OneDrive - Scuola Superiore Sant'Anna", "coding", "simulations", "tests")
+path = joinpath("..", "simulations", "tests")
 
 ## PARAMETERS SET
 # Simulation parameters
@@ -29,8 +29,8 @@ radialdensity = false
 BC_type = :periodic    # :periodic or :wall
 box_shape = :square    # shapes: :square, :circle, :ellipse
 R = 1.5		           # μm particle radius
-L = 75.	           # μm box length
-packing_fraction = (pi*R^2/L^2)*100 # Largest pf for spherical beads π/4 = 0.7853981633974483
+L = 250.	           # μm box length
+packing_fraction = (pi*R^2/L^2)*1000 # Largest pf for spherical beads π/4 = 0.7853981633974483
 
 # Velocities can also be distributions e.g. v = Normal(0.,0.025)
 v = 20.	 # μm/s particle s

@@ -61,7 +61,7 @@ torque(abpe::ABPE2) = abpe.torque
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # Functions to update particles for the next step
 
-function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, BitMatrix}, δt::Float64, offcenter::Float64, range::Float64, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
+function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float32}, BitMatrix, BitMatrix}, δt::Float32, offcenter::Float32, range::Float32, int_func::Function, int_params...) where {ABPE <: ABPsEnsemble}
 
     δp_i = Array{Float32,2}(undef,abpe.Np,2)
     δθ_i = Array{Float32,1}(undef,abpe.Np)
@@ -75,7 +75,7 @@ function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
     if (!isapprox(offcenter,0.f0))
         f_i, t_i = force_torque(position(abpe), orientation(abpe), abpe.L, oc_length, range, int_func, int_params...)
     else
-        f_i = interactions_range(position(abpe), abpe.L, abpe.Np, int_func, int_params...)
+        f_i = interactions_range(position(abpe), abpe.L, range, abpe.Np, int_func, int_params...)
         t_i = zeros(abpe.Np)
     end 
 
@@ -92,7 +92,7 @@ function update_heun(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
     if (!isapprox(offcenter,0.f0))
         f_f, t_f = force_torque(pθ_i..., abpe.L, oc_length, range, int_func, int_params...)
     else
-        f_f = interactions_range(pθ_i[1], abpe.L, abpe.Np, int_func, int_params...)
+        f_f = interactions_range(pθ_i[1], abpe.L, range, abpe.Np, int_func, int_params...)
         t_f = zeros(abpe.Np)
     end
 
@@ -274,7 +274,7 @@ end
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #Function to calculate force vectors
 
-function interactions_range(xy::Array{Float64, 2}, L::Float64, l::Float64, Np::Int, int_func::Function, int_params...)
+function interactions_range(xy::Array{Float32, 2}, L::Float32, l::Float32, Np::Int, int_func::Function, int_params...)
     # Preallocate the result array for efficiency
     ΣFtot = zeros(Float64, Np, 2)
     
@@ -305,7 +305,7 @@ function interactions_range(xy::Array{Float64, 2}, L::Float64, l::Float64, Np::I
 end
 
 #Function used to compute torques in aligning interactions
-function force_torque(xy::Array{Float64,2}, θ::Array{Float64,1}, L::Real, oc::Float64, range::Real, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
+function force_torque(xy::Array{Float32,2}, θ::Array{Float32,1}, L::Real, oc::Float32, range::Real, int_func::Function, int_params...) #Forces are retuned in μN, torques in μN×μm
     xy_chgcen = xy .+ oc* [cos.(θ) sin.(θ)]
     forces = interactions_range(xy_chgcen, L, range, size(xy,1), int_func, int_params...)
     torques = oc*(forces[:,2] .* cos.(θ) .- forces[:,1] .* sin.(θ))
