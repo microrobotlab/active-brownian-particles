@@ -56,3 +56,39 @@ function cluster_size_distribution(xy::Array{Float64,2}, intrange::Float64)
     res = dbscan(xy', intrange, min_cluster_size = 2)
     return res.counts
 end 
+
+function periodic_clustering!(cluster_df)
+    df_sx, df_sy = copy(cluster_df), copy(cluster_df)
+    df_sx[!,:xpos] = df_sx.xpos .- L/2
+    df_sy[!,:ypos] = df_sy.ypos .- L/2
+
+    for d in [df_sx, df_sy]
+        xy = [d.xpos d.ypos]
+        periodic_BC_array!(xy, L, R)
+        d[!,:xpos] = xy[:,1]
+        d[!,:ypos] = xy[:,2]
+    end
+    df_clx = transform(groupby(df_sx, :Time), [:xpos, :ypos] => ((x,y) -> assignments(dbscan([x y]', mindist_cluster, min_cluster_size = 2))) => :dbscan)
+    df_cly = transform(groupby(df_sy, :Time), [:xpos, :ypos] => ((x,y) -> assignments(dbscan([x y]', mindist_cluster, min_cluster_size = 2))) => :dbscan)
+
+    Threads.@threads for tocheck in groupby(cluster_df, :Time)
+        # tocheck.Time[1]%1000 == 0 && println(tocheck.Time[1])
+        partcount = countmap(tocheck.dbscan)
+
+        for df_cls in [df_clx[df_clx.Time .== tocheck.Time[1],:], df_cly[df_cly.Time .== tocheck.Time[1],:]]
+            df_ors = combine(groupby(df_cls, [:Time, :dbscan]), :orientation => mean_polarization => :polar, nrow => :partcount)
+            for row in eachrow(tocheck)
+                pnum = row.N
+                cl = row.dbscan
+                shifted_row = df_cls[df_cls.N .== pnum,:]
+                cl_shifted = shifted_row.dbscan[1]
+            
+                if (cl_shifted != 0) && (df_ors[df_ors.dbscan .== cl_shifted ,:partcount][1] > partcount[cl])
+                    row.dbscan = -cl_shifted
+                    # println(shifted_row)
+                end
+            end
+            partcount = countmap(tocheck.dbscan)
+        end
+    end
+end
