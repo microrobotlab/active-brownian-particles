@@ -27,12 +27,12 @@ L = 100.0 	# μm box length
 R = 1.5	# μm particle radius
 v = 5.0 	# μm/s particle velocity
 a=L/2
-b=L/8
+b=L/20
 ICS=1 # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.05
+packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
@@ -110,8 +110,8 @@ file_store_csv(graph_wall,Nt_store,pathf,resample)
 
 
 #------------------------------------------------------------------------------For square-------------------------------------------------------------------------
-
-anim = @animate for i = 1:100:Nt
+#=
+anim = @animate for i = 1:Nt
     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ")
     
     plot!([L/2], seriestype="vline")  #square
@@ -123,23 +123,25 @@ end
 f1= pathf*".gif"
 gif(anim, f1)
 #end
-
+=#
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
 
-# anim = @animate for i = 1:Nt_store
-#     scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$Np particles, steps $(i*resample), ellipse a=L/2, b= L/4")
-#     plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
-#     quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
-# end
-#marker_z=graph_wall[2][i,1], color=:rainbow, for 
+anim = @animate for i = 1:Nt_store
+ scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$Np particles, steps $(i*resample), ellipse a=L/2, b= L/4")
+plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
+quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
+end
+#marker_z=graph_wall[2][i,1], color=:rainbow
 
-# f1= pathf*".gif" # gif(anim, f1)
+ f1= pathf*".gif" # 
+ gif(anim, f1)
     finish = time()
     println("Time taken for simulation run$i: $(round((finish-start)/60.0, digits=3)) minutes")
 
-end
+
 @show time_end = time()
 @show time_end-start_sim
+end
 # println("Total time taken for all runs: $(((time_end-start_sim), digits=3)) seconds")
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
