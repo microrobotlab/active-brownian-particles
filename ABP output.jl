@@ -16,7 +16,7 @@ include("ABP gif.jl")
 include("ABP multianalysis.jl")
 #include("ABP running window freq analysis.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
-using Dates, QuadGK
+using Dates, QuadGK, Distributions
 gr()
 
 # -----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -25,14 +25,16 @@ gr()
 
 L = 100.0 	# μm box length
 R = 1.5	# μm particle radius
-v = 5.0 	# μm/s particle velocity
+v = Normal(3.0,2.0) 
+println("meanv = $mean(v), stdv = $std(v)")
+#5.0 	# μm/s particle velocity 
 a=L/2
 b=L/20
 ICS=1 # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.1
+packing_fraction = 0.04
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
