@@ -7,13 +7,13 @@ include("ABP_file.jl")
 include("ABP analysis.jl")
 #include("ABP analysis perimeter.jl")
 #include("ABP_perimeter_angle_find.jl")
-include("ABP SD.jl")
-include("ABP multifolder.jl")
+#include("ABP SD.jl")
+#include("ABP multifolder.jl")
 # include("ABP average.jl")
 include("generation.jl")
 #include("ABP freq analysis.jl")
 include("ABP gif.jl")
-include("ABP multianalysis.jl")
+#include("ABP multianalysis.jl")
 #include("ABP running window freq analysis.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates, QuadGK, Distributions
@@ -30,12 +30,12 @@ mean_v=mean(v_dist)
 println("meanv = $mean_v, stdv = $std(v_dist)")
 #5.0 	# μm/s particle velocity 
 a=L/2
-b=L/20
+b=L/10
 ICS=1 # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.04
+packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
@@ -47,7 +47,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2026\7.July\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\2026\07.July\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
