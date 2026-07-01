@@ -8,7 +8,7 @@ struct ABPE2 <: ABPsEnsemble
     Np::Int64                      # number of particles®®
     L::Float64                      # size of observation space (μm)
     R::Float64  # Radius (μm)                                   --> Vector{Float64}(undef,Np)
-	v::Float64 	# velocity (μm/s)                               --> Vector{Float64}(undef,Np)
+	v::Vector{Float64} 	# velocity (μm/s)                               --> Vector{Float64}(undef,Np)
 	DT::Float64 # translational diffusion coefficient (μm^2/s)  --> Vector{Float64}(undef,Np)
 	DR::Float64 # rotational diffusion coefficient (rad^2/s)    --> Vector{Float64}(undef,Np)
 	x::Vector{Float64}    # x position (μm)
@@ -19,7 +19,7 @@ end
 
 #------------------------------------------------------------For ellipse ---------------------------------------------------------------------------------------------------------
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, a::Float64, b::Float64, R::Float64, v::Float64; T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64}; T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
@@ -106,7 +106,7 @@ end
 function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
     if size(position(abpe),2) == 2
-        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ abpe.v*δt*[cos.(abpe.θ) sin.(abpe.θ)] 
+        δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ (abpe.v.*δt).*[cos.(abpe.θ) sin.(abpe.θ)] 
         δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
     
 

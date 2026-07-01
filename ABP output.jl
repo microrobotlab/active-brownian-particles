@@ -25,8 +25,9 @@ gr()
 
 L = 100.0 	# μm box length
 R = 1.5	# μm particle radius
-v = Normal(3.0,2.0) 
-println("meanv = $mean(v), stdv = $std(v)")
+v_dist = Normal(3.0,2.0) 
+mean_v=mean(v_dist)
+println("meanv = $mean_v, stdv = $std(v_dist)")
 #5.0 	# μm/s particle velocity 
 a=L/2
 b=L/20
@@ -54,17 +55,19 @@ mainfolder= mkdir(path*"$datestamp")    # creates a folder names todays'late
 
 path1= path*"$datestamp\\"
 
-mainfolder1= mkdir(path1*"R=$R v=$v a=$a b=$b pf=$packing_fraction")
+mainfolder1= mkdir(path1*"R=$R v=$mean_v a=$a b=$b pf=$packing_fraction")
 
-patht= path*"$datestamp\\R=$R v=$v a=$a b=$b pf=$packing_fraction\\"
+patht= path*"$datestamp\\R=$R v=$mean_v a=$a b=$b pf=$packing_fraction\\"
 
 
 folders=  multipledir(patht,ICS) 
 @show start_sim= time()
 for i=1:ICS
   start = time()
+  # Generate one speed per particle
+    v = rand(v_dist, Np)
     pathf= patht*"\\run$i\\"
-    filename= "\\$datestamp R=$R v=$v a=$a b=$b pf=$packing_fraction run$i"
+    filename= "\\$datestamp R=$R v=$mean_v a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
     println("simulation=$i")
     #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
