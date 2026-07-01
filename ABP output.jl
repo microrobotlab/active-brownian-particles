@@ -47,7 +47,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\2026\07.July\\" # destination folder path
+path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2026\7.July\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
