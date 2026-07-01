@@ -119,7 +119,7 @@ end
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #  Functions for updating reflective boundary AND WALL UPDATE
 
-function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R::Float64, v::Float64, Nt::Int64, δt::Float64=1.0e-03)
+function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64}, Nt::Int64, δt::Float64=1.0e-03)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
     println("time steps $δt")
     println("a= $a, b= $b")
