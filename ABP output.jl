@@ -30,12 +30,12 @@ mean_v=mean(v_dist)
 println("meanv = $mean_v, stdv = $std(v_dist)")
 #5.0 	# μm/s particle velocity 
 a=L/2
-b=L/4
+b=L/20
 ICS=1 # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.1
+packing_fraction = 0.02
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
@@ -47,7 +47,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\2026\07.July\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\2026\07.July\02\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
