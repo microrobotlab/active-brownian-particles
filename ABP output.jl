@@ -8,12 +8,12 @@ include("ABP analysis.jl")
 #include("ABP analysis perimeter.jl")
 #include("ABP_perimeter_angle_find.jl")
 #include("ABP SD.jl")
-#include("ABP multifolder.jl")
+include("ABP multifolder.jl")
 # include("ABP average.jl")
 include("generation.jl")
 #include("ABP freq analysis.jl")
 include("ABP gif.jl")
-#include("ABP multianalysis.jl")
+include("ABP multianalysis.jl")
 #include("ABP running window freq analysis.jl")
 using Plots,Distances,NaNStatistics,CSV, DataFrames
 using Dates, QuadGK, Distributions
@@ -25,12 +25,12 @@ gr()
 
 L = 100.0 	# μm box length
 R = 1.5	# μm particle radius
-v_dist = Normal(3.0,2.0) 
+v_dist = Normal(3.0,2.5) 
 mean_v=mean(v_dist)
 println("meanv = $mean_v, stdv = $std(v_dist)")
 #5.0 	# μm/s particle velocity 
 a=L/2
-b=L/10
+b=L/4
 ICS=1 # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
@@ -47,7 +47,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\2026\7.July\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\2026\07.July\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -65,7 +65,8 @@ folders=  multipledir(patht,ICS)
 for i=1:ICS
   start = time()
   # Generate one speed per particle
-    v = rand(v_dist, Np)
+    raw_v = rand(v_dist, Np)
+    v= abs.(raw_v)
     pathf= patht*"\\run$i\\"
     filename= "\\$datestamp R=$R v=$mean_v a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
