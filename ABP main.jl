@@ -8,7 +8,8 @@ struct ABPE2 <: ABPsEnsemble
     Np::Int64                      # number of particles®®
     L::Float64                      # size of observation space (μm)
     R::Float64  # Radius (μm)                                   --> Vector{Float64}(undef,Np)
-	v::Vector{Float64} 	# velocity (μm/s)                               --> Vector{Float64}(undef,Np)
+	v::Vector{Float64} 	# velocity (μm/s)  
+    ω::Float64	# angular velocity (rad/s)                             --> Vector{Float64}(undef,Np)
 	DT::Float64 # translational diffusion coefficient (μm^2/s)  --> Vector{Float64}(undef,Np)
 	DR::Float64 # rotational diffusion coefficient (rad^2/s)    --> Vector{Float64}(undef,Np)
 	x::Vector{Float64}    # x position (μm)
@@ -19,7 +20,7 @@ end
 
 #------------------------------------------------------------For ellipse ---------------------------------------------------------------------------------------------------------
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64}; T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64},  ω::Float64,T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
@@ -29,7 +30,7 @@ function initABPE(Np::Int64, L::Float64, a::Float64, b::Float64, R::Float64, v::
 
     #xyθ = (rand(Np,3).-0.0).*repeat([L L 2π],Np)
     xyθ[:,1:2], dists, superpose, uptriang = hardsphere(xyθ[:,1:2],R) #xyθ[:,1:2] gives x and y positions of intitial particles
-    abpe = ABPE2( Np, L, R, v, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
+    abpe = ABPE2( Np, L, R, v, ω, 1e12DT, DR, xyθ[:,1], xyθ[:,2], xyθ[:,3])
 
     return abpe, (dists, superpose, uptriang)
 end
@@ -107,7 +108,7 @@ function step(abpe::ABPE, δt::Float64) where {ABPE <: ABPsEnsemble}
     
     if size(position(abpe),2) == 2
         δp = sqrt.(2*δt*abpe.DT)*randn(abpe.Np,2) .+ (abpe.v.*δt).*[cos.(abpe.θ) sin.(abpe.θ)] 
-        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np)
+        δθ = sqrt(2*abpe.DR*δt)*randn(abpe.Np).+abpe.ω*δt
     
 
     else
@@ -119,12 +120,12 @@ end
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #  Functions for updating reflective boundary AND WALL UPDATE
 
-function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64}, Nt::Int64, δt::Float64=1.0e-03)
+function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64}, ω::Float64, Nt::Int64, δt::Float64=1.0e-03)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
     println("time steps $δt")
     println("a= $a, b= $b")
     ABPE = Vector{ABPE2}(undef,1) # Nt is number of time steps
-    ABPE[1], matrices = initABPE( Np, L, a, b, R, v ) # including initial hardsphere correction
+    ABPE[1], matrices = initABPE( Np, L, a, b, R, v, ω ) # including initial hardsphere correction
     current_value = deepcopy(ABPE[1])  # This will be used for updates at each step
  
    for i in 2:Nt
@@ -160,7 +161,7 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
 
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
+    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
     return new_abpe
 end

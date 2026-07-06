@@ -28,14 +28,15 @@ R = 1.5	# μm particle radius
 v_dist = Normal(3.0,2.5) 
 mean_v=mean(v_dist)
 println("meanv = $mean_v, stdv = $std(v_dist)")
+ω = 0.01  	# rad/s angular velocity, rough value from Literature
 #5.0 	# μm/s particle velocity 
 a=L/2
-b=L/20
+b=L/8
 ICS=1 # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.02
+packing_fraction = 0.1
 
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
@@ -47,7 +48,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\2026\07.July\02\\" # destination folder path
+path= raw"D:\j.sharma\P07\workstationMRL\2026\07.July\03\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -55,11 +56,9 @@ mainfolder= mkdir(path*"$datestamp")    # creates a folder names todays'late
 
 path1= path*"$datestamp\\"
 
-mainfolder1= mkdir(path1*"R=$R v=$mean_v a=$a b=$b pf=$packing_fraction")
+mainfolder1= mkdir(path1*"R=$R v=$mean_v ω=$ω a=$a b=$b pf=$packing_fraction")
 
-patht= path*"$datestamp\\R=$R v=$mean_v a=$a b=$b pf=$packing_fraction\\"
-
-
+patht= path*"$datestamp\\R=$R v=$mean_v ω=$ω a=$a b=$b pf=$packing_fraction\\"
 folders=  multipledir(patht,ICS) 
 @show start_sim= time()
 for i=1:ICS
@@ -68,7 +67,7 @@ for i=1:ICS
     raw_v = rand(v_dist, Np)
     v= abs.(raw_v)
     pathf= patht*"\\run$i\\"
-    filename= "\\$datestamp R=$R v=$mean_v a=$a b=$b pf=$packing_fraction run$i"
+    filename= "\\$datestamp R=$R v=$mean_v  ω=$ω a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
     println("simulation=$i")
     #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
@@ -91,7 +90,7 @@ plot!([-L/2], seriestype="vline")
 =#
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
-graph_wall = multiparticleE_wall(Np,L,a,b,R,v,Nt,δt)
+graph_wall = multiparticleE_wall(Np,L,a,b,R,v,ω,Nt,δt)
 @show tt= length(graph_wall[1][1][:,1]) # has values of x and y posiiton in each frame in graph_wall[1]
 
 #  for i in 1:Nt_store
