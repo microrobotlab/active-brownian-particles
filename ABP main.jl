@@ -9,7 +9,7 @@ struct ABPE2 <: ABPsEnsemble
     L::Float64                      # size of observation space (μm)
     R::Float64  # Radius (μm)                                   --> Vector{Float64}(undef,Np)
 	v::Vector{Float64} 	# velocity (μm/s)  
-    ω::Float64	# angular velocity (rad/s)                             --> Vector{Float64}(undef,Np)
+    ω::Vector{Float64}	# angular velocity (rad/s)                             --> Vector{Float64}(undef,Np)
 	DT::Float64 # translational diffusion coefficient (μm^2/s)  --> Vector{Float64}(undef,Np)
 	DR::Float64 # rotational diffusion coefficient (rad^2/s)    --> Vector{Float64}(undef,Np)
 	x::Vector{Float64}    # x position (μm)
@@ -20,7 +20,7 @@ end
 
 #------------------------------------------------------------For ellipse ---------------------------------------------------------------------------------------------------------
 ## Initialize ABP ensemble (CURRENTLY ONLY 2D) 
-function initABPE(Np::Int64, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64},  ω::Float64,T::Float64=300.0, η::Float64=1e-3)
+function initABPE(Np::Int64, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64},  ω::Vector{Float64},T::Float64=300.0, η::Float64=1e-3)
     # translational diffusion coefficient [m^2/s] & rotational diffusion coefficient [rad^2/s] - R [m]
     # Intial condition will be choosen as per the geometry under study
     DT, DR = diffusion_coeff(1e-6R)
@@ -120,7 +120,7 @@ end
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #  Functions for updating reflective boundary AND WALL UPDATE
 
-function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64}, ω::Float64, Nt::Int64, δt::Float64=1.0e-03)
+function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R::Float64, v::Vector{Float64}, ω::Vector{Float64}, Nt::Int64, δt::Float64=1.0e-03)
     (Nt isa Int64) ? Nt : Nt=convert(Int64,Nt)
     println("time steps $δt")
     println("a= $a, b= $b")

@@ -28,17 +28,17 @@ R = 1.5	# μm particle radius
 v_dist = Normal(3.0,2.5) 
 mean_v=mean(v_dist)
 println("meanv = $mean_v, stdv = $std(v_dist)")
-ω = 0.01  	# rad/s angular velocity, rough value from Literature
+ω_mag = 0.01  	# rad/s angular velocity, rough value from Literature
 #5.0 	# μm/s particle velocity 
 a=L/2
-b=L/8
+b=L/20
 ICS=1 # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
-packing_fraction = 0.1
+#packing_fraction = 0.1
 
-Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
+#Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
 Nt = 1000000# Nt is the number of steps 
 resample=1000
@@ -48,7 +48,8 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-path= raw"D:\j.sharma\P07\workstationMRL\2026\07.July\03\\" # destination folder path
+for packing_fraction=0.02:0.02:0.1
+path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\07.July\06\angular0.01\mix_angular\omega0.01\aspect0.1\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -56,18 +57,20 @@ mainfolder= mkdir(path*"$datestamp")    # creates a folder names todays'late
 
 path1= path*"$datestamp\\"
 
-mainfolder1= mkdir(path1*"R=$R v=$mean_v ω=$ω a=$a b=$b pf=$packing_fraction")
+mainfolder1= mkdir(path1*"R=$R v=$mean_v ω=$ω_mag a=$a b=$b pf=$packing_fraction")
 
-patht= path*"$datestamp\\R=$R v=$mean_v ω=$ω a=$a b=$b pf=$packing_fraction\\"
+patht= path*"$datestamp\\R=$R v=$mean_v ω=$ω_mag a=$a b=$b pf=$packing_fraction\\"
 folders=  multipledir(patht,ICS) 
 @show start_sim= time()
+Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 for i=1:ICS
   start = time()
   # Generate one speed per particle
     raw_v = rand(v_dist, Np)
+    ω= rand([-1, 1], Np) .* ω_mag
     v= abs.(raw_v)
     pathf= patht*"\\run$i\\"
-    filename= "\\$datestamp R=$R v=$mean_v  ω=$ω a=$a b=$b pf=$packing_fraction run$i"
+    filename= "\\$datestamp R=$R v=$mean_v  ω=$ω_mag a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
     println("simulation=$i")
     #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
@@ -146,6 +149,7 @@ end
 
 @show time_end = time()
 @show time_end-start_sim
+end
 end
 # println("Total time taken for all runs: $(((time_end-start_sim), digits=3)) seconds")
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------------
