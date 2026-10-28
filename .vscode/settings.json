@@ -1,5 +1,4 @@
 {
     "workbench.colorTheme": "Visual Studio Dark",
-    "julia.NumThreads": 5,
-    "julia.environmentPath": "C:\\Users\\j.sharma\\.julia\\environments\\v1.10"
+    "julia.NumThreads": 5
 }
