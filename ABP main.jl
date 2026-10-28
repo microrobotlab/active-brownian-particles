@@ -122,7 +122,7 @@ function multiparticleE_wall(Np::Integer, L::Float64, a::Float64, b::Float64, R:
     println("time steps $δt")
     println("a= $a, b= $b")
     ABPE = Vector{ABPE2}(undef,1) # Nt is number of time steps
-    ABPE[1], matrices = initABPE( Np, L, a, b, R, v, ω ) # including initial hardsphere correction
+    ABPE[1], matrices = initABPE( Np, L, a, b, R, v) # including initial hardsphere correction
     current_value = deepcopy(ABPE[1])  # This will be used for updates at each step
  
    for i in 2:Nt
@@ -158,7 +158,7 @@ function update_wall(abpe::ABPE, matrices::Tuple{Matrix{Float64}, BitMatrix, Bit
 
     hardsphere!(pθ[1], matrices[1], matrices[2], matrices[3], abpe.R)
     # @btime hardsphere!($p[:,1:2], $matrices[1], $matrices[2], $matrices[3], $params.R)
-    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.ω, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
+    new_abpe = ABPE2( abpe.Np, abpe.L, abpe.R, abpe.v, abpe.DT, abpe.DR, pθ[1][:,1], pθ[1][:,2], pθ[2] )
 
     return new_abpe
 end

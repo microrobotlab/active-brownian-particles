@@ -24,12 +24,12 @@ gr()
 # We plot the set of particles considering the correction of hard spheres
 
 L = 100.0 	# μm box length   
-R = 2.0	# μm particle radius
+R = 1.5	# μm particle radius
 #v_dist = Normal(3.0,2.5) 
 #mean_v=mean(v_dist)
 #println("meanv = $mean_v, stdv = $std(v_dist)")
 #ω_mag = 0.0  	# rad/s angular velocity, rough value from Literature
-v=15.0 	# μm/s particle velocity 
+v=5.0 	# μm/s particle velocity 
 a=L/2
 b=L/8
 ICS=1 # number of intial conditons to be scanned 
@@ -49,7 +49,7 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 
 # destination folders selection
 packing_fraction=0.2
-path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R2.0 pf 0.2\\" # destination folder path
+path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -133,9 +133,9 @@ gif(anim, f1)
 #end
 =#
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
-#=
+
 anim = @animate for i = 1:Nt_store
- scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$Np particles, steps $(i*resample), ellipse a=L/2, b= L/4")
+ scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$Np particles, steps $(i*resample), ellipse a=L/2, b= L/8")
 plot!(a*cos.(-π:0.01:π), b*sin.(-π:0.01:π)) # ellipse
 quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
 end
@@ -145,7 +145,6 @@ end
  gif(anim, f1)
     finish = time()
     println("Time taken for simulation run$i: $(round((finish-start)/60.0, digits=3)) minutes")
-=#
 
 @show time_end = time()
 @show time_end-start_sim
