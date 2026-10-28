@@ -28,11 +28,11 @@ R = 2.0	# μm particle radius
 #v_dist = Normal(3.0,2.5) 
 #mean_v=mean(v_dist)
 #println("meanv = $mean_v, stdv = $std(v_dist)")
-ω_mag = 0.0  	# rad/s angular velocity, rough value from Literature
+#ω_mag = 0.0  	# rad/s angular velocity, rough value from Literature
 v=15.0 	# μm/s particle velocity 
 a=L/2
 b=L/8
-ICS=10 # number of intial conditons to be scanned 
+ICS=1 # number of intial conditons to be scanned 
 #pf_factor = (R^2)/(a*b)
 pf_factor = (R^2)
 DT, DR = diffusion_coeff(R).*[1e12, 1]
@@ -48,8 +48,8 @@ Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the
 #-------------------------------------------------------------------------------------------------------------------
 
 # destination folders selection
-packing_fraction=0.1
-path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\\" # destination folder path
+packing_fraction=0.2
+path= raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R2.0 pf 0.2\\" # destination folder path
 
 datestamp=Dates.format(now(),"YYYYmmdd-HHMMSS")  # todays date
 
@@ -67,7 +67,7 @@ for i=1:ICS
   start = time()
   # Generate one speed per particle
     #raw_v = rand(v_dist, Np)
-    ω= rand([-1, 1], Np) .* ω_mag
+    #ω= rand([-1, 1], Np) .* ω_mag
     #v= abs.(raw_v)
     pathf= patht*"\\run$i\\"
     filename= "\\$datestamp R=$R v=$v a=$a b=$b pf=$packing_fraction run$i"
@@ -93,7 +93,7 @@ plot!([-L/2], seriestype="vline")
 =#
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
-graph_wall = multiparticleE_wall(Np,L,a,b,R,v,ω,Nt,δt)
+graph_wall = multiparticleE_wall(Np,L,a,b,R,v,Nt,δt)
 @show tt= length(graph_wall[1][1][:,1]) # has values of x and y posiiton in each frame in graph_wall[1]
 
 #  for i in 1:Nt_store
