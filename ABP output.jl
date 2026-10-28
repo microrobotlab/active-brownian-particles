@@ -25,10 +25,6 @@ gr()
 
 L = 100.0 	# μm box length   
 R = 1.5	# μm particle radius
-#v_dist = Normal(3.0,2.5) 
-#mean_v=mean(v_dist)
-#println("meanv = $mean_v, stdv = $std(v_dist)")
-#ω_mag = 0.0  	# rad/s angular velocity, rough value from Literature
 v=5.0 	# μm/s particle velocity 
 a=L/2
 b=L/8
@@ -65,10 +61,7 @@ folders=  multipledir(patht,ICS)
 Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 for i=1:ICS
   start = time()
-  # Generate one speed per particle
-    #raw_v = rand(v_dist, Np)
-    #ω= rand([-1, 1], Np) .* ω_mag
-    #v= abs.(raw_v)
+ 
     pathf= patht*"\\run$i\\"
     filename= "\\$datestamp R=$R v=$v a=$a b=$b pf=$packing_fraction run$i"
     pathf= pathf*filename
@@ -76,21 +69,7 @@ for i=1:ICS
     #graph = multiparticleE(Np,L,R,v,Nt);    # function to simulation particles with open boundary 
 
      # println("multiparticleE complied\n")
-  #-------------------------------------------------------------------------------------------------------------------------------------------------------------
-# THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for square wall condition
 
-# Same with the wall condition (particles bounce off the edge)  
-#graph_wall = multiparticleE_wall(Np,L,R,v,Nt) 
-
-#=
-scatter(graph[1][:,1], graph[1][:,2], markersize=350R/L, legend=false, aspect_ratio=:equal, title = "$Np particles, step n°1")
-plot!([L/2], seriestype="vline")
-plot!([-L/2], seriestype="vline")
-
-scatter(graph[20][:,1], graph[20][:,2], markersize=350R/L, legend=false, aspect_ratio=:equal, title = "$Np particles, step n°$Nt" )
-plot!([L/2], seriestype="vline")
-plot!([-L/2], seriestype="vline")
-=#
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for elliptical wall condition
 graph_wall = multiparticleE_wall(Np,L,a,b,R,v,Nt,δt)
@@ -108,30 +87,11 @@ file_store_csv(graph_wall,Nt_store,pathf,resample)
 # analysis
 #  inside_Np=stat_analysis1(a,b,R,pathf,δt,2)
 # mean and standard deviation
-
-
 #analysis_SD= stat_analysis2(a,b,R,pathf)
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # making animation
-
-
-#------------------------------------------------------------------------------For square-------------------------------------------------------------------------
-#=
-anim = @animate for i = 1:Nt
-    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ")
-    
-    plot!([L/2], seriestype="vline")  #square
-    plot!([-L/2], seriestype="vline")
-    quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
-end
-#marker_z=graph_wall[2][i,1], color=:rainbow, for 
-
-f1= pathf*".gif"
-gif(anim, f1)
-#end
-=#
 #------------------------------------------------------------------------------for ellipse-------------------------------------------------------------------------
 
 anim = @animate for i = 1:Nt_store
@@ -180,3 +140,43 @@ end
  #inside_Np=stat_analysis_perimeter(a,b,R,t,δt,0) # 0 for pole, equator, 1 for only right left, 2 for entire
 
   # makegif(mainfolder1,t)
+# -------------------------------------------- for velocity and angular velocity distribution ---------------------------------------------
+  #v_dist = Normal(3.0,2.5) 
+#mean_v=mean(v_dist)
+#println("meanv = $mean_v, stdv = $std(v_dist)")
+#ω_mag = 0.0  	# rad/s angular velocity, rough value from Literature
+ # Generate one speed per particle
+    #raw_v = rand(v_dist, Np)
+    #ω= rand([-1, 1], Np) .* ω_mag
+    #v= abs.(raw_v)
+  #-------------------------------------------------------------------------------------------------------------------------------------------------------------
+# THIS IS THE CODE TO CALL WALL FUNCTIONS IN THE MAIN FUNCTION for square wall condition
+
+# Same with the wall condition (particles bounce off the edge)  
+#graph_wall = multiparticleE_wall(Np,L,R,v,Nt) 
+
+#=
+scatter(graph[1][:,1], graph[1][:,2], markersize=350R/L, legend=false, aspect_ratio=:equal, title = "$Np particles, step n°1")
+plot!([L/2], seriestype="vline")
+plot!([-L/2], seriestype="vline")
+
+scatter(graph[20][:,1], graph[20][:,2], markersize=350R/L, legend=false, aspect_ratio=:equal, title = "$Np particles, step n°$Nt" )
+plot!([L/2], seriestype="vline")
+plot!([-L/2], seriestype="vline")
+=#
+#------------------------------------------------------------------------------For square-------------------------------------------------------------------------
+#=
+anim = @animate for i = 1:Nt
+    scatter(graph_wall[1][i][:,1], graph_wall[1][i][:,2], aspect_ratio=:equal, lims=(-L/2, L/2),markersize=350R/L,marker =:circle,legend=false, title = "$(Np) particles, steps $i, ")
+    
+    plot!([L/2], seriestype="vline")  #square
+    plot!([-L/2], seriestype="vline")
+    quiver!(graph_wall[1][i][:,1],graph_wall[1][i][:,2],quiver=(4*cos.(graph_wall[2][i,1]),4*sin.(graph_wall[2][i,1])), color=:red)
+end
+#marker_z=graph_wall[2][i,1], color=:rainbow, for 
+
+f1= pathf*".gif"
+gif(anim, f1)
+#end
+=#
+
