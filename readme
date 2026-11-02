@@ -1,2 +1,8 @@
 20.3 h for 5 runs 10000s at 0.001 dt with the threads
 14.725 h for 5 runs 10000s at 0.001 dt without the threads
+
+-----------------Final data for simulations paper------------------------------------
+with gif pf 0.1 10000s, R 2.0, time 560s ---------------------same for >R 1.0 4792s
+
+withoutgif for pf 0.2 R1.5, 10000s, 1510s 
+
