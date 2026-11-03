@@ -30,7 +30,7 @@ function stat_analysis_perimeter(a,b,R,pathf,δt,symmetry,start_frame,end_frame)
     symmetry_analysis_perimeter(a,b,R,time,gdf,pathf,δt,start_frame,end_frame)
     curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt,start_frame,end_frame)
 
-    return nothing
+    return curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt,start_frame,end_frame)
   end
 
  
@@ -229,7 +229,7 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
      close(efg)
    
     println("I am out of ABP curvature analysis")
- return nothing
+ return curvature_effect
 end
 
 
