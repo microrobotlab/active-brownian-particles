@@ -8,7 +8,7 @@ using  Plots, LaTeXStrings, Statistics, CSV, DataFrames,CategoricalArrays
 
 gr()
 
-function stat_analysis_perimeter(a,b,R,pathf,δt,symmetry)
+function stat_analysis_perimeter(a,b,R,pathf,δt,symmetry,start_frame,end_frame)
   
   fmain= pathf*".csv"
   df= CSV.read(fmain, DataFrame)
@@ -21,21 +21,22 @@ function stat_analysis_perimeter(a,b,R,pathf,δt,symmetry)
 
   if symmetry == 0
     # for number of particles at the poles and equators run this function
-    curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt)    
+    curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt,start_frame,end_frame)    
   elseif symmetry == 1
     # for number of particles at the left or right side of the ellipse run this function
-    symmetry_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
+    symmetry_analysis_perimeter(a,b,R,time,gdf,pathf,δt,start_frame,end_frame)
   elseif  symmetry == 2
     # for number of particles at the left or right side of the ellipse run this function
-    symmetry_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
-    curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
-    
+    symmetry_analysis_perimeter(a,b,R,time,gdf,pathf,δt,start_frame,end_frame)
+    curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt,start_frame,end_frame)
+
     return nothing
   end
+
  
 end
 
-function symmetry_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
+function symmetry_analysis_perimeter(a,b,R,time,gdf,pathf,δt,start_frame,end_frame)
  
   f1= pathf*"perimeter_symmetry_analysis_p.csv"
   f2= pathf*"perimeter_symmetry_analysis_N.png"
@@ -48,9 +49,8 @@ function symmetry_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
   for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually time steps but in group counting it is 1, 2, 3---1000 , hence, time                                                                                                                                                                                                                     
    global right=0
    global left=0
-  
    
-    for j=1:length(gdf[i][!,:xpos]) 
+  for j=1:length(gdf[i][!,:xpos]) 
     
         θ = atan.(gdf[i][!,:ypos][j], gdf[i][!,:xpos][j]) 
 
@@ -106,7 +106,7 @@ function symmetry_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
 end
 
 
-function curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt)
+function curvature_analysis_perimeter(a,b,R,time,gdf,pathf,δt,start_frame,end_frame)
  
   println("I am in ABP curvature analysis")
   f5= pathf*"_parameter_p.csv"
@@ -130,9 +130,6 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
    global Npole2=0
    global Neq1=0
    global Neq2=0
-  
-   
-   
     for j=1:length(gdf[i][!,:xpos]) 
 
           x, y = gdf[i][!,:xpos][j], gdf[i][!,:ypos][j]
@@ -174,7 +171,18 @@ for i=1:length(gdf)      # length(gdf) is total time or steps, i is actually tim
     # pfp = count2*(0.5*π/Ap)*pf_factor 
   
  end
+    # ---------- NEW: average normalized curvature effect ----------
+    diff  = n1 .+ n2 .- n3 .- n4          # Neq - Npole
+    total = n1 .+ n2 .+ n3 .+ n4          # total particles on the perimeter
 
+    # safety check
+    if start_frame < 1 || end_frame > length(diff) || start_frame > end_frame
+        error("Invalid start_frame/end_frame: $start_frame:$end_frame (length = $(length(diff)))")
+    end
+
+    avg_diff  = mean(diff[start_frame:end_frame])
+    avg_total = mean(total[start_frame:end_frame])
+   @show curvature_effect = avg_diff / avg_total   # between -1 and +1
   
 ############################################################################################################
 #file wriiting

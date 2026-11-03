@@ -10,7 +10,7 @@ f= run_folder*"\\FFT_analysis.png"
 df= CSV.read(f1,DataFrame)
 
 start_frame= 1000
-end_frame= 20000
+end_frame= 10000
 time_step= df[:,:t]
 Neq1= df[:,:NeqL]
 Neq2= df[:,:NeqR]
@@ -35,7 +35,7 @@ elseif i==3
 end
 
     t_vec = 1:length(ydata)  # Time vector for the data points
-    p = fit(t_vec, ydata, 1)  # Linear fit
+    p = Polynomials.fit(t_vec, ydata, 1) # Linear fit
     trend = p.(t_vec)
     time_series_detrended = ydata .- trend
     #time_series_centered = time_series_detrended .- mean(time_series_detrended)
