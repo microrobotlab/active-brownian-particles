@@ -1,7 +1,7 @@
 #FFT analysis of the number of particles in the system using welch_pgram.jl method for digital signal processing in julia
 using CSV, FileIO, DataFrames, Plots,DSP,Polynomials
 
-function FFT_analysis_window(mainfolder,run_folder,dt,resample,task)
+function FFT_analysis_window(mainfolder,run_folder,dt,resample_data,task)
     
  f1= mainfolder*"_parameter_p.csv"
 #f1= mainfolder*"data.csv"
@@ -44,7 +44,7 @@ end
 time_series = time_series_centered[start_frame:end_frame] .-mean(time_series_centered[start_frame:end_frame])
 
 # = 20000
-fs=Int(1/(dt*resample)) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
+fs=Int(1/(dt*resample_data)) #sampling rate = sampling frequency = 1/dt if at every time step data is printed
 #assert length(time_series) == N
 
 # fs=12

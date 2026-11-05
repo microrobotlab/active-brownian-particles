@@ -37,8 +37,8 @@ DT, DR = diffusion_coeff(R).*[1e12, 1]
 #Np = round(Int,packing_fraction*a*b/(R^2))  #Np is the number of particles inside the ellipse
 #π
 Nt = 10000000# Nt is the number of steps 
-resample=1000
-Nt_store= Int(Nt/resample)  # time steps at which data has to be stored, not the actual simulation time step
+resample_data=1000
+Nt_store= Int(Nt/resample_data)  # time steps at which data has to be stored, not the actual simulation time step
 δt = 1.0e-3 #L/(v*Nt) # δt is the time step
 #println(" Number of particles: $Np") 
 #-------------------------------------------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ graph_wall = multiparticleE_wall(Np,L,a,b,R,v,Nt,δt)
 println("multiparticleE_wall compiled\n")
 #---------------------------------------------------------------------------------------------------------------------
 # file store  
-file_store_csv(graph_wall,Nt_store,pathf,resample)
+file_store_csv(graph_wall,Nt_store,pathf,resample_data)
 #-------------------------------------------------------------------------------------------------------------------------------------------------------------
 # analysis
 #  inside_Np=stat_analysis1(a,b,R,pathf,δt,2)
@@ -120,7 +120,7 @@ end
 #mainfolder= "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2026\\10.October\\final paper data\\R2.0 pf 0.1\\20261027-211325\\" # destination folder path where the data for all runs is saved
 #multianalysis(mainfolder,10) # passing path of the main folders which has all the run folders
 
-parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2026\\10.October\\final paper data\\R2.0 pf 0.1\\aspect 0.25\\" # destination folder path
+parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2026\\10.October\\final paper data\\R1.5 pf 0.3\\aspect 0.1\\" # destination folder path
 folder_names= parent_folder*"folder_names.txt" # file containing the names of the folders to be analyzed
 multianalysis(folder_names, parent_folder)
 

@@ -87,7 +87,7 @@ function multianalysis(folder_names::String, parent_folder::String)
             curvature = stat_analysis_perimeter(params.a, params.b, params.R, t, δt, 2, 1000, 10000)
 
             # FFT analysis
-            peak_freq_mHz, peak_period, freqs_mHz, psd = FFT_analysis_window(t, run_folder, δt, resample, 3)
+            peak_freq_mHz, peak_period, freqs_mHz, psd = FFT_analysis_window(t, run_folder, δt, resample_data, 3)
 
             # Store one complete result row
             push!(results, (
@@ -97,6 +97,7 @@ function multianalysis(folder_names::String, parent_folder::String)
                 v                  = params.v,
                 a                  = params.a,
                 b                  = params.b,
+                aspect             = params.b / params.a,
                 pf                 = params.pf,
                 Peak_Frequency_mHz = peak_freq_mHz,
                 Curvature_Effect   = curvature
