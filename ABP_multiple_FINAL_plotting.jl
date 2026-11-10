@@ -41,7 +41,7 @@ function plot_curvature_vs_aspect_multi_pf(parent_folder::String, pf_files::Vect
 
         plot!(p, summary.aspect, summary.mean_curv,
               yerror = summary.sd_curv,
-              label  = "pf = $pf_val",
+              label  = "Pf = $pf_val",
               color  = color,
               marker = marker,
               markersize = 7,

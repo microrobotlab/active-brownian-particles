@@ -24,7 +24,7 @@ function combine_and_plot(parent_folder::String, subfolder_paths::Vector{String}
 
     # Concatenate all selected files
     final_df = vcat(all_dfs..., cols=:union)
-    final_path = joinpath(parent_folder, "final_all_output_R1.5_v5.0_pf0.1.csv")
+    final_path = joinpath(parent_folder, "final_all_output_R1.5_v5.0_pf0.3.csv")
     CSV.write(final_path, final_df)
     println("Wrote combined file → $final_path")
     println("Total rows: $(nrow(final_df))")
@@ -50,7 +50,7 @@ function combine_and_plot(parent_folder::String, subfolder_paths::Vector{String}
              yerror = summary.sd_curv,
              xlabel = "aspect ratio (b/a)",
              ylabel = "Curvature_Effect",
-             title  = "R=1.5, v = 5.0, pf=0.3",
+             title  = "R=1.5, v = 5.0, pf= 0.3",
              marker = :circle,
              markersize = 7,
              linewidth = 2,
@@ -59,7 +59,7 @@ function combine_and_plot(parent_folder::String, subfolder_paths::Vector{String}
 
     plot!(p, summary.aspect, summary.mean_curv, linewidth=1.5, color=:black, alpha=0.5)
 
-    plot_path = joinpath(parent_folder, "curvature_vs_aspect_R1.5_v5.0_pf0.3.png")
+    plot_path = joinpath(parent_folder, "curvature_vs_aspect_R1.5_v5.0.png")
     savefig(p, plot_path)
     println("Saved plot → $plot_path")
 
@@ -71,8 +71,9 @@ parent_folder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07C
 
 analyzed_folders = [
     raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.3\aspect 0.1\\",
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.3\aspect 0.25\\",
     raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.3\aspect 0.4\\",
-    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.3\aspect 0.25\\"
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.3\aspect 0.55\\"
 
     # add the other folders you want below (copy the line and change the path)
     #raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.2\aspect 0.25",
