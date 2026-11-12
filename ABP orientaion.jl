@@ -9,6 +9,9 @@ Computes speed from successive positions.
 Averages speed & orientation per zone.
 Saves full zone plots + separate EqL/EqR plots.
 """
+
+# Define circmean once, outside the function
+circmean(v) = isempty(v) ? NaN : angle(mean(cis.(v)))
 function zone_velocity_orientation(input_csv::String, output_csv::String, a, b, R, eθ, δt)
 
     # ---- change if your orientation column has a different name ----
@@ -18,7 +21,7 @@ function zone_velocity_orientation(input_csv::String, output_csv::String, a, b, 
     println("Reading $input_csv")
     df = CSV.read(input_csv, DataFrame)
 
-    for col in (:Pn, :StepN, :xpos, :ypos, orient_col)
+    for col in (:Pn, :StepN, :xpos, :ypos, :orientation)
         col in propertynames(df) || error("Missing column $col in the CSV")
     end
 
@@ -77,13 +80,13 @@ function zone_velocity_orientation(input_csv::String, output_csv::String, a, b, 
         push!(records, (
             StepN            = step,
             avg_v_EqL        = avg(zones[:EqL].speeds),
-            avg_orient_EqL   = avg(zones[:EqL].orients),
+            avg_orient_EqL   = circmean(zones[:EqL].orients),
             avg_v_EqR        = avg(zones[:EqR].speeds),
-            avg_orient_EqR   = avg(zones[:EqR].orients),
+            avg_orient_EqR   = circmean(zones[:EqR].orients),
             avg_v_PoleU      = avg(zones[:PoleU].speeds),
-            avg_orient_PoleU = avg(zones[:PoleU].orients),
+            avg_orient_PoleU = circmean(zones[:PoleU].orients),
             avg_v_PoleD      = avg(zones[:PoleD].speeds),
-            avg_orient_PoleD = avg(zones[:PoleD].orients),
+            avg_orient_PoleD = circmean(zones[:PoleD].orients),
             n_EqL   = length(zones[:EqL].speeds),
             n_EqR   = length(zones[:EqR].speeds),
             n_PoleU = length(zones[:PoleU].speeds),
@@ -96,45 +99,46 @@ function zone_velocity_orientation(input_csv::String, output_csv::String, a, b, 
     println("Wrote zone averages → $output_csv")
 
     base = replace(output_csv, ".csv" => "")
-
+    start_frame = 1000
+    end_frame   = 2000
     # ---------- Full zone plots ----------
-    p_speed = plot(result.StepN, result.avg_v_EqL,   label="EqL",   xlabel="StepN", ylabel="mean speed")
-    plot!(p_speed, result.StepN, result.avg_v_EqR,   label="EqR")
-    plot!(p_speed, result.StepN, result.avg_v_PoleU, label="PoleU")
-    plot!(p_speed, result.StepN, result.avg_v_PoleD, label="PoleD")
+    p_speed = plot(result.StepN[start_frame:end_frame], result.avg_v_EqL[start_frame:end_frame],   label="EqL",   xlabel="StepN", ylabel="mean speed")
+    plot!(p_speed, result.StepN[start_frame:end_frame], result.avg_v_EqR[start_frame:end_frame],   label="EqR")
+    #plot!(p_speed, result.StepN[140000:150000], result.avg_v_PoleU[140000:150000], label="PoleU")
+    #plot!(p_speed, result.StepN[140000:15000０], result.avg_v_PoleD[14００００:１５００００    ], label="PoleD")
     savefig(p_speed, base * "_avg_speed.png")
-
+#=
     p_ori = plot(result.StepN, result.avg_orient_EqL,   label="EqL",   xlabel="StepN", ylabel="mean orientation (rad)")
     plot!(p_ori, result.StepN, result.avg_orient_EqR,   label="EqR")
     plot!(p_ori, result.StepN, result.avg_orient_PoleU, label="PoleU")
     plot!(p_ori, result.StepN, result.avg_orient_PoleD, label="PoleD")
     savefig(p_ori, base * "_avg_orientation.png")
-
+=#
     # ---------- Separate EqL & EqR plots ----------
     # Orientation EqL + EqR
-    p_ori_eq = plot(result.StepN, result.avg_orient_EqL, label="EqL", xlabel="StepN", ylabel="mean orientation (rad)",
+    p_ori_eq = plot(result.StepN[start_frame:end_frame], (result.avg_orient_EqL[start_frame:end_frame]), label="EqL", xlabel="StepN", ylabel="mean orientation (rad)",
                     title="Equator orientation", linewidth=2)
-    plot!(p_ori_eq, result.StepN, result.avg_orient_EqR, label="EqR", linewidth=2)
-    plot!( df.orient_col, linestyle=:dash, color=:black, label="0 rad")
+    plot!(p_ori_eq, result.StepN[start_frame:end_frame], (result.avg_orient_EqR[start_frame:end_frame]), label="EqR", linewidth=2)
+    #plot!(df.orientation, label="All", linewidth=2, linestyle=:dash, color=:black, label="0 rad")
     savefig(p_ori_eq, base * "_avg_orientation_Eq.png")
 
     # Velocity EqL + EqR
-    p_v_eq = plot(result.StepN, result.avg_v_EqL, label="EqL", xlabel="StepN", ylabel="mean speed",
-                  title="Equator velocity", linewidth=2)
-    plot!(p_v_eq, result.StepN, result.avg_v_EqR, label="EqR", linewidth=2)
+    p_v_eq = plot(result.StepN[start_frame:end_frame], result.avg_v_EqL[start_frame:end_frame], label="EqL", xlabel="StepN", ylabel="mean speed",
+                  title="Equator 0velocity", linewidth=2)
+    plot!(p_v_eq, result.StepN[start_frame:end_frame], result.avg_v_EqR[start_frame:end_frame], label="EqR", linewidth=2)
     savefig(p_v_eq, base * "_avg_speed_Eq.png")
 
     println("Saved all plots")
     display(p_speed)
-    display(p_ori)
+    #display(p_ori)
     display(p_ori_eq)
     display(p_v_eq)
 
     return result
 end
 
-parent = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2025\03.March\20250325-165047\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1\run1\\"
-filename = "20250325-165047 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.1 run1"
+parent = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.4\aspect 0.25\20261029-132341\R=1.5 v=5.0 a=50.0 b=12.5 pf=0.4\run1\\"
+filename = "20261029-132341 R=1.5 v=5.0 a=50.0 b=12.5 pf=0.4 run1"
 
 input  = joinpath(parent, filename * ".csv")
 output = joinpath(parent, filename * "_zone_avg_v_orient.csv")
