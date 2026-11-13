@@ -1,14 +1,7 @@
-using CSV, DataFrames, Statistics
+using CSV, DataFrames, Statistics, Plots
 
-"""
-multianalysis_prob_no_curvature(folder_names::String, parent_folder::String)
-
-For each run, reads the _parameter_p.csv and computes:
-  P_no_curv = (number of steps where NeqL+NeqR-NpoleU-NpoleD == 0) / maximum(t)
-"""
 function multianalysis_prob_no_curvature(folder_names::String, parent_folder::String)
 
-    # ---------- read list of main folders ----------
     mainfolders = String[]
     open(folder_names) do file
         for line in eachline(file)
@@ -28,13 +21,13 @@ function multianalysis_prob_no_curvature(folder_names::String, parent_folder::St
         error("No valid folders found in $folder_names")
     end
 
-    results = NamedTuple[]
+    summary_results = NamedTuple[]
+    interval_results = NamedTuple[]
 
     for mainfolder in mainfolders
         println("Processing mainfolder: $mainfolder")
         mainfolder_name = basename(mainfolder)
 
-        # find the parameter sub-folder
         subfolders = [joinpath(mainfolder, d) for d in readdir(mainfolder) if isdir(joinpath(mainfolder, d))]
         param_folders = filter(f -> occursin("R=", basename(f)) && occursin("pf=", basename(f)), subfolders)
 
@@ -45,13 +38,15 @@ function multianalysis_prob_no_curvature(folder_names::String, parent_folder::St
         sub_subfolder = param_folders[1]
         params = parse_parameters(basename(sub_subfolder))
 
-        # run folders
         run_folders = [joinpath(sub_subfolder, d) for d in readdir(sub_subfolder) if isdir(joinpath(sub_subfolder, d))]
         ICS = length(run_folders)
         if ICS == 0
             @warn "No run folders in $sub_subfolder, skipping."
             continue
         end
+
+        # collect intervals for this condition only
+        condition_intervals = Float64[]
 
         for i in 1:ICS
             run_folder = joinpath(sub_subfolder, "run$i")
@@ -70,24 +65,18 @@ function multianalysis_prob_no_curvature(folder_names::String, parent_folder::St
 
             df = CSV.read(param_csv, DataFrame)
 
-            # required columns
             for col in (:t, :NeqL, :NeqR, :NpoleU, :NpoleD)
                 col in propertynames(df) || error("Column $col not found in $param_csv")
             end
 
-            # delta N
             delta = df.NeqL .+ df.NeqR .- df.NpoleU .- df.NpoleD
+            t_zeros = sort(df.t[delta .== 0])
 
-            # count how many times delta == 0
-            n_zero = count(==(0), delta)
-
-            # maximum t in the file
+            n_zero = length(t_zeros)
             t_max = maximum(df.t)
-
-            # probability
             prob_no_curv = n_zero / t_max
 
-            push!(results, (
+            push!(summary_results, (
                 Run           = i,
                 Main_Folder   = mainfolder_name,
                 R             = params.R,
@@ -100,20 +89,72 @@ function multianalysis_prob_no_curvature(folder_names::String, parent_folder::St
                 t_max         = t_max,
                 prob_no_curv  = prob_no_curv
             ))
+
+            if n_zero >= 2
+                intervals = diff(t_zeros)
+                append!(condition_intervals, intervals)
+
+                for Δt in intervals
+                    push!(interval_results, (
+                        Run           = i,
+                        Main_Folder   = mainfolder_name,
+                        R             = params.R,
+                        v             = params.v,
+                        a             = params.a,
+                        b             = params.b,
+                        aspect        = params.b / params.a,
+                        pf            = params.pf,
+                        interval      = Δt
+                    ))
+                end
+            end
+        end
+     # ---------- two histograms for this condition ----------
+        if !isempty(condition_intervals)
+            intervals_1s   = filter(x -> abs(x - 1.0) < 1e-6, condition_intervals)
+            intervals_other = filter(x -> x > 1.0 + 1e-6, condition_intervals)
+
+            # 1 s histogram
+            if !isempty(intervals_1s)
+                p1 = histogram(intervals_1s,
+                               bins=10,
+                               xlabel="Interval (s)",
+                               ylabel="Count",
+                               title="Intervals = 1 s\n$(mainfolder_name)",
+                               legend=false)
+                savefig(p1, joinpath(mainfolder, "intervals_1s.png"))
+                println("Saved 1 s histogram")
+            end
+
+            # other intervals histogram
+            if !isempty(intervals_other)
+                p2 = histogram(intervals_other,
+                               bins=40,
+                               xlabel="Interval (s)",
+                               ylabel="Count",
+                               title="Intervals > 1 s\n$(mainfolder_name)",
+                               legend=false)
+                savefig(p2, joinpath(mainfolder, "intervals_other.png"))
+                println("Saved other intervals histogram")
+            end
         end
     end
 
-    if isempty(results)
-        @warn "No results collected."
-        return nothing
+    # ---------- write the two CSVs ----------
+    summary_df = DataFrame(summary_results)
+    intervals_df = DataFrame(interval_results)
+
+    if !isempty(summary_df)
+        CSV.write(joinpath(parent_folder, "output_prob_no_curvature.csv"), summary_df)
+        println("Summary CSV written")
     end
 
-    combined_df = DataFrame(results)
-    output_file = joinpath(parent_folder, "output_prob_no_curvature.csv")
-    CSV.write(output_file, combined_df)
-    println("Combined results written to $output_file")
+    if !isempty(intervals_df)
+        CSV.write(joinpath(parent_folder, "output_zero_intervals.csv"), intervals_df)
+        println("Intervals CSV written")
+    end
 
-    return combined_df
+    return summary_df, intervals_df
 end
 
 # ---------- helper ----------
@@ -137,6 +178,7 @@ function parse_parameters(folder_name::String)
     )
 end
 
-parent_folder = "C:\\Users\\j.sharma\\OneDrive - Scuola Superiore Sant'Anna\\P07Coding\\workstationMRL\\2026\\10.October\\final paper data\\R1.5 pf 0.05\\aspect 0.55\\" # destination folder path
-folder_names= parent_folder*"folder_names.txt" # file containing the names of the folders to be analyzed
-multianalysis_prob_no_curvature(folder_names, parent_folder)
+parent_folder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\aspect 0.1\\"
+folder_names  = joinpath(parent_folder, "folder_names.txt")
+
+summary_df, intervals_df = multianalysis_prob_no_curvature(folder_names, parent_folder)
