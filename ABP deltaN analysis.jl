@@ -1,3 +1,4 @@
+# there is a start_frame and end_frame to restrict the analysis to a specific frame window. This is useful for focusing on a particular time range in the simulation data.
 using CSV, DataFrames, Statistics, Plots
 
 function multianalysis_prob_no_curvature(folder_names::String, parent_folder::String)
@@ -25,6 +26,8 @@ function multianalysis_prob_no_curvature(folder_names::String, parent_folder::St
     interval_results = NamedTuple[]
 
     for mainfolder in mainfolders
+           start_frame = 1000
+           end_frame   = 10000
         println("Processing mainfolder: $mainfolder")
         mainfolder_name = basename(mainfolder)
 
@@ -65,18 +68,25 @@ function multianalysis_prob_no_curvature(folder_names::String, parent_folder::St
 
             df = CSV.read(param_csv, DataFrame)
 
-            for col in (:t, :NeqL, :NeqR, :NpoleU, :NpoleD)
-                col in propertynames(df) || error("Column $col not found in $param_csv")
-            end
+           
 
-            delta = df.NeqL .+ df.NeqR .- df.NpoleU .- df.NpoleD
-            t_zeros = sort(df.t[delta .== 0])
+for col in (:t, :NeqL, :NeqR, :NpoleU, :NpoleD)
+    col in propertynames(df) || error("Column $col not found in $param_csv")
+end
 
-            n_zero = length(t_zeros)
-            t_max = maximum(df.t)
-            prob_no_curv = n_zero / t_max
+# Restrict to the desired frame window
+df_win = df[(df.t .>= start_frame) .& (df.t .<= end_frame), :]
 
-            push!(summary_results, (
+delta   = df_win.NeqL .+ df_win.NeqR .- df_win.NpoleU .- df_win.NpoleD
+t_zeros = sort(df_win.t[delta .== 0])
+
+n_zero  = length(t_zeros)
+t_max   = maximum(df_win.t)          # max frame inside the window
+# or, if you prefer the length of the window:
+# t_max = end_frame - start_frame + 1
+
+prob_no_curv = n_zero / (end_frame - start_frame)
+push!(summary_results, (
                 Run           = i,
                 Main_Folder   = mainfolder_name,
                 R             = params.R,
@@ -90,11 +100,12 @@ function multianalysis_prob_no_curvature(folder_names::String, parent_folder::St
                 prob_no_curv  = prob_no_curv
             ))
 
-            if n_zero >= 2
+           if n_zero >= 2
                 intervals = diff(t_zeros)
-                append!(condition_intervals, intervals)
-
-                for Δt in intervals
+                # t_end is the time of the second zero in each pair
+                t_ends = t_zeros[2:end]
+                 append!(condition_intervals, intervals)
+                for (Δt, t_end) in zip(intervals, t_ends)
                     push!(interval_results, (
                         Run           = i,
                         Main_Folder   = mainfolder_name,
@@ -104,35 +115,36 @@ function multianalysis_prob_no_curvature(folder_names::String, parent_folder::St
                         b             = params.b,
                         aspect        = params.b / params.a,
                         pf            = params.pf,
-                        interval      = Δt
+                        interval      = Δt,
+                        t_end         = t_end          # ← time at the end of the interval
                     ))
                 end
             end
-        end
+            println("length condition_intervals before: $(length(condition_intervals))")
      # ---------- two histograms for this condition ----------
         if !isempty(condition_intervals)
-            intervals_1s   = filter(x -> abs(x - 1.0) < 1e-6, condition_intervals)
-            intervals_other = filter(x -> x > 1.0 + 1e-6, condition_intervals)
+           intervals_small = filter(x -> x <= 30.0, condition_intervals)
+            intervals_large = filter(x -> x > 30.0, condition_intervals)
 
             # 1 s histogram
-            if !isempty(intervals_1s)
-                p1 = histogram(intervals_1s,
+            if !isempty(intervals_small)
+                p1 = histogram(intervals_small,
                                bins=10,
                                xlabel="Interval (s)",
                                ylabel="Count",
-                               title="Intervals = 1 s\n$(mainfolder_name)",
+                               title="Intervals <= 30 s\n$(mainfolder_name)",
                                legend=false)
                 savefig(p1, joinpath(mainfolder, "intervals_1s.png"))
                 println("Saved 1 s histogram")
             end
 
             # other intervals histogram
-            if !isempty(intervals_other)
-                p2 = histogram(intervals_other,
+            if !isempty(intervals_large)
+                p2 = histogram(intervals_large,
                                bins=40,
                                xlabel="Interval (s)",
                                ylabel="Count",
-                               title="Intervals > 1 s\n$(mainfolder_name)",
+                               title="Intervals > 30 s\n$(mainfolder_name)",
                                legend=false)
                 savefig(p2, joinpath(mainfolder, "intervals_other.png"))
                 println("Saved other intervals histogram")
@@ -145,17 +157,18 @@ function multianalysis_prob_no_curvature(folder_names::String, parent_folder::St
     intervals_df = DataFrame(interval_results)
 
     if !isempty(summary_df)
-        CSV.write(joinpath(parent_folder, "output_prob_no_curvature.csv"), summary_df)
+        CSV.write(joinpath(parent_folder, "output_prob_no_curvature_$start_frame-$end_frame.csv"), summary_df)
         println("Summary CSV written")
     end
 
     if !isempty(intervals_df)
-        CSV.write(joinpath(parent_folder, "output_zero_intervals.csv"), intervals_df)
+        CSV.write(joinpath(parent_folder, "output_zero_intervals_$start_frame-$end_frame.csv"), intervals_df)
         println("Intervals CSV written")
     end
 
     return summary_df, intervals_df
 end
+end 
 
 # ---------- helper ----------
 function parse_parameters(folder_name::String)
@@ -178,7 +191,7 @@ function parse_parameters(folder_name::String)
     )
 end
 
-parent_folder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\aspect 0.1\\"
+parent_folder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.1\aspect 0.4\\"
 folder_names  = joinpath(parent_folder, "folder_names.txt")
 
 summary_df, intervals_df = multianalysis_prob_no_curvature(folder_names, parent_folder)
