@@ -36,18 +36,20 @@ function combine_and_plot(parent_folder::String, subfolder_paths::Vector{String}
     end
 
     clean = dropmissing(final_df, [xcol, ycol])
+    # keep only rows where ycol > 30
+    clean = filter(row -> row[ycol] > 30, clean) # ignore if all data is required then comment this line
     grouped = groupby(clean, xcol)
     summary = combine(grouped,
-                      ycol => median   => :median_curv,
+                      ycol => mean   => :mean_curv,
                       ycol => std    => :sd_curv,
                       ycol => length => :n)
     sort!(summary, xcol)
 
-    println("Summary (median ± SD):")
+    println("Summary (mean ± SD):")
     println(summary)
 
     # Plot
-    p = plot(summary.aspect, summary.median_curv,
+    p = plot(summary.aspect, summary.mean_curv,
              yerror = summary.sd_curv,
              xlabel = "aspect ratio (b/a)",
              ylabel = L"Time period to cross $\kappa = 0$",
@@ -58,7 +60,7 @@ function combine_and_plot(parent_folder::String, subfolder_paths::Vector{String}
              legend = false,
              seriestype = :scatter)
 
-    plot!(p, summary.aspect, summary.median_curv, linewidth=1.5, color=:black, alpha=0.5)
+    plot!(p, summary.aspect, summary.mean_curv, linewidth=1.5, color=:black, alpha=0.5)
 
     plot_path = joinpath(parent_folder, "zero_intervals_vs_aspect_R1.5_v5.0_1000-10000.png")
     savefig(p, plot_path)
