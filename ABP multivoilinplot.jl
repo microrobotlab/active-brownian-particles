@@ -18,12 +18,12 @@ function combine_and_violin(parent_folder::String, subfolder_paths::Vector{Strin
     end
 
     final_df = vcat(all_dfs..., cols=:union)
-    final_path = joinpath(parent_folder, "final_all_zero_intervals_R1.5_v5.0_pf0.05_1000-10000.csv")
+    final_path = joinpath(parent_folder, "final_all_zero_intervals_R1.5_v5.0_pf0.1_1000-10000.csv")
     CSV.write(final_path, final_df)
     println("Wrote combined file → $final_path")
 
     clean = dropmissing(final_df, [:aspect, :interval])
-    clean = filter(row -> row.interval > 30, clean)
+    clean = filter(row -> row.interval > 20, clean)
 
     # round first, then make categorical
     clean.aspect_rounded = round.(clean.aspect, digits=2)
@@ -35,7 +35,7 @@ function combine_and_violin(parent_folder::String, subfolder_paths::Vector{Strin
     p = violin(clean.aspect_cat, clean.interval,
                xlabel = "b/a",
                ylabel = L"$T_{cross(\kappa = 0})$",
-               title  = "R=1.5, v = 5.0, pf= 0.05",
+               title  = "R=1.5, v = 5.0, pf= 0.1",
                legend = false,
                linewidth = 1,
                trim = true,
@@ -48,20 +48,20 @@ function combine_and_violin(parent_folder::String, subfolder_paths::Vector{Strin
     scatter!(p, medians.aspect_cat, medians.med,
              marker = (:circle, 6, :red), label = "")
 
-    plot_path = joinpath(parent_folder, "zero_intervals_violin_vs_aspect.png")
+    plot_path = joinpath(parent_folder, "zero_intervals_violin_vs_aspect_1000_10000.png")
     savefig(p, plot_path)
     println("Saved violin plot → $plot_path")
 
     return final_df, p
 end
 
-parent_folder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\\"
+parent_folder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.1\\"
 
 analyzed_folders = [
-    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\aspect 0.1\\",
-    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\aspect 0.25\\",
-    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\aspect 0.4\\",
-    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\aspect 0.55\\"
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.1\aspect 0.1\\",
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.1\aspect 0.25\\",
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.1\aspect 0.4\\",
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.1\aspect 0.55\\"
 ]
 
 combine_and_violin(parent_folder, analyzed_folders)
