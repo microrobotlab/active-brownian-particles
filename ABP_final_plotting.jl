@@ -24,11 +24,11 @@ function combine_and_plot(parent_folder::String, subfolder_paths::Vector{String}
 
     # Concatenate all selected files
     final_df = vcat(all_dfs..., cols=:union)
-    final_path = joinpath(parent_folder, "final_all_output_R1.5_v5.0_pf0.4.csv")
+    final_path = joinpath(parent_folder, "final_all_output_R2.5_v5.0_aspect0.25.csv")
     CSV.write(final_path, final_df)
     println("Wrote combined file → $final_path")
     println("Total rows: $(nrow(final_df))")
-    xcol= :aspect
+    xcol= :pf
     ycol= :Curvature_Effect
     # Mean ± SD of Curvature_Effect vs pf
     if !(xcol in propertynames(final_df)) || !(ycol in propertynames(final_df))
@@ -49,11 +49,11 @@ function combine_and_plot(parent_folder::String, subfolder_paths::Vector{String}
     println(summary)
 
     # Plot
-    p = plot(summary.aspect, summary.mean_curv,
+    p = plot(summary.pf, summary.mean_curv,
              #yerror = summary.sd_curv,
-             xlabel = "b/a",
+             xlabel = "pf",
              ylabel = L"$\kappa$",
-             #title  = "R=1.5, v = 5.0, pf= 0.1",
+             #title  = "R=1.5, v = 5.0, aspect = 0.25",
              marker = :circle,
              markersize = 7,
              linewidth = 2,
@@ -61,9 +61,9 @@ function combine_and_plot(parent_folder::String, subfolder_paths::Vector{String}
              seriestype = :scatter)
              #ylims = (0, 1600))
 
-    plot!(p, summary.aspect, summary.mean_curv, linewidth=1.5, color=:black, alpha=0.5)
+    plot!(p, summary.pf, summary.mean_curv, linewidth=1.5, color=:black, alpha=0.5)
 
-    plot_path = joinpath(parent_folder, "curvature_vs_aspect_R1.5_v5.0_pf0.4.png")
+    plot_path = joinpath(parent_folder, "curvature_vs_aspect_R2.5_v5.0_aspect0.25.png")
     savefig(p, plot_path)
     println("Saved plot → $plot_path")
 
@@ -71,13 +71,13 @@ function combine_and_plot(parent_folder::String, subfolder_paths::Vector{String}
 end
 
 # ======================  RUN THIS  ======================
-parent_folder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.4\\"
+parent_folder = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\\"
 
 analyzed_folders = [
-    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.4\aspect 0.1\\",
-    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.4\aspect 0.25\\",
-    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.4\aspect 0.4\\",
-    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.4\aspect 0.55\\"
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R2.5 pf 0.1\aspect 0.25\\",
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R2.5 pf 0.2\aspect 0.25\\",
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R2.5 pf 0.3\aspect 0.25\\",
+    raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R2.5 pf 0.4\aspect 0.25\\"
 
     # add the other folders you want below (copy the line and change the path)
     #raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.2\aspect 0.25",

@@ -4,7 +4,7 @@ function plot_curvature_vs_aspect_multi_pf(parent_folder::String, pf_files::Vect
     colors  = [:blue, :red, :green, :orange, :purple]
     markers = [:circle, :diamond, :utriangle, :square, :star5]
 
-    p = plot(xlabel = "b/a",
+    p = Plots.plot(xlabel = "b/a",
              ylabel = L"$\kappa$",
              #title  = "R=1.5, v=5.0",
              legend = :topright,
@@ -42,7 +42,7 @@ function plot_curvature_vs_aspect_multi_pf(parent_folder::String, pf_files::Vect
          # Build a clear label from the two pieces of information
          #time_str = time_range == "1-10000" ? "1–10000" : "1000–10000"
         #label_str = "Pf = $pf_val, Time = $time_str"
-        label_str = "Pf = $pf_val"
+        label_str = "Pf_critical = $pf_val"
         plot!(p, summary.aspect, summary.mean_curv,
               yerror = summary.sd_curv,
               label  = label_str,
@@ -54,8 +54,8 @@ function plot_curvature_vs_aspect_multi_pf(parent_folder::String, pf_files::Vect
               markerstrokewidth = 1)
     end
 
-    plot_path = joinpath(parent_folder, "curvature_vs_aspect_multi_pf.png")
-    savefig(p, plot_path)
+    plot_path = joinpath(parent_folder, "curvature_vs_R_multi_pfcritical.png")
+    Plots.savefig(p, plot_path)
     println("Saved plot → $plot_path")
 
     return p
@@ -63,6 +63,13 @@ end
 
 # ======================  RUN THIS  ======================
 parent = raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\\"
+#=
+pf_files = [
+    (1.5, raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\final_all_output_R1.5.csv"),
+    (2.0, raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\final_all_output_R2.0_aspect0.25.csv"),
+    (2.5, raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\final_all_output_R2.5_v5.0_aspect0.25.csv"),
+   ]
+=#
 
 pf_files = [
     (0.05, raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\final_all_output_R1.5_v5.0_pf0.05.csv"),
@@ -71,7 +78,9 @@ pf_files = [
     (0.3, raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.3\final_all_output_R1.5_v5.0_pf0.3.csv"),
     (0.4, raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.4\final_all_output_R1.5_v5.0_pf0.4.csv"),
 
-] #=
+]
+    
+    #=
 pf_files = [
     (0.05,"1-10000", raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\final_all_no_curvature_output_R1.5_v5.0_pf0.05.csv"),
     (0.05,"1000-10000", raw"C:\Users\j.sharma\OneDrive - Scuola Superiore Sant'Anna\P07Coding\workstationMRL\2026\10.October\final paper data\R1.5 pf 0.05\final_all_no_curvature_output_R1.5_v5.0_pf0.05_1000-10000.csv"),
