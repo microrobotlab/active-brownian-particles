@@ -1,0 +1,12 @@
+L = 100;
+a= L/2.53;
+b=L/6.3;
+aspect= 0.4;
+perimeter = 182.04;    #this is calculated from 
+R=1.5;
+#Np= 56;
+Np=  perimeter/(2*R);
+println("N_critical= $Np");
+k= R^2/(a*b);
+pf= Np*k;
+println("Pf_critical = $pf");

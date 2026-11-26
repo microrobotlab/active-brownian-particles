@@ -4,7 +4,7 @@ function plot_curvature_vs_aspect_multi_pf(parent_folder::String, pf_files::Vect
     colors  = [:blue, :red, :green, :orange, :purple]
     markers = [:circle, :diamond, :utriangle, :square, :star5]
 
-    p = Plots.plot(xlabel = "b/a",
+    p = Plots.plot(xlabel = L"$b/a$",
              ylabel = L"$\kappa$",
              #title  = "R=1.5, v=5.0",
              legend = :topright,
